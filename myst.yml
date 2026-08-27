@@ -1,0 +1,15 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: 22c4be78-d77f-4ff1-9b75-29e3a5742831
+  title: Simulation and Optimization — Lecture Notes
+  toc:
+    - file: notebooks/lecture8.ipynb
+    - file: notebooks/lecture9.ipynb
+    - file: notebooks/lecture10.ipynb
+    - file: notebooks/lecture11.ipynb
+    - file: notebooks/lecture12.ipynb
+    - file: notebooks/lecture13.ipynb
+site:
+  title: Simulation and Optimization — Lecture Notes
+  template: book-theme

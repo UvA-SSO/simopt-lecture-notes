@@ -1,0 +1,32 @@
+[project]
+name = "jupyterbook-sso"
+version = "0.1.0"
+description = "Lecture notes for the simulation and optimization part of SSO, as a Jupyter Book"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "jupyter-book>=2,<3",
+    "jupytext>=1.16",
+    "ipykernel>=6.29",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=3.7",
+    "isort>=5.13",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[tool.jupytext.formats]
+"notebooks/" = "ipynb"
+"scripts/" = "py:percent"
+
+[tool.isort]
+profile = "black"
+float_to_top = true
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+ignore_missing_imports = true

@@ -1,0 +1,81 @@
+```text
+Prepare the first version of the lecture notebooks in this Jupyter Book repository. Follow all conventions in `CLAUDE.md`.
+
+## Task
+
+Use:
+
+- `Literature/` for the main book and errata;
+- the HTML-in-`.txt` file for the lecture schedule and topics.
+
+For each scheduled lecture, identify the relevant book sections and compile them into one lecture notebook.
+
+This is a source-compilation step only. Do **not** rewrite, summarize, simplify, translate, explain, or otherwise adapt the book text. Do **not** yet replace R or Excel with Python; retain all original R/Excel material unchanged. Only apply corrections required by the errata.
+
+## Workflow
+
+1. Inspect the schedule, book, and errata.
+2. First provide a mapping table:
+
+   | Lecture | Schedule topic(s) | Book section(s) | Relevant errata | Uncertainties |
+   |---|---|---|---|---|
+
+3. If a mapping is materially ambiguous, stop and ask for my decision. Do not guess.
+4. Otherwise, create one paired lecture file set per lecture:
+   - `scripts/lectureN.py`
+   - `notebooks/lectureN.ipynb`
+
+5. Edit the `.py` scripts only, using Jupytext percent format. Synchronise each with:
+   ```sh
+   uv run jupytext --sync scripts/lectureN.py
+   ```
+
+6. Each lecture script should contain Markdown cells with this minimal structure:
+
+   ```python
+   # %% [markdown]
+   # Lecture N: [Title]
+
+   # %% [markdown]
+   ## Source map
+   - **Schedule topic(s):** ...
+   - **Book source(s):** ...
+   - **Errata applied:** ...
+
+   # %% [markdown]
+   ## Compiled source text
+
+   [Relevant book passages, in their original order and wording.]
+   ```
+
+## Source-text rules
+
+- Combine all relevant book passages for a lecture into one logical sequence.
+- Preserve headings, subheadings, equations, examples, tables, figure captions, references, and code as faithfully as possible.
+- Do not add your own explanations, transitions, exercises, or learning objectives.
+- If a passage is reused in multiple lectures, include it where needed and label it as repeated.
+- If text is unreadable, use `[illegible in source]`; never invent missing text.
+- Apply applicable errata directly to the compiled text and immediately add:
+  ```markdown
+  > **Erratum applied:** [description/reference]
+  ```
+- If erratum relevance is uncertain, do not apply it; add:
+  ```markdown
+  > **Erratum relevance to verify:** [description]
+  ```
+
+## Repository updates and checks
+
+- Add each notebook to the flat `project.toc` list in `myst.yml`:
+  ```yaml
+  - file: notebooks/lectureN.ipynb
+  ```
+- Do not manually edit notebook JSON or commit `_build/`.
+- Run:
+  ```sh
+  uv run pre-commit run --all-files
+  ```
+- If feasible, run `uv run jupyter book start` to verify rendering.
+
+At the end, report the mapping, files changed, errata applied, unresolved issues, and commands run with their results.
+```

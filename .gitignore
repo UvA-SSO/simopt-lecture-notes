@@ -1,0 +1,7 @@
+.venv/
+_build/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.mypy_cache/
+.ruff_cache/
