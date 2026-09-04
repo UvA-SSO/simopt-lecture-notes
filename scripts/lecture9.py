@@ -13,13 +13,7 @@
 # ---
 
 # %% [markdown]
-# Lecture 9: Applications of Integer Linear Optimization; Advanced Modeling
-
-# %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** Applications of (integer) linear optimization (§6.5); Advanced modeling (§6.7)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — §6.5 "Example ILO problems"; §6.7 "Modeling tricks"
-# - **Errata applied:** none
+# # Lecture 9: Applications of Integer Linear Optimization; Advanced Modeling
 
 # %% [markdown]
 # ## Compiled source text
@@ -46,7 +40,9 @@
 #
 # The binary constraints are necessary, as the following example shows. Let $U = \{1, 2, 3\}$ and $S_1 = \{1, 2\}$, $S_2 = \{1, 3\}$, and $S_3 = \{2, 3\}$. Then any combination of 2 sets is optimal but the LO relaxation has optimal value 1.5 with solution $(0.5, 0.5, 0.5)$.
 #
-# The main constraint is often replaced by the following more convenient notation: $\sum_{j=1}^{n} a_{uj} x_i \ge 1$ with $a_{uj} = 1$ if $u \in S_j$, 0 otherwise.
+# The main constraint is often replaced by the following more convenient notation: $\sum_{j=1}^{n} a_{uj} x_j \ge 1$ with $a_{uj} = 1$ if $u \in S_j$, 0 otherwise.
+#
+# > **Erratum applied (p. 98):** the summation index is $x_j$, not $x_i$ (the book prints $\sum_{j=1}^{n} a_{uj} x_i$).
 #
 # **Exercise 6.12** Solve the following ILO problem, inspired by [13]. A swimming pool is open during 12 hours, and the lifeguards at duty should be selected. Every lifeguard has his/her own working hours and wage, as given in the table. Select the optimal combination of lifeguards assuring at least 1 lifeguard at every moment. The hours mentioned are the first and last hour that each lifeguards works, thus Ben/Celia/Fred is a feasible solution.
 #
@@ -245,3 +241,10 @@
 # ```
 #
 # **Exercise 6.22** Change the objective of Exercise 6.14 as follows: the time the last class finishes has to be minimized.
+
+# %% [markdown]
+# ## Source map
+# - **Schedule topic(s):** Applications of (integer) linear optimization (§6.5); Advanced modeling (§6.7)
+# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — §6.5 "Example ILO problems"; §6.7 "Modeling tricks"
+# - **Errata applied** (per `Literature/Erratum Book An Introduction to Business Analytics by Koole (2019).pdf`)**:**
+#   - p. 98 (§6.5, set cover): the convenient-notation constraint reads $\sum_{j=1}^{n} a_{uj} x_j \ge 1$ — the book prints $x_i$ instead of $x_j$.

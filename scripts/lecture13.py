@@ -13,13 +13,7 @@
 # ---
 
 # %% [markdown]
-# Lecture 13: Simulation Optimization
-
-# %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** Simulation optimization (Ch. 8)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 8 "Simulation Optimization" (whole)
-# - **Errata applied:** none
+# # Lecture 13: Simulation Optimization
 
 # %% [markdown]
 # ## Compiled source text
@@ -150,3 +144,9 @@
 # There are few accessible books on simopt. Nelson [26] is a textbook on simulation that includes a chapter on simopt; Fu [11] is an accessible introduction to the subject.
 #
 # Note that we have not discussed situations in which the solution space is continuous, for example all values between 0 and 1. In these situations approximations of derivatives (in more dimensions called gradients) are very useful.
+
+# %% [markdown]
+# ## Source map
+# - **Schedule topic(s):** Simulation optimization (Ch. 8)
+# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 8 "Simulation Optimization" (whole)
+# - **Errata applied:** none

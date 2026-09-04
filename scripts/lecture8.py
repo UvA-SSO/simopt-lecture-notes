@@ -13,15 +13,7 @@
 # ---
 
 # %% [markdown]
-# Lecture 8: Introduction to Business Analytics; Modeling; Linear and Integer Optimization
-
-# %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** Introduction to business analytics (Ch. 1); Modeling; Linear optimization (§6.1-§6.3); Integer linear optimization (§6.4)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 1 "Introduction" (whole); §6.1 "Problem formulation"; §6.2 "LO in Excel"; §6.3 "Example LO problems"; §6.4 "Integer problems"
-# - **Errata applied:** none
-#
-# > **Uncertainty:** the schedule lists a separate topic "Modeling" between Ch. 1 and §6.1-§6.3, with no section number and no dedicated book section. It is not mapped to a specific passage below to avoid guessing.
+# # Lecture 8: Introduction to Business Analytics; Modeling; Linear and Integer Optimization
 
 # %% [markdown]
 # ## Compiled source text
@@ -61,7 +53,7 @@
 # ![Data collection, data pre-processing, descriptive analytics, predictive analytics, prescriptive analytics, implementation — the full BA project spans all steps, the data science steps span descriptive through prescriptive analytics.](images/lecture8_fig-steps.png)
 
 # %% [markdown]
-# The model above suggests a linear process, but in practice this is rarely the case. At many of the steps, depending on the outcome, you might revisit earlier steps. For example, if the predictions are not accurate enough for a particular aaplication then you might collect extra data to improve them. Furthermore, not all BA projects include prescriptive analytics, many projects have insight or prediction as goal and therefore finish after the descriptive or predictive steps.
+# The model above suggests a linear process, but in practice this is rarely the case. At many of the steps, depending on the outcome, you might revisit earlier steps. For example, if the predictions are not accurate enough for a particular application then you might collect extra data to improve them. Furthermore, not all BA projects include prescriptive analytics, many projects have insight or prediction as goal and therefore finish after the descriptive or predictive steps.
 #
 # The major scientific fields of study corresponding to these BA steps are:
 
@@ -140,7 +132,7 @@
 #
 # > **Box 1.2. Human versus artificial intelligence**
 # >
-# > Certain AI techniques are inspired by human intelligence or structures we find in nature, illustrated by names such as artificial neural networks or evolutionary computing. It is an interesting question whether or not we should try to copy human behavior with, eventually, the possibility that computers become "more intelligent" than humans. We could also argue that humans and computers have different capacities (seeing structures versus fast and errorless computation) and that our approaches to solving the same problem should be completely different. Your point of view might influences whether or not you find AI dangerous, as Stephen Hawkins did for example.
+# > Certain AI techniques are inspired by human intelligence or structures we find in nature, illustrated by names such as artificial neural networks or evolutionary computing. It is an interesting question whether or not we should try to copy human behavior with, eventually, the possibility that computers become "more intelligent" than humans. We could also argue that humans and computers have different capacities (seeing structures versus fast and errorless computation) and that our approaches to solving the same problem should be completely different. Your point of view might influence whether or not you find AI dangerous, as Stephen Hawkins did for example.
 #
 # Often the set of known data entries is split in a training and a test set: the algorithm is trained on the basis of the training set, and then evaluated on the basis of the test set. Usually an algorithm performs worse on the test set, but this is a more reliable comparison, as it avoids overfitting: the fact that the prediction of the algorithm is perfect for the training set but has no predictive value and therefore works bad on the test set. In statistics the terms in sample and out of sample are used for the same concepts. Understanding the background of the techniques and learning how to use them in the data science tool R is one of the main objectives of this book.
 #
@@ -186,7 +178,7 @@
 # ![Figure 1.4: Types of analytics tools with some examples; o = open source, p = proprietary](images/lecture8_fig1.4.png)
 
 # %% [markdown]
-# Note that many interfaces exist between the tools and languages in Figure 1.4. From within Excel and general programming languages databases can be accessed; DSS, spreadsheets and optimization environments call optimization engines, etc. Especially with the open source environments R and Python every imaginable data science project can be done, where python is preferred in the case of big data or applications requiring intensive computation. R and python are quickly gaining popularity: there is an enormous community developing new libraries and offering support through websites such as stackoverflow.com.
+# Note that many interfaces exist between the tools and languages in Figure 1.4. From within Excel and general programming languages databases can be accessed; DSS, spreadsheets and optimization environments call optimization engines, etc. Especially with the open source environments R and Python every imaginable data science project can be done, where Python is preferred in the case of big data or applications requiring intensive computation. R and Python are quickly gaining popularity: there is an enormous community developing new libraries and offering support through websites such as stackoverflow.com.
 
 # %% [markdown]
 # #### 1.5 Implementation
@@ -276,6 +268,8 @@
 
 # %% [markdown]
 # ![Figure 6.1: A graphical view of LO](images/lecture8_fig6.1.png)
+#
+# > **Erratum applied (p. 87):** the objective line actually drawn in Figure 6.1 corresponds to value 24, not 36 (the text above refers to the line "with value 36").
 
 # %% [markdown]
 # Let us now take an algebraic point of view. The 2 constraints can be rewritten as equalities as follows, using additional variables $y_1$ and $y_2$:
@@ -524,6 +518,8 @@
 
 # %% [markdown]
 # ![Figure 6.9: Solving an ILO problem](images/lecture8_fig6.9.png)
+#
+# > **Erratum applied (p. 97):** in Figure 6.9, step 9 should have objective value 127.33 (not 128) and solution $(1, 0, 1, 1, 13/15, 0, 0)$ (not $(1, 0, 1, 1, 9/10, 0, 0)$).
 
 # %% [markdown]
 # Now we branch on $x_3$, and we continue with the branch $x_3 = 0$. We solve the relaxation again, but with $x_3 = 0$. We find again a non-integer solution (step 2). We continue branching until we find an integer solution in step 4 with value 133. It is called a lower bound (LB) of the optimum: perhaps there are other integer solutions with values between 133 and 150. To find out if there are any such solutions we work our way back up to make sure all branches are dealt with. In step 5, we find an integer solution that is worse than the LB. In step 6, we find a higher binary value than the LB. It becomes the new LB, and the old LB is now sub-optimal (step 7). We have dealt with the left side of the tree, we move to the right. In step 8, we find a non-integer solution, we branch on $x_2$. In step 9 and 10, we find non-integer solutions which are worse or equal than the LB. Adding constraints will not make the value higher, therefore these branches can be discarded. We have dealt with all branches, and therefore the current LB is the optimum (step 11). This algorithm is called branch-and-bound.
@@ -531,3 +527,16 @@
 # Many LO solvers can also handle integer constraints. However, not all solvers can solve big instances. The best solvers are proprietary, notably CPLEX and Gurobi.
 #
 # **Exercise 6.11** Solve by branch-and-bound the knapsack problem having rewards (15, 9, 10, 5), sizes (1, 3, 5, 4) and capacity 8. Check the result with R.
+
+# %% [markdown]
+# ## Source map
+# - **Schedule topic(s):** Introduction to business analytics (Ch. 1); Modeling; Linear optimization (§6.1-§6.3); Integer linear optimization (§6.4)
+# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 1 "Introduction" (whole); §6.1 "Problem formulation"; §6.2 "LO in Excel"; §6.3 "Example LO problems"; §6.4 "Integer problems"
+# - **Errata applied** (per `Literature/Erratum Book An Introduction to Business Analytics by Koole (2019).pdf`)**:**
+#   - p. 3 (§1.1): "aaplication" → "application"
+#   - p. 9 (Box 1.2, last line): "influences" → "influence"
+#   - p. 13 (§1.4, last paragraph): "python" → "Python" (twice)
+#   - p. 87 (§6.1, Figure 6.1): the objective line drawn in the figure has value 24, not 36
+#   - p. 97 (§6.4, Figure 6.9): step 9 has objective value 127.33 (not 128) and solution $(1, 0, 1, 1, 13/15, 0, 0)$ (not $(1, 0, 1, 1, 9/10, 0, 0)$)
+#
+# > **Uncertainty:** the schedule lists a separate topic "Modeling" between Ch. 1 and §6.1-§6.3, with no section number and no dedicated book section. It is not mapped to a specific passage above to avoid guessing.

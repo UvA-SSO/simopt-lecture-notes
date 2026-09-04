@@ -13,13 +13,7 @@
 # ---
 
 # %% [markdown]
-# Lecture 10: Modeling Tools and Solvers
-
-# %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** Modeling tools and solvers (§6.6)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — §6.6 "Modeling tools"
-# - **Errata applied:** none
+# # Lecture 10: Modeling Tools and Solvers
 
 # %% [markdown]
 # ## Compiled source text
@@ -39,3 +33,9 @@
 # The best known algebraic modeling languages (AMLs) are AIMMS, AMPL, GAMS, LINDO, and MPL. Some of these languages are part of an integrated development environment (IDE) that simplifies the modeling even further. The problem entry in these AMLs is quite similar to mathematical notation (see Box 6.2 on AMPL). Many of the tools and engines have free educational licenses, which makes it possible for students to learn and experiment. Even simpler to use is the NEOS server, a free cloud service which features a range of solvers to which one can submit optimization problems in a number of AML formats.
 #
 # The AMLs and associated IDEs allow experienced modelers to model and solve problems they encounter. However, engines can also be built into software dedicated to solve a particular class of problems such as navigation software. These types of problem-specific tools are called decision support systems (DSSs). They are geared towards a different class of users. While AMLs are used by experienced data scientists and OR consultants, DSSs are most often used by planners with domain knowledge, but with less or no background in optimization and modeling.
+
+# %% [markdown]
+# ## Source map
+# - **Schedule topic(s):** Modeling tools and solvers (§6.6)
+# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — §6.6 "Modeling tools"
+# - **Errata applied:** none

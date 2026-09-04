@@ -13,15 +13,7 @@
 # ---
 
 # %% [markdown]
-# Lecture 12: Simulation (with a Variability Recap)
-
-# %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** Simulation (Ch. 5); "Read Chapter 3 (as a recap)" (listed under "Before lecture" in the schedule)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 3 "Variability" (whole, recap); Chapter 5 "Simulation" (whole)
-# - **Errata applied:** none
-#
-# > Chapter 3 is included as recap material (per the schedule's "Before lecture" prep reading), placed before the Chapter 5 lecture content.
+# # Lecture 12: Simulation (with a Variability Recap)
 
 # %% [markdown]
 # ## Compiled source text
@@ -691,3 +683,11 @@
 # Savage [36] uses simulation to explain variability and its pitfalls to layman, avoiding words such as random variable. Klastorin [21] is an excellent book on project management.
 #
 # More information on the OO simulation language Simula can be found on Wikipedia.
+
+# %% [markdown]
+# ## Source map
+# - **Schedule topic(s):** Simulation (Ch. 5); "Read Chapter 3 (as a recap)" (listed under "Before lecture" in the schedule)
+# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 3 "Variability" (whole, recap); Chapter 5 "Simulation" (whole)
+# - **Errata applied:** none
+#
+# > Chapter 3 is included as recap material (per the schedule's "Before lecture" prep reading), placed before the Chapter 5 lecture content.

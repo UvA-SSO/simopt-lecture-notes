@@ -13,15 +13,7 @@
 # ---
 
 # %% [markdown]
-# Lecture 11: Algorithms and Heuristics; Complexity
-
-# %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** Algorithms and heuristics (§7.1-§7.3); Complexity (§7.4)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 7 "Combinatorial Optimization", §7.1-§7.4
-# - **Errata applied:** Table 7.1 (Dijkstra's algorithm applied to the graph of Figure 7.1) corrected per `Literature/Erratum Table 7.1 book Ger Koole.xlsx`
-#
-# > **Uncertainty:** the book's own chapter/section title is "Combinatorial Optimization" (§7.1 shortest path, §7.2 maximum flow, §7.3 traveling salesman, §7.4 complexity), which differs from the schedule's label "Algorithms and heuristics" / "Complexity" — the section numbers map 1:1, only the descriptive label differs.
+# # Lecture 11: Algorithms and Heuristics; Complexity
 
 # %% [markdown]
 # ## Compiled source text
@@ -63,18 +55,23 @@
 # ![Figure 7.1: A graph with V = {A, B, C, D, E, F} and distances along the edges](images/lecture11_fig7.1.png)
 
 # %% [markdown]
+# _distances_
+#
 # | step | A | B | C | D | E | F |
 # |---|---|---|---|---|---|---|
-# | 1 | 0 (–) | ∞ | ∞ | ∞ | ∞ | ∞ |
-# | 2 | | 3 (A) | 1 (A) | ∞ | ∞ | ∞ |
-# | 3 | | 2 (C) | | 3 (C) | 5 (C) | ∞ |
-# | 4 | | | | 3 (C) | 5 (C) | ∞ |
-# | 5 | | | | | 4 (D) | 8 (D) |
-# | 6 | | | | | | 6 (E) |
+# | 1 | 0 | ∞ | ∞ | ∞ | ∞ | ∞ |
+# | 2 | | 3 | 1 | ∞ | ∞ | ∞ |
+# | 3 | | 2 | | 3 | 5 | ∞ |
+# | 4 | | | | 3 | 5 | ∞ |
+# | 5 | | | | | 4 | 8 |
+# | 6 | | | | | | 6 |
 #
-# Table 7.1: Dijkstra's algorithm applied to the graph of Figure 7.1. Each cell shows the updated distance and, in parentheses, the node it was updated from; blank cells carry forward the previous value unchanged.
+# Table 7.1: Dijkstra's algorithm applied to the graph of Figure 7.1
+
+# %% [markdown]
+# This algorithm terminates with $f(x)$ the shortest distance from $s$ to $j$ for any node $j$. Every time you update a node you can keep track of the minimizing arc. If you store this arc every time a node becomes visited, then you build a tree with the shortest paths to all nodes.
 #
-# > **Erratum applied:** Table 7.1 corrected per `Literature/Erratum Table 7.1 book Ger Koole.xlsx` — the corrected table adds, for each updated cell, the predecessor node the update came from (in parentheses), clarifying which arc produced each shortest-distance update.
+# **Exercise 7.1** Find the shortest path from A to E for the graph in Figure 7.2 using Dijkstra's algorithm. Formulate it also as an LO problem using the formulation of the box below. Give the optimal solution and check its feasibility.
 
 # %% [markdown]
 # ![Figure 7.2: A directed graph with V = {A, B, C, D, E} and distances along the arcs](images/lecture11_fig7.2.png)
@@ -134,6 +131,8 @@
 
 # %% [markdown]
 # ![Figure 7.3: Ford-Fulkerson illustrated](images/lecture11_fig7.3.png)
+#
+# > **Erratum applied (p. 112):** in Figure 7.3, the second graph (upper-right, after the first augmenting path A-B-D-F) illustrates a flow of 2 instead of 5 — consistent with the text, which adds the augmenting-path capacity 2 to the flow.
 
 # %% [markdown]
 # > **Box 7.3. LO solution of maximum flow problem**
@@ -158,6 +157,8 @@
 
 # %% [markdown]
 # ![Figure 7.4: An undirected graph with capacities](images/lecture11_fig7.4.png)
+#
+# > **Erratum applied (p. 113):** the numbers along the edges of Figure 7.4 are distances, not capacities (Exercise 7.3 uses them as capacities for the max-flow question, while §7.3 uses the same figure's numbers as distances for the TSP).
 
 # %% [markdown]
 # For the TSP, no efficient algorithm is known; essentially only enumeration is guaranteed to find the shortest tour. However, there are $(n-1)!$ different tours, which will take very long even for moderately sized problems! Therefore the TSP is solved using heuristics, i.e., algorithms that are not guaranteed to terminate with an optimal solution.
@@ -228,3 +229,13 @@
 # > The simplex method, which is the original method invented by Dantzig for solving LO problems, has been proven to work very well, even for very big problems. However, it is possible to construct problems for which the run time is not polynomial in the size, thus the simplex method is not in P. In the 1980s, the so-called interior-point methods were developed that solve LO in polynomial time. These are widely used since then.
 #
 # It is important to note that there are more difficult classes of problems than NP-complete problems, for example those where it is hard to verify whether a proposed solution is indeed feasible. Note also that solving a mathematical optimization problem is only part of solving business problems. Indeed, translating a business problem into a mathematical model — modeling — is often harder than solving the resulting model. It is the ultimate goal of business analytics to solve any business problem in a rational data-driven way. Many of these problems, especially the strategic ones ("which product to develop?" or "how to maximize profit while keeping the risk of a loss below 5%?", or even "which employees to hire?") are very hard to model. Therefore modeling is an essential part of business analytics. Solving these types of problems in a rational mathematical way was the promise of management science in the 1950s. This failed and OR/MS was largely focused on operational problems in the following decades. The availability of data brings the solution to these problems within reach.
+
+# %% [markdown]
+# ## Source map
+# - **Schedule topic(s):** Algorithms and heuristics (§7.1-§7.3); Complexity (§7.4)
+# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 7 "Combinatorial Optimization", §7.1-§7.4
+# - **Errata applied** (per `Literature/Erratum Book An Introduction to Business Analytics by Koole (2019).pdf`)**:**
+#   - p. 112 (§7.2, Figure 7.3): the second (upper-right) graph illustrates a flow of 2 instead of 5
+#   - p. 113 (§7.2, Figure 7.4): the edge labels are distances, not capacities
+#
+# > **Uncertainty:** the book's own chapter/section title is "Combinatorial Optimization" (§7.1 shortest path, §7.2 maximum flow, §7.3 traveling salesman, §7.4 complexity), which differs from the schedule's label "Algorithms and heuristics" / "Complexity" — the section numbers map 1:1, only the descriptive label differs.

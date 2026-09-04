@@ -4,12 +4,19 @@ project:
   id: 22c4be78-d77f-4ff1-9b75-29e3a5742831
   title: Simulation and Optimization — Lecture Notes
   toc:
+    - file: index.md
     - file: notebooks/lecture8.ipynb
+      title: Lecture 8
     - file: notebooks/lecture9.ipynb
+      title: Lecture 9
     - file: notebooks/lecture10.ipynb
+      title: Lecture 10
     - file: notebooks/lecture11.ipynb
+      title: Lecture 11
     - file: notebooks/lecture12.ipynb
+      title: Lecture 12
     - file: notebooks/lecture13.ipynb
+      title: Lecture 13
 site:
   title: Simulation and Optimization — Lecture Notes
   template: book-theme
