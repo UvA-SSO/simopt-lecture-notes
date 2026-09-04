@@ -16,11 +16,6 @@
 # # Lecture 8: Introduction to Business Analytics
 
 # %% [markdown]
-# ## Compiled source text
-
-# %% [markdown]
-# ### Chapter 1 — Introduction
-#
 # This chapter explains business analytics and data science without going into any technical detail. We will clarify the meaning of different terms used, put the current developments in a historical perspective, give the reader an idea of the potential of business analytics (BA), and give a high-level overview of the steps and pitfalls in implementing a BA strategy.
 #
 # **Learning outcomes**
@@ -31,7 +26,7 @@
 # - reflect on the skills and knowledge required to successfully apply business analytics in practice
 
 # %% [markdown]
-# #### 1.1 What is business analytics?
+# ## What is Business Analytics?
 #
 # According to Wikipedia, "Business analytics refers to the skills, technologies, practices for continuous iterative exploration and investigation of past business performance to gain insight and drive business planning." In short, BA is a rational, fact-based approach to decision making. These facts come from data, therefore BA is about the science and the skills to turn data into decisions. The science is mostly statistics, artificial intelligence (data mining and machine learning), and optimization; the skills are computer skills, communication skills, project and change management, etc.
 #
@@ -39,11 +34,19 @@
 #
 # BA is often subdivided into three consecutive activities: descriptive analytics, predictive analytics, and prescriptive analytics. During the descriptive phase, data is analyzed and patterns are found. The insights are consequently used in the predictive phase to predict what is likely to happen in the future, if the situation remains the same. Finally, in the prescriptive phase, alternative decisions are determined that change the situation and which will lead to desirable outcomes.
 #
-# **Example 1.1** A hotel chain analyzes its reservations to look for patterns: which are the busiest days of the week? What is the impact of events in the city? Is there a seasonal pattern? Etc. The outcomes are used to make a prediction for the revenue in the upcoming months. By changing the pricing of the rooms in certain situations (such as sports events), the expected revenue can be maximized.
+# :::{note} Example: Hotel Revenue Management
+# :label: eg-1-1
+#
+# A hotel chain analyzes its reservations to look for patterns: which are the busiest days of the week? What is the impact of events in the city? Is there a seasonal pattern? Etc. The outcomes are used to make a prediction for the revenue in the upcoming months. By changing the pricing of the rooms in certain situations (such as sports events), the expected revenue can be maximized.
+# :::
 #
 # Analytics can only start when there is data. Certain organizations already have a centralized data warehouse in which relevant current and historical data is stored for the purpose of reporting and analytics. Setting up such a data warehouse and maintaining it is part of the business intelligence (BI) strategy of a company. However, not all companies have such a centralized database, and even when it exists it rarely contains all the information required for a certain analysis. Therefore, data often needs to be collected, cleansed and combined with other sources. Data collection, cleansing and further pre-processing is usually a very time-consuming task, often taking more time than the actual analysis.
 #
-# **Example 1.2** In the hotel revenue management example above we need historical data on reservations but also data on historical and future events in the surroundings of the hotel. There are many reasons why this data can be hard to get: reservation data may only be stored at an aggregated level, there may have been changes in IT systems which overrode previously collected data, there may be no centrally available list with events, etc. Many organizations assume they already have all the data required, but as soon as the data scientist asks for reservation data combined with the date the booking was made or the event list from the surrounding area, the hotel might find out that they lack data.
+# :::{note} Example: Data Availability
+# :label: eg-1-2
+#
+# In the hotel revenue management example above we need historical data on reservations but also data on historical and future events in the surroundings of the hotel. There are many reasons why this data can be hard to get: reservation data may only be stored at an aggregated level, there may have been changes in IT systems which overrode previously collected data, there may be no centrally available list with events, etc. Many organizations assume they already have all the data required, but as soon as the data scientist asks for reservation data combined with the date the booking was made or the event list from the surrounding area, the hotel might find out that they lack data.
+# :::
 #
 # Therefore, data collection and pre-processing are always the first steps of a BA project. Following the data collection and pre-processing the real data science steps begin with descriptive analytics. Moreover, a BA project does not end with prescriptive analytics, i.e., with generating an (optimal) decision. The decision has to be implemented, which requires various skills, such as knowledge of change management.
 #
@@ -65,28 +68,40 @@
 #
 # Following the descriptive analytics a BA project continues with predictive analytics. A target value is specified which we want to predict. Based on the data available, the parameters of the selected predictive method are determined. We say that the model is trained on the data. The methods originate from inferential statistics and machine learning, which have their respective roots in mathematics and computer science. Although the approach and the background of these fields are quite different, the techniques largely overlap.
 #
-# **Example 1.3** A debt collection agency wants to use its resources, mainly calls to debtors, in a better way. It collects data on payments which is enriched by external data on household composition and neighborhood characteristics. After the data analysis and visualization a method is selected that predicts, given the characteristics of the dept and the actions taken by the agengy, the probability that the deptor will pay off their debt. In the prescriptive step, which is to be discussed next, the best action for each deptor is determined.
+# :::{note} Example: Debt Collection
+# :label: eg-1-3
+#
+# A debt collection agency wants to use its resources, mainly calls to debtors, in a better way. It collects data on payments which is enriched by external data on household composition and neighborhood characteristics. After the data analysis and visualization a method is selected that predicts, given the characteristics of the debt and the actions taken by the agency, the probability that the debtor will pay off their debt. In the prescriptive step, which is to be discussed next, the best action for each debtor is determined.
+# :::
 #
 # Finally, during the prescriptive analytics phase, options are found to maximize a certain objective. Because the future is always unpredictable to a certain extent, optimization techniques often have to account for this randomness. The field that specializes in this is (mathematical) optimization. It overlaps partially with reinforcement learning, which has its roots in computer science. A special feature of reinforcement learning is that prediction and optimization are integrated: it combines in one method the predictive and prescriptive phases.
 #
-# **Example 1.4** Consider again Example 1.2 on hotel revenue management. After having studied the influence of events and for example intra-week fluctuations on hotel reservations in the descriptive step demand per price class is forecasted in the predictive step. These forecasts are input to an optimization algorithm that determines on a daily basis the prices that maximize total revenue.
+# :::{note} Example: Hotel Revenue Management (continued)
+# :label: eg-1-4
+#
+# Consider again the hotel revenue management example above. After having studied the influence of events and for example intra-week fluctuations on hotel reservations in the descriptive step demand per price class is forecasted in the predictive step. These forecasts are input to an optimization algorithm that determines on a daily basis the prices that maximize total revenue.
+# :::
 #
 # We end this section by discussing two terms that are closely related to BA: Data science and big data. Data science is an older term which has recently shifted in meaning and increased in popularity. It is a combination of different scientific fields all concerned with extracting knowledge from data, mainly data mining and statistics. Part of the popularity probably stems from the fact that the Harvard Business Review called a data scientist role "the sexiest job of 21st century", anticipating the huge demand for data scientists. The knowledge base of data scientists and business analysts largely overlap. However, the deliverable of BA is improved business performance, whereas data scientists focus more on methods and insights from data. Improved business performance requires optimization to generate decisions and soft skills to implement the decisions.
 #
 # Finally, a few words on big data. Big data differentiates itself from regular data sets by the so-called 3 V's: volume, variety, and velocity. A data set is considered to be "big data" when the amount of data is too much to be stored in a regular database, when it lacks a homogeneous structure (i.e., free text instead of well-described fields), and/or when it is only available real-time. Big data requires adapted storage systems and analysis techniques in order to exploit it.
 #
-# > **Box 1.1. From randomized trials to using already available data**
-# >
-# > The traditional way to do scientific research in the medical and behavorial sciences is through (double-blind) randomized trials. This means that subjects (e.g., patients) have to be selected, and by a randomized procedure they are made part of the trial or part of the control group. It is called double blind when the subject and the researcher are both not aware of who is in which group. This kind of research set-up allows for a relatively simple statistical analysis, but it is often hard to implement and very time-consuming.
-# >
-# > Nowadays, data can often be obtained from Electronic Health Records and other data sources. This eliminates the need for separate trials. However, there will be all kinds of statistical biases in the data, making it harder to make a fair comparison between treatments. For example, patients of a certain age or having certain symptoms might get more-often a certain treatment. This calls for advanced statistical methods to eliminate these biases. These methods are usually not taught in medical curricula, requiring the help of expert data scientists.
+# :::{note} From Randomized Trials to Using Already Available Data
+# The traditional way to do scientific research in the medical and behavioral sciences is through (double-blind) randomized trials. This means that subjects (e.g., patients) have to be selected, and by a randomized procedure they are made part of the trial or part of the control group. It is called double blind when the subject and the researcher are both not aware of who is in which group. This kind of research set-up allows for a relatively simple statistical analysis, but it is often hard to implement and very time-consuming.
+#
+# Nowadays, data can often be obtained from Electronic Health Records and other data sources. This eliminates the need for separate trials. However, there will be all kinds of statistical biases in the data, making it harder to make a fair comparison between treatments. For example, patients of a certain age or having certain symptoms might get more-often a certain treatment. This calls for advanced statistical methods to eliminate these biases. These methods are usually not taught in medical curricula, requiring the help of expert data scientists.
+# :::
 #
 # Big data now receives a lot of attention due to the speed at which data is collected these days. As more and more devices and sensors automatically generating data are connected to the internet (the internet of things) again, the amount of stored data doubles approximately every 3 years. However, most BA projects do not involve big data, but use with relatively small and structured data sets. It might have been the case that such a dataset had its origin in big data from which relevant information has been extracted.
 #
-# **Example 1.5** Cameras in metro stations are used to surveil passengers. Using image recognition software the numbers of passengers can be extracted, which can be used as input for a prediction method that forecasts future passenger volumes.
+# :::{note} Example: Passenger Counting
+# :label: eg-1-5
+#
+# Cameras in metro stations are used to surveil passengers. Using image recognition software the numbers of passengers can be extracted, which can be used as input for a prediction method that forecasts future passenger volumes.
+# :::
 
 # %% [markdown]
-# #### 1.2 Historical overview
+# ## Historical Overview
 #
 # Business analytics combines techniques from different fields all originating from their own academic background. We will touch upon the main constituent fields of statistics, artificial intelligence, operations research, and also BA and data science (DS).
 #
@@ -96,14 +111,14 @@
 #
 # Operations research (OR) is about the application of mathematical optimization to decision problems in organizations. OR, sometimes called management science, and abbreviated as OR/MS, also raised big expectations, in the 1950s, following the first successes of the allied forces of OR being applied during World War II. The belief was that scientific methods would replace traditional management and turn it into a science. However, the impact at the strategic decision level remained very limited and OR applications are mainly found at the operational level. Quite often the application of OR would be to a logistical problem such as the routing of delivery vans, outside the scope of higher management. OR faces the same problems as statistics: it has been developed as a highly mathematical science, but it has a hard time adapting itself to the current situation in which data and tooling is easily available. Often it is still taught in a highly abstract mathematical way, limiting the potential impact in practice.
 #
-# BA on the other hand, developed in organizations that realized that their data was not just valuable for their current operations, but also to gain insight and improve their processes. Starting in the 1990's, we saw more and more analysts working with data in organizations. An important difference with OR is that many executives do understand the value of analytics and adopt a company-wide BA strategy. A book by Davenport [8], who is an advocate of BA, also played a role in increasing the interest in the value of analytics to executives. Interestingly enough, the main example throughout the book is dynamic pricing in airlines, a typical OR success. The name OR is not mentioned once. This supports the opinion that some of these new areas are in fact rebranded old areas, it's old wine in a new bottle. Whether this is really true, or if there are fundamental differences between areas is not really relevant. The fact is that the availability of data, computers and software made the widespread use of BA possible. Finally, BA methods — also the ones originating from the mathematical sciences — are used on a huge scale in companies, institutions and research centers, offering countless opportunities for business analysts and data scientists.
+# BA on the other hand, developed in organizations that realized that their data was not just valuable for their current operations, but also to gain insight and improve their processes. Starting in the 1990's, we saw more and more analysts working with data in organizations. An important difference with OR is that many executives do understand the value of analytics and adopt a company-wide BA strategy. A book by Davenport and Harris (2007), who are advocates of BA, also played a role in increasing the interest in the value of analytics to executives. Interestingly enough, the main example throughout the book is dynamic pricing in airlines, a typical OR success. The name OR is not mentioned once. This supports the opinion that some of these new areas are in fact rebranded old areas, it's old wine in a new bottle. Whether this is really true, or if there are fundamental differences between areas is not really relevant. The fact is that the availability of data, computers and software made the widespread use of BA possible. Finally, BA methods — also the ones originating from the mathematical sciences — are used on a huge scale in companies, institutions and research centers, offering countless opportunities for business analysts and data scientists.
 #
 # DS as a term has been around for a long time. In the end of the last century it was mainly associated with statistics. Much like BA, the term became popular with the availability of large data sets. However, today it is more often associated with techniques from computer science such as machine learning. In contrast, BA is more often associated with mathematics and industrial engineering.
 
 # %% [markdown]
-# #### 1.3 Non-technical overview
+# ## Non-Technical Overview
 #
-# In this section we give a non-technical overview of the most often used techniques and explain some of the technical terms that are regularly used. This section by nature can only be an oversimplification of reality, but it will help to get a flavor of the totality of the field, which even professionals in the field sometimes do not have. The techniques we discuss in this section are summarized in Figure 1.1.
+# In this section we give a non-technical overview of the most often used techniques and explain some of the technical terms that are regularly used. This section by nature can only be an oversimplification of reality, but it will help to get a flavor of the totality of the field, which even professionals in the field sometimes do not have. The techniques we discuss in this section are summarized in the figure below.
 #
 # The four steps pre-processing, descriptive, predictive and prescriptive analytics, can also be described as follows:
 #
@@ -113,7 +128,7 @@
 # - maximizing the target value.
 
 # %% [markdown]
-# ![Figure 1.1: An overview of the most-often used data science techniques](images/lecture8_fig1.1.png)
+# ![An overview of the most-often used data science techniques](images/lecture8_fig1.1.png)
 
 # %% [markdown]
 # Most predictive techniques require that you first structure the data. For example, topics can be extracted from text entered on social media or types of objects can be extracted from images. This brings us to a first distinction: between structured and unstructured data. Structured data usually consists of entries (e.g., people) with attributes (e.g., name, income, sex, nationality). The possible value for the attributes are well-defined (e.g., numerical, M/F, standard country codes). Structured data can be represented as a matrix: the rows are the entries, the columns the attributes.
@@ -124,42 +139,42 @@
 #
 # Dealing with unstructured data is an important part of the pre-processing step. Cleansing is another one. Data often contains impossible values or empty fields. Different techniques exist to deal with these. A final important pre-processing activity is feature engineering, combining attributes or features into new potentially more useful attributes. For example, combining "day of week" and "time" can lead to an attribute "business hours", and postal codes of individuals combined with census data can lead to an approximation of income and family composition.
 #
-# Next we explore the data in the descriptive step. Typical activities are visualisation, different statistical techniques such as hypothesis testing, and clustering. Visualization is a technique as old as humanity, but it has developed tremendously over the last decades. Exploratory statistics will be discussed in Chapter 3. In clustering, you look for data points that are in some mathematical sense close together. Think about clustering individuals based in income, sex, age and family composition for marketing purposes.
+# Next we explore the data in the descriptive step. Typical activities are visualisation, different statistical techniques such as hypothesis testing, and clustering. Visualization is a technique as old as humanity, but it has developed tremendously over the last decades. Exploratory statistics is discussed in [Variability (Recap)](lecture12_variability-recap.ipynb). In clustering, you look for data points that are in some mathematical sense close together. Think about clustering individuals based in income, sex, age and family composition for marketing purposes.
 #
 # In the descriptive step we do not focus on a target value (such as sales or number of patients cured). Having a target value is the defining distinction of predictive analytics. Therefore predictive analytics is also called supervised learning: we learn an algorithm to predict a target value based on a data set with known target values. In contrast, techniques such as clustering are considered unsupervised learning.
 #
 # Supervised learning comes in two flavors: regression and classification. In regression we estimate a numerical value. The best-known methods are linear regression and artificial neural networks (which is actually a form of non-linear regression), but other methods exist. In classification, the outcome is membership of two or more classes, e.g., whether or not somebody will click on an online ad, or vote on one of a number of parties. Most methods for regression can be adapted such that they can classify as well. Machine learning covers both supervised and unsupervised learning.
 #
-# > **Box 1.2. Human versus artificial intelligence**
-# >
-# > Certain AI techniques are inspired by human intelligence or structures we find in nature, illustrated by names such as artificial neural networks or evolutionary computing. It is an interesting question whether or not we should try to copy human behavior with, eventually, the possibility that computers become "more intelligent" than humans. We could also argue that humans and computers have different capacities (seeing structures versus fast and errorless computation) and that our approaches to solving the same problem should be completely different. Your point of view might influence whether or not you find AI dangerous, as Stephen Hawkins did for example.
+# :::{note} Human versus Artificial Intelligence
+# Certain AI techniques are inspired by human intelligence or structures we find in nature, illustrated by names such as artificial neural networks or evolutionary computing. It is an interesting question whether or not we should try to copy human behavior with, eventually, the possibility that computers become "more intelligent" than humans. We could also argue that humans and computers have different capacities (seeing structures versus fast and errorless computation) and that our approaches to solving the same problem should be completely different. Your point of view might influence whether or not you find AI dangerous, as Stephen Hawking did for example.
+# :::
 #
 # Often the set of known data entries is split in a training and a test set: the algorithm is trained on the basis of the training set, and then evaluated on the basis of the test set. Usually an algorithm performs worse on the test set, but this is a more reliable comparison, as it avoids overfitting: the fact that the prediction of the algorithm is perfect for the training set but has no predictive value and therefore works bad on the test set. In statistics the terms in sample and out of sample are used for the same concepts. Understanding the background of the techniques and learning how to use them in the data science tool R is one of the main objectives of this book.
 #
 # Descriptive analytics is deductive in nature: from the data set, we derive characterizing quantities such as means and correlations. Extending the knowledge from the training data to the whole population is induction. This is what we do in statistics and machine learning as part of predictive analytics. Certain predictive models combine deduction and induction: A real-life system is modeled using components. By predicting the behavior of the components (induction) we can deduce the behavior of the whole system. For example, in this way a production plant or the progression of a disease in a body can be simulated. By changing (the behavior of) certain components different scenarios can be analysed, leading to optimization, i.e., prescriptive analytics. Optimization comes in different flavors. Linear optimization is a powerful framework, used in many planning problems, such as crew scheduling in airlines and logistics. When problems are dynamic (e.g., they evolve over time, such as managing an investment portfolio), then dynamic programming is the right framework. When dynamic optimization is combined with learning, then we speak of reinforcement learning.
 
 # %% [markdown]
-# #### 1.4 Tooling
+# ## Tooling
 #
 # A multitude of tools exist to assist the data analyst with his or her task. We first make a rough division between ad hoc and routine tasks. For routine tasks, standardized and often automated procedures exists for the process steps, often involving dedicated and sometimes even tailor-made software. For example:
 #
 # - for data collection data warehouses exist with connections with operational IT systems;
 # - for distribution companies decision support systems exist that compute the optimal route of delivery trucks, saving many transit hours and petrol.
 #
-# We will first go into detail on software for ad-hoc tasks. For ad-hoc tasks there are a number of proprietary and open source tools — R (open source) and MS Excel (proprietary) are among the most popular ones. Both allow the user to efficiently manipulate data, often represented as matrices. Each tool functions in very different ways: R manipulates data in a declarative way, very much like programming languages. Additionally, the interactive environment RStudio allows for an easy manipulation of data, R scripts and figures. Excel is essentially a 2-dimensional worksheet, with the possibility to perform calculations in each cell and to add entities such as figures. Both have many useful functions, for example for statistical calculation. Many libraries exist containing algorithms that can be added to these tools, both open source and proprietary. Users can also add new functions or libraries to both tools. For a screenshot of a simple implementation of linear regression in both R and Excel, see Figures 1.2 and 1.3.
+# We will first go into detail on software for ad-hoc tasks. For ad-hoc tasks there are a number of proprietary and open source tools — R (open source) and MS Excel (proprietary) are among the most popular ones. Both allow the user to efficiently manipulate data, often represented as matrices. Each tool functions in very different ways: R manipulates data in a declarative way, very much like programming languages. Additionally, the interactive environment RStudio allows for an easy manipulation of data, R scripts and figures. Excel is essentially a 2-dimensional worksheet, with the possibility to perform calculations in each cell and to add entities such as figures. Both have many useful functions, for example for statistical calculation. Many libraries exist containing algorithms that can be added to these tools, both open source and proprietary. Users can also add new functions or libraries to both tools. For a screenshot of a simple implementation of linear regression in both R and Excel, see the figures below.
 
 # %% [markdown]
-# ![Figure 1.2: A simple implementation of linear regression in Excel](images/lecture8_fig1.2.png)
+# ![A simple implementation of linear regression in Excel](images/lecture8_fig1.2.png)
 
 # %% [markdown]
 # Excel is omnipresent and is easy to learn, making it the favorite tool for many people doing relatively easy computational tasks. However, Excel is also known for the errors users make with it. This might be partly due to a lack of appropriate training, but the lack of structure also contributes. R enforces more structure, just like programming languages do. Learning R requires more time but it may well be worth the investment.
 #
-# As mentioned, Excel and R are both analytic environments with many built-in functions. Engines can be called from these environments to perform certain tasks, such as optimization. These engines can also be proprietary or open source. For example, for linear optimization (see Chapter 6), the best solvers, Gurobi and CPLEX, are proprietary; CBC is an example of an open-source solver.
+# As mentioned, Excel and R are both analytic environments with many built-in functions. Engines can be called from these environments to perform certain tasks, such as optimization. These engines can also be proprietary or open source. For example, for linear optimization (discussed in later notebooks), the best solvers, Gurobi and CPLEX, are proprietary; CBC is an example of an open-source solver.
 #
 # Many other environments exist, often for specific analytics tasks. Examples are SPSS, often used in social sciences for statistical analysis, and
 
 # %% [markdown]
-# ![Figure 1.3: A simple implementation of linear regression in RStudio](images/lecture8_fig1.3.png)
+# ![A simple implementation of linear regression in RStudio](images/lecture8_fig1.3.png)
 
 # %% [markdown]
 # AIMMS, an optimization environment. A special place is taken by Python. Python is a programming language with libraries containing many functions for data analysis. For this reason it is both used for ad hoc analysis and routine tasks, solving the so-called "two-language problem", the fact that you have to move from say R to a language like Java or C++ once you move from a successful pilot to a production system.
@@ -172,51 +187,53 @@
 #
 # Tailor-made analytics software can be written in many different languages. We already mentioned Python, but popular languages include php, Java, C++ and C#, combined with mySQL (open source) or MS SQL server databases. Note the move of proprietary off-the-shelf tooling to cloud-based solutions, taking away the need for expensive servers at the customer site, and making maintenance and support much easier.
 #
-# In Figure 1.4 you can find an overview of the tools discussed. In this book we will mainly use R.
+# The figure below gives an overview of the tools discussed. In this book we will mainly use R.
 
 # %% [markdown]
-# ![Figure 1.4: Types of analytics tools with some examples; o = open source, p = proprietary](images/lecture8_fig1.4.png)
+# ![Types of analytics tools with some examples; o = open source, p = proprietary](images/lecture8_fig1.4.png)
 
 # %% [markdown]
-# Note that many interfaces exist between the tools and languages in Figure 1.4. From within Excel and general programming languages databases can be accessed; DSS, spreadsheets and optimization environments call optimization engines, etc. Especially with the open source environments R and Python every imaginable data science project can be done, where Python is preferred in the case of big data or applications requiring intensive computation. R and Python are quickly gaining popularity: there is an enormous community developing new libraries and offering support through websites such as stackoverflow.com.
+# Note that many interfaces exist between the tools and languages shown above. From within Excel and general programming languages databases can be accessed; DSS, spreadsheets and optimization environments call optimization engines, etc. Especially with the open source environments R and Python every imaginable data science project can be done, where Python is preferred in the case of big data or applications requiring intensive computation. R and Python are quickly gaining popularity: there is an enormous community developing new libraries and offering support through websites such as stackoverflow.com.
 
 # %% [markdown]
-# #### 1.5 Implementation
+# (implementation)=
+# ## Implementation
 #
 # A successful implementation of BA requires the right combination of tools and skills from the BA consultant(s). But more is needed: the organization should have reached the right maturity level to make the implementation possible. Let us consider first the required skills of the specialist.
 #
 # The core knowledge of any BA specialist is the command of suitable tooling (such as R) and a broad understanding of descriptive, predictive and prescriptive methods. Next to that, a specialist might have management skills (project management, change management, communication skills), programming skills (in for example C++ or Python), or deep knowledge on some of the technical areas, often clustered by the scientific disciplines of statistics, machine learning or optimization. These specialists are considered to be "T-shaped": they have breadth and also depth in a certain area. Sometimes people talk even of "Π-shaped", emphasizing the importance of knowledge of the application domain, the second vertical bar. However, the importance of breadth cannot be underestimated: It is important to be able to use the right method for the problems one encounters. Scientists are still too often specialized in one tool (e.g., a hammer) which they use for all problems they encounter (e.g., to put a screw in the wall).
 #
-# It is crucial to have good analysts, but an organization should also support the deployment of analytics. The extent to which an organization supports a certain concept is called its maturity with respect to this concept. The maturity is measured using maturity models. Different analytics maturity models have been developed. The more mature an organization, the higher the impact of analytics. We illustrate the concept using the "INFORMS Analytics Maturity Model" [1]. It consists of three sets of questions, concerning the organization, its analytics capability, and its data and infrastructure. On the basis of this a score is calculated. For example, an organization with a central data warehouse and a centralized analytics strategy will score higher than a company lacking these.
+# It is crucial to have good analysts, but an organization should also support the deployment of analytics. The extent to which an organization supports a certain concept is called its maturity with respect to this concept. The maturity is measured using maturity models. Different analytics maturity models have been developed. The more mature an organization, the higher the impact of analytics. We illustrate the concept using the INFORMS Analytics Maturity Model. It consists of three sets of questions, concerning the organization, its analytics capability, and its data and infrastructure. On the basis of this a score is calculated. For example, an organization with a central data warehouse and a centralized analytics strategy will score higher than a company lacking these.
 
 # %% [markdown]
-# #### 1.6 Additional reading
+# ## Additional Reading
 #
-# General information on many subjects can be found on Wikipedia. We already mentioned Davenport & Harris [8], which is still an interesting non-technical book to read on the value of BA.
+# General information on many subjects can be found on Wikipedia. We already mentioned Davenport and Harris (2007), which is still an interesting non-technical book to read on the value of BA.
 #
-# For more background on errors in Excel see Powell et al. [29] and other papers by the same authors.
+# For more background on errors in Excel see Powell, Baker, and Lawson (2009) and other papers by the same authors.
 #
-# > **Box 1.3. Legal and ethical aspects**
-# >
-# > Although not his or her main focus, a data scientist should be aware of legal and ethical aspects. The legal aspects often start with the data collection: are you allowed to get and analyze the data? Some form of data anonymization can be useful in this process. Current laws (such as the EU GDPR regulation) also limit the amount of time you are allowed to keep data, which contradicts the wish to keep as much data as possible for future analysis.
-# >
-# > There are many privacy issues that have to do with data, like who has access to data about you, who owns it, and how do you know which data is out there about you? Ethical questions also arise around the use of algorithms. On what basis do algorithms make decisions about for example employment? Algorithms can be discriminating because they were trained to do so by the data. On the other hand, a data science approach can also give solutions, for example by communicating all parameters of a predictive model.
+# :::{note} Legal and Ethical Aspects
+# Although not his or her main focus, a data scientist should be aware of legal and ethical aspects. The legal aspects often start with the data collection: are you allowed to get and analyze the data? Some form of data anonymization can be useful in this process. Current laws (such as the EU GDPR regulation) also limit the amount of time you are allowed to keep data, which contradicts the wish to keep as much data as possible for future analysis.
 #
-# Some interesting ideas on the different profiles of data scientists (on which part of Section 1.5 is based) can be found in Harris et al. [14].
+# There are many privacy issues that have to do with data, like who has access to data about you, who owns it, and how do you know which data is out there about you? Ethical questions also arise around the use of algorithms. On what basis do algorithms make decisions about for example employment? Algorithms can be discriminating because they were trained to do so by the data. On the other hand, a data science approach can also give solutions, for example by communicating all parameters of a predictive model.
+# :::
 #
-# More information on project management can be found in Klastorin [21]. A classic on change management is Kotter [22].
+# Some interesting ideas on the different profiles of data scientists (on which part of the [Implementation](#implementation) section above is based) can be found in Harris, Murphy, and Vaisman (2013).
 #
-# You can try the INFORMS Analytics Maturity Model yourself at [1].
+# More information on project management can be found in Klastorin (2003). A classic on change management is Kotter (1996).
 #
-# A well-know mathematician and author writing on ethical issues of data science is Cathy O'Neil, see for example her TED talks and [27].
+# You can try the INFORMS Analytics Maturity Model yourself online.
+#
+# A well-known mathematician and author writing on ethical issues of data science is Cathy O'Neil, see for example her TED talks and her book (O'Neil, 2016).
 
 # %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** Introduction to business analytics (Ch. 1); Modeling (see uncertainty note below)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 1 "Introduction" (whole)
-# - **Errata applied** (per `Literature/Erratum Book An Introduction to Business Analytics by Koole (2019).pdf`)**:**
-#   - p. 3 (§1.1): "aaplication" → "application"
-#   - p. 9 (Box 1.2, last line): "influences" → "influence"
-#   - p. 13 (§1.4, last paragraph): "python" → "Python" (twice)
+# ## References
 #
-# > **Uncertainty:** the schedule lists a separate topic "Modeling" between Ch. 1 and §6.1-§6.3, with no section number and no dedicated book section. It is not mapped to a specific passage above to avoid guessing — problem formulation (the closest book content) is compiled under [Lecture 8: Linear Optimization](lecture8_linear-optimization.ipynb).
+# - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 1, "Introduction."
+# - INFORMS. *INFORMS Analytics Maturity Model*. Available online at https://analyticsmaturity.informs.org.
+# - Davenport, T.H., & Harris, J.G. (2007). *Competing on Analytics: The New Science of Winning*. Harvard Business School.
+# - Harris, C.M., Murphy, S.P., & Vaisman, M. (2013). *Analyzing the Analyzers*. O'Reilly Media.
+# - Klastorin, T. (2003). *Project Management: Techniques and Tradeoffs*. Wiley.
+# - Kotter, J.P. (1996). *Leading Change*. Harvard Business School Press.
+# - O'Neil, K. (2016). *Weapons of Math Destruction*. Crown Books.
+# - Powell, S.G., Baker, K.R., & Lawson, B. (2009). "Impact of errors in operational spreadsheets." *Decision Support Systems*, 7:126–132.

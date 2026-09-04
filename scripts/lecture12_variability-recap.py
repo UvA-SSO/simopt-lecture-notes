@@ -16,10 +16,7 @@
 # # Lecture 12: Variability (Recap)
 
 # %% [markdown]
-# ## Compiled source text
-
-# %% [markdown]
-# ### Chapter 3 — Variability *(recap)*
+# This notebook is a recap of variability, included as preparation for [Simulation](lecture12_simulation.ipynb).
 #
 # Variability is omnipresent: without variability every moment of the day would be the same. Often there is a certain level of uncertainty about variability: we do know exactly when it is light and dark, but we do not know exactly when it will rain. Data science tries to explain, predict and control the variability we observe. The study of variability is therefore crucial for a solid understanding of data science and business analytics. This goes beyond studying the data itself: mathematical theory helps us understand the data and obtain results about the data. Mathematics and statistics impose a theoretical framework in which, under well-specified conditions, certain results are obtained. When these conditions are (approximately) verified in the data, then we can use the mathematical results, which makes us understand our data much better.
 #
@@ -37,7 +34,7 @@
 # - understand the sources of variability in business data
 
 # %% [markdown]
-# #### 3.1 Summarizing data
+# ## Summarizing Data
 #
 # Data can be summarized in numerical and graphical ways. For univariate, i.e., 1-dimensional data, numerical summaries mostly concentrate on centrality and variability. The most common measure for centrality is the mean (`mean()` in R, also called average), equal to the sum of the values divided by the number. Other measures for centrality are the trimmed mean (by adding a second argument to the `mean()` function) and the median (`median()`). The trimmed mean ignores the lowest and highest values, the median is the "middle" value, for which 50% is lower and 50% is higher.
 #
@@ -52,43 +49,48 @@
 #
 # result in: 1505.1, 1422.9, 1311.5, 898.8 and 807813. Note that the second command computes the trimmed mean, ignoring the 10% lowest and highest values.
 #
-# **Exercise 3.1** Reproduce this calculation (you might need to load the datasets library). Do the same thing for a dataset consisting of all the same numbers. You can construct such a dataset with the function `rep()`. Now change a few of the numbers and look at the consequences.
+# :::{exercise}
+# :label: ex-3-1
 #
-# > **Box 3.1. The use of the mean**
-# >
-# > Very often we are interested in the average. However, this average might be highly influenced by a number of extreme points.
-# >
-# > For example, you might be interested in the average price of houses in a certain area, and see how it evolves over time. In many neighborhoods, this average is highly influenced by a small number of very expensive luxury houses. If you are interested in the price of a common house then the trimmed mean or the median might be a better choice.
+# Reproduce this calculation (you might need to load the datasets library). Do the same thing for a dataset consisting of all the same numbers. You can construct such a dataset with the function `rep()`. Now change a few of the numbers and look at the consequences.
+# :::
 #
-# Next we consider graphical summaries, especially histograms and boxplots, made using the R functions `hist()` and `boxplot()`. Output for the `eurodist` dataset can be found in Figure 3.1. A histogram has different values grouped in buckets (here of length 500) on the horizontal axis and their frequencies on the vertical axis. We see, for example, that values between 1000 and 1500 km occur 52 times. A box plot is common in statistics and is essentially a 1-dimensional diagram in which the box is limited by the first and third quartile of the data (i.e., the points with 25% and 75% of the data below them, in R `quantile(eurodist,0.25)` and `quantile(eurodist,0.75)`), with the second quartile (the median) in the middle. There are different definitions for the horizontal lines (the whiskers) but the idea is that they show dispersion. Data points outside of the whiskers, the outliers, are shown as small circles.
+# :::{note} The Use of the Mean
+# Very often we are interested in the average. However, this average might be highly influenced by a number of extreme points.
+#
+# For example, you might be interested in the average price of houses in a certain area, and see how it evolves over time. In many neighborhoods, this average is highly influenced by a small number of very expensive luxury houses. If you are interested in the price of a common house then the trimmed mean or the median might be a better choice.
+# :::
+#
+# Next we consider graphical summaries, especially histograms and boxplots, made using the R functions `hist()` and `boxplot()`. Output for the `eurodist` dataset can be found in the figure below. A histogram has different values grouped in buckets (here of length 500) on the horizontal axis and their frequencies on the vertical axis. We see, for example, that values between 1000 and 1500 km occur 52 times. A box plot is common in statistics and is essentially a 1-dimensional diagram in which the box is limited by the first and third quartile of the data (i.e., the points with 25% and 75% of the data below them, in R `quantile(eurodist,0.25)` and `quantile(eurodist,0.75)`), with the second quartile (the median) in the middle. There are different definitions for the horizontal lines (the whiskers) but the idea is that they show dispersion. Data points outside of the whiskers, the outliers, are shown as small circles.
 
 # %% [markdown]
-# ![Figure 3.1 (left): histogram of the eurodist dataset](images/lecture12_fig3.1-hist.png)
+# ![Histogram of the eurodist dataset](images/lecture12_fig3.1-hist.png)
 #
-# ![Figure 3.1 (right): boxplot of the eurodist dataset](images/lecture12_fig3.1-boxplot.png)
-#
-# Figure 3.1: Histogram and boxplot
+# ![Boxplot of the eurodist dataset](images/lecture12_fig3.1-boxplot.png)
 
 # %% [markdown]
 # Regardless of your ultimate goal, it is always good to start with summarizing your data. This helps you to get a general impression of the data, its outliers, skewness, etc.
 #
-# **Exercise 3.2** Use the `AirPassengers` dataset from the datasets package. Compute all 5 quartiles, the average and the SD. Plot the histogram and the boxplot. You can do this in R and/or in Excel.
+# :::{exercise}
+# :label: ex-3-2
 #
-# > **Box 3.2. Skewness and outliers**
-# >
-# > From the example we see that the dataset is not symmetric, but skewed to the right with two outliers beyond 4000. This skewness to the right results in a mean that is bigger than the median. The outliers make the SD high.
-# >
-# > Data is rarely symmetric. Only in certain cases theory predicts symmetry, in other cases we hardly ever find it.
-# >
-# > **Box 3.3. Summarizing data in Excel**
-# >
-# > Functions in Excel have partly different names than in R: average, median, percentile, stdev, and var. To construct a histogram you can use the "data analysis" add-in, which is unfortunately not available in all versions of Excel. You can also make the histogram by hand, by calculating first the number of data points per bucket, as illustrated in the example below.
+# Use the `AirPassengers` dataset from the datasets package. Compute all 5 quartiles, the average and the SD. Plot the histogram and the boxplot. You can do this in R and/or in Excel.
+# :::
+#
+# :::{note} Skewness and Outliers
+# From the example we see that the dataset is not symmetric, but skewed to the right with two outliers beyond 4000. This skewness to the right results in a mean that is bigger than the median. The outliers make the SD high.
+#
+# Data is rarely symmetric. Only in certain cases theory predicts symmetry, in other cases we hardly ever find it.
+# :::
+#
+# :::{note} Summarizing Data in Excel
+# Functions in Excel have partly different names than in R: average, median, percentile, stdev, and var. To construct a histogram you can use the "data analysis" add-in, which is unfortunately not available in all versions of Excel. You can also make the histogram by hand, by calculating first the number of data points per bucket, as illustrated in the example below.
+#
+# ![Making a histogram by hand in Excel, calculating the number of data points per bucket](images/lecture12_box3.3-example.png)
+# :::
 
 # %% [markdown]
-# ![Box 3.3: making a histogram by hand in Excel, calculating the number of data points per bucket](images/lecture12_box3.3-example.png)
-
-# %% [markdown]
-# #### 3.2 Probability theory and the binomial distribution
+# ## Probability Theory and the Binomial Distribution
 #
 # In the previous section we analyzed data, which might be useful by itself. However, we might also consider the data to be outcomes of some experiment with uncertain, random outcomes. What can we say of the experiment on the basis of its outcomes? How can we define the experiment in a useful way? Probability theory gives the framework to answer this type of question. In probability, a random experiment is called a random variable (RV), often denoted with the letter $X$. An RV $X$ is different from a regular variable $x$ in the sense that it can take multiple values, according to its distribution. For example, if $X$ models the rolling of a die then it can take values $\{1, 2, \dots, 6\}$, each with probability $1/6$.
 #
@@ -102,56 +104,62 @@
 #
 # The Bernoulli distribution (named after the Swiss mathematician) can only take two values: 0 and 1. It models situations such as coin tossing. Random variables always have numbers as outcomes, therefore in the cointossing case "heads" and "tails" are translated to 0 and 1. A Bernoulli distributed RV $X$ is completely defined by the probability $p$ by which 1 occurs, written as $P(X=1) = p$, which should be read as "the probability that the RV $X$ is equal to 1 is equal to $p$".
 #
-# A common way to plot a distribution is by its cumulative distribution function (cdf), usually denoted as $F(x)$ or $F_X(x)$, and defined as $F_X(x) = P(X \le x)$. It follows that $F$ is a non-decreasing function with $F(-\infty) = 0$ and $F(\infty) = 1$. When $X$ is continuous $F$ is also continuous (hence the name). When $X$ is discrete, $F$ is a step function: it is constant between the values that can occur and at these points it makes jumps. $F_X$ for $X$ Bernoulli is plotted in Figure 3.2.
+# A common way to plot a distribution is by its cumulative distribution function (cdf), usually denoted as $F(x)$ or $F_X(x)$, and defined as $F_X(x) = P(X \le x)$. It follows that $F$ is a non-decreasing function with $F(-\infty) = 0$ and $F(\infty) = 1$. When $X$ is continuous $F$ is also continuous (hence the name). When $X$ is discrete, $F$ is a step function: it is constant between the values that can occur and at these points it makes jumps. $F_X$ for $X$ Bernoulli is plotted in the figure below.
 
 # %% [markdown]
-# ![Figure 3.2: The cdf of the Bernoulli distribution](images/lecture12_fig3.2.png)
+# ![The cdf of the Bernoulli distribution](images/lecture12_fig3.2.png)
 
 # %% [markdown]
-# **Exercise 3.3** For the cdf below, give the possible outcomes and their probabilities.
-
-# %% [markdown]
-# ![Exercise 3.3: an uncaptioned cdf](images/lecture12_ex3.3-cdf.png)
-
-# %% [markdown]
+# :::{exercise}
+# :label: ex-3-3
+#
+# For the cdf below, give the possible outcomes and their probabilities.
+#
+# ![An uncaptioned cdf](images/lecture12_ex3.3-cdf.png)
+# :::
+#
 # In a way somewhat similar to the mean of a dataset, we can compute the expectation of a random variable: it is an average over all possible outcomes, weighted with the probabilities.
 #
-# **Example 3.1** Rolling a die has as possible outcomes $1, \dots, 6$, each with probability $1/6$. Its expectation is therefore $\frac{1}{6} \times (1 + \dots + 6) = 3.5$.
+# :::{note} Example: Rolling a Die
+# :label: eg-3-1
+#
+# Rolling a die has as possible outcomes $1, \dots, 6$, each with probability $1/6$. Its expectation is therefore $\frac{1}{6} \times (1 + \dots + 6) = 3.5$.
+# :::
 #
 # In a similar way we can also compute the SD and variance of a RV. They are denoted as $EX$, $\sigma(X)$, and $\sigma^2(X)$, respectively. For the Bernoulli distribution their values are:
 #
 # $$
-# EX = p, \qquad \sigma(X) = \sqrt{p(1-p)}, \qquad \sigma^2(X) = p(1-p). \tag{3.1}
+# EX = p, \qquad \sigma(X) = \sqrt{p(1-p)}, \qquad \sigma^2(X) = p(1-p).
 # $$
 #
-# > **Box 3.4. Mathematical expectation and variance**
-# >
-# > The definition of the expectation for a discrete RV $X$ is as follows:
-# >
-# > $$
-# > EX = \sum_{x:\, P(X=x)>0} x P(X=x).
-# > $$
-# >
-# > For $X$ Bernoulli this gives $EX = 0 P(X=0) + 1 P(X=1) = p$. The variance is the expected quadratic difference from the expectation:
-# >
-# > $$
-# > \sigma^2(X) = E(X - EX)^2 = \sum_{x:\, P(X=x)>0} (x - EX)^2 P(X=x).
-# > $$
-# >
-# > For $X$ Bernoulli it is $\sigma^2(X) = (0-p)^2(1-p) + (1-p)^2 p = p - p^2$.
+# :::{note} Mathematical Expectation and Variance
+# The definition of the expectation for a discrete RV $X$ is as follows:
+#
+# $$
+# EX = \sum_{x:\, P(X=x)>0} x P(X=x).
+# $$
+#
+# For $X$ Bernoulli this gives $EX = 0 P(X=0) + 1 P(X=1) = p$. The variance is the expected quadratic difference from the expectation:
+#
+# $$
+# \sigma^2(X) = E(X - EX)^2 = \sum_{x:\, P(X=x)>0} (x - EX)^2 P(X=x).
+# $$
+#
+# For $X$ Bernoulli it is $\sigma^2(X) = (0-p)^2(1-p) + (1-p)^2 p = p - p^2$.
+# :::
 #
 # The Bernoulli distribution is a special case of the binomial distribution, which we will discuss next. R functions for both distributions will be introduced after that.
 
 # %% [markdown]
 # **The binomial distribution**
 #
-# Suppose we repeat a 0/1 experiment $n$ times. We assume that they are independent, meaning that the outcome of one does not influence another. Let $N$ be the total number of 1s. Then $N$ has a so-called binomial distribution. The binomial distribution has two parameters: the success probability $p$, and $n$. For $n=10$ and $p=0.2$ its cdf is plotted in Figure 3.3. This plot was made using the following R command: `curve(pbinom(x,10,0.2))`.
+# Suppose we repeat a 0/1 experiment $n$ times. We assume that they are independent, meaning that the outcome of one does not influence another. Let $N$ be the total number of 1s. Then $N$ has a so-called binomial distribution. The binomial distribution has two parameters: the success probability $p$, and $n$. For $n=10$ and $p=0.2$ its cdf is plotted in the figure below. This plot was made using the following R command: `curve(pbinom(x,10,0.2))`.
 #
-# > **Box 3.5. Independence**
-# >
-# > Independence is a very important property. Often we repeat an experiment multiple times. For example, we try a new medication on multiple patients, or we observe multiple visitors to a webshop. Statistical independence states that the outcome of one experiment does not influence the other. We assume it quite often, because it makes the analysis much simpler, although it might not be completely true. For example, a webshop customer who purchased a product might leave a positive review, thereby increasing the purchase probability of future customers. In this situation, the experiments are not independent, although the purchase probability might have only changed very little.
-# >
-# > However, there are situations where we prefer not to have independence. For example, if we know the cancer type of each patient and the effect of a certain medication, then we might hope for dependence, i.e., a correlation between the type of cancer and the effect, in order to be able to give the right medication to the right patient. Similarly, you hope that attributes such as previous visits, age, time on website, etc., influence the conversion probability in order to be able to steer behavior of webshop visitors, for example by targeted advertising. These are typical examples of multivariate problems which we will discuss in later chapters.
+# :::{note} Independence
+# Independence is a very important property. Often we repeat an experiment multiple times. For example, we try a new medication on multiple patients, or we observe multiple visitors to a webshop. Statistical independence states that the outcome of one experiment does not influence the other. We assume it quite often, because it makes the analysis much simpler, although it might not be completely true. For example, a webshop customer who purchased a product might leave a positive review, thereby increasing the purchase probability of future customers. In this situation, the experiments are not independent, although the purchase probability might have only changed very little.
+#
+# However, there are situations where we prefer not to have independence. For example, if we know the cancer type of each patient and the effect of a certain medication, then we might hope for dependence, i.e., a correlation between the type of cancer and the effect, in order to be able to give the right medication to the right patient. Similarly, you hope that attributes such as previous visits, age, time on website, etc., influence the conversion probability in order to be able to steer behavior of webshop visitors, for example by targeted advertising. These are typical examples of multivariate problems which we will discuss in later chapters.
+# :::
 #
 # The name binomial comes from Newton's binomium, written as $\binom{n}{k}$. It gives the number of ways to select $k$ items out of $n$, is related to the Triangle of Pascal, and is part of the formula for $P(N=k)$. We will not go into the mathematical details, instead we discuss the R functions by which we can compute expressions such as $P(N=k)$, the probability of $k$ successes. There are 4 R functions:
 #
@@ -163,7 +171,7 @@
 # As an example, consider a school class with 30 kids who are randomly selected.
 
 # %% [markdown]
-# ![Figure 3.3: The cdf of the binomial distribution with n = 10 and p = 0.2](images/lecture12_fig3.3.png)
+# ![The cdf of the binomial distribution with n = 10 and p = 0.2](images/lecture12_fig3.3.png)
 
 # %% [markdown]
 # We assume that the probability of every child being male or female is exactly 50%. Then the probability of having 15 kids of each sex is `dbinom(15,30,0.5)` is equal to 14.4%. Having 10 or less girls has probability `pbinom(10,30,0.5)`, 5%.
@@ -174,7 +182,11 @@
 #
 # The values given by `qbinom()` are also called percentiles. The 25th, 50th and 75th percentile are called quartiles; the 50th percentile is the median of the distribution.
 #
-# **Exercise 3.4** You roll a die 10 times. What is the probability that there are no 6s? Make a plot of the probability of $k$ 6s for $k \in \{0, \dots, 10\}$.
+# :::{exercise}
+# :label: ex-3-4
+#
+# You roll a die 10 times. What is the probability that there are no 6s? Make a plot of the probability of $k$ 6s for $k \in \{0, \dots, 10\}$.
+# :::
 #
 # Note that the R functions for the binomial distribution can be used as well for the Bernoulli distribution, by taking $n=1$.
 #
@@ -186,7 +198,11 @@
 #
 # Note the resemblance with the Bernoulli distribution. The reason for this is explained hereafter.
 #
-# **Example 3.2** You roll a die 10 times. Then you expect $10 \times \frac16 = 1.67$ times a 6, and the standard deviation of the number of 6s is $\sqrt{10 \times \frac16 \times \frac56} = 1.18$.
+# :::{note} Example: Rolling a Die Ten Times
+# :label: eg-3-2
+#
+# You roll a die 10 times. Then you expect $10 \times \frac16 = 1.67$ times a 6, and the standard deviation of the number of 6s is $\sqrt{10 \times \frac16 \times \frac56} = 1.18$.
+# :::
 
 # %% [markdown]
 # **Sums of independent random variables**
@@ -204,9 +220,13 @@
 #
 # The first formula explains why $EN = nEX$ for $N$ binomial and $X$ Bernoulli. It is interesting to note that $X$ and $Y$ do not even have to be independent!
 #
-# **Example 3.3** $X$ and $Y$ denote next year's profit of two business units of a company. The total expected profit is $EX + EY$. $X$ and $Y$ are allowed to be dependent, for example on the same yet unknown interest rate.
+# :::{note} Example: Two Business Units
+# :label: eg-3-3
+#
+# $X$ and $Y$ denote next year's profit of two business units of a company. The total expected profit is $EX + EY$. $X$ and $Y$ are allowed to be dependent, for example on the same yet unknown interest rate.
 #
 # Business unit 1 has to pay 30% taxes. Its expected tax payment is $0.3EX$.
+# :::
 #
 # For the SD and the variance things are a bit more complicated:
 #
@@ -225,7 +245,10 @@
 # \sigma(X+Y) = \sqrt{\sigma^2(X) + \sigma^2(Y)} \qquad \text{and} \qquad \sigma^2(cX) = c^2\sigma^2(X).
 # $$
 #
-# **Example 3.4** We continue with Example 3.3. Suppose that the numbers are as follows: $EX=8$, $\sigma(X)=3$, $EY=12$, $\sigma(Y)=4$ (all in M€). Let us assume that $X$ and $Y$ are independent. Then $E(X+Y) = 20$ and
+# :::{note} Example: Two Business Units (continued)
+# :label: eg-3-4
+#
+# We continue with the two business units example above. Suppose that the numbers are as follows: $EX=8$, $\sigma(X)=3$, $EY=12$, $\sigma(Y)=4$ (all in M€). Let us assume that $X$ and $Y$ are independent. Then $E(X+Y) = 20$ and
 #
 # $$
 # \sigma(X+Y) = \sqrt{3^2+4^2} = 5,
@@ -234,6 +257,7 @@
 # which is considerably smaller than the sums of the SDs, which is 7. This is exactly why investors "spread" their risk: the risk of a portfolio is smaller than the sum of the risks. The loss on one investment might be compensated by the others.
 #
 # The caveat is in the independence: in times of economic downturn the values of assets tend all to go down contradicting the independence.
+# :::
 #
 # Thus, in these expressions it is crucial not to replace SD by variance and vice versa! The mathematical proofs of all expressions are not very difficult but require some experience with manipulating summations and integrals.
 #
@@ -242,22 +266,31 @@
 # Let us now consider averages. To do so, let $X_1, \dots, X_n$ be $n$ independent RVs with the same distribution. Thus they have the same expectation and SD. Define $\bar X$ as the average of $X_1, \dots, X_n$:
 #
 # $$
-# \bar X = \frac{X_1 + \dots + X_n}{n}. \tag{3.2}
+# \bar X = \frac{X_1 + \dots + X_n}{n}.
 # $$
 #
 # Averages play an extremely important role in statistics, because for high $n$ they tend to the expectation, as we will see below. Therefore averages are used as estimators in cases where the expectation is unknown. We give the expectation and SD of the average:
 #
 # $$
-# E\bar X = EX_1 \qquad \text{and} \qquad \sigma(\bar X) = \sigma(X_1)/\sqrt n. \tag{3.3}
+# E\bar X = EX_1 \qquad \text{and} \qquad \sigma(\bar X) = \sigma(X_1)/\sqrt n.
 # $$
 #
-# **Exercise 3.5** Verify the correctness of these expressions using the rules presented earlier.
+# :::{exercise}
+# :label: ex-3-5
+#
+# Verify the correctness of these expressions using the rules presented earlier.
+# :::
 #
 # How should we interpret these results? Our (statistical) experiment consists of $n$ observations. The outcome is likely (in the statistical sense: with high probability) to be close to the expectation. As we perform more observations, then the outcome is likely to be closer to the expectation: the SD decreases, because we divide by $\sqrt n$. Note that the function $\sqrt n$ increases slowly, therefore if we want to increase the accuracy of the outcome, we have to include many more observations! When we perform infinitely many observations (a mathematical abstraction, we cannot perform that many observations in practice) then the SD becomes 0 and we find exactly the expectation.
 #
+# (lln)=
 # This result is known as the law of large numbers (LLN). It is the basis of statistics: if we take a sufficiently large sample from a population then the average is a reliable estimator of the expectation. In the context of hypothesis testing, we will discuss when a sample is "sufficiently large". Note that it is assumed that all observations have the same distribution and are independent. In the design of an experiment, this means that there is no selection bias, every observation should be representative for the whole population.
 #
-# **Exercise 3.6** Sample 1000 times from a Bernoulli distribution with success probability 0.5. For every $n$, take the average over the first $n$ numbers and make a plot of this as a function of $n$. How does this illustrate the LLN?
+# :::{exercise}
+# :label: ex-3-6
+#
+# Sample 1000 times from a Bernoulli distribution with success probability 0.5. For every $n$, take the average over the first $n$ numbers and make a plot of this as a function of $n$. How does this illustrate the LLN?
+# :::
 #
 # Sometimes we are interested in the distribution of a sum of distributions. This is for example the case if we roll a die twice and we want to know the probability that the sum of the outcomes is 10. In such a case there are multiple approaches:
 #
@@ -265,12 +298,16 @@
 # - for the majority of sums no mathematical expression is known. In that case we can often do a numerical calculation to compute the joint distribution;
 # - a simple and intuitive alternative is sampling or simulation, based on the LLN. You simply sample every component of the sum many times and you take the sums. For example, `rbinom(100,20,0.2)+rbinom(100,10,0.2)` gives 100 samples of a binomial distribution with parameters 30 and 0.2. If you change one of the $p$s the sum is not binomial anymore. However, the method can still be used.
 #
-# **Exercise 3.7** a. Simulate the sum of two dice many times and use this to approximate the probability that the sum of the outcomes is 10.
+# :::{exercise}
+# :label: ex-3-7
+#
+# a. Simulate the sum of two dice many times and use this to approximate the probability that the sum of the outcomes is 10.
 #
 # b. Determine the probability by calculating all possible outcomes that lead to 10 and their probabilities.
+# :::
 
 # %% [markdown]
-# #### 3.3 Other distributions and the central limit theorem
+# ## Other Distributions and the Central Limit Theorem
 #
 # In the previous section we introduced the binomial distribution and used it to introduce some important concepts from probability theory. In this section we introduce some other well-known distributions.
 #
@@ -280,24 +317,36 @@
 #
 # The Poisson distribution (named after the French mathematician who invented it) has a single parameter, often indicated with the Greek letter $\lambda$. A Poisson distributed RV $N$ has the special property that $EN = \sigma^2(N) = \lambda$. Sums of Poisson distributions are again Poisson distributions with the sum of the parameters.
 #
-# **Exercise 3.8** For a fixed $\lambda$, consider binomial distributions $N_n$ with $n$ experiments and success probability $\lambda/n$. Look up the formula for the binomial distribution (e.g., at Wikipedia) and show that $\lim_{n \to \infty} P(N_n=k)$ equals the Poisson distribution. (This exercise requires knowledge of calculus, the mathematical field that includes integration and limits.)
+# :::{exercise}
+# :label: ex-3-8
+#
+# For a fixed $\lambda$, consider binomial distributions $N_n$ with $n$ experiments and success probability $\lambda/n$. Look up the formula for the binomial distribution (e.g., at Wikipedia) and show that $\lim_{n \to \infty} P(N_n=k)$ equals the Poisson distribution. (This exercise requires knowledge of calculus, the mathematical field that includes integration and limits.)
+# :::
 #
 # The R functions for the Poisson distribution are `dpois`, `ppois`, `qpois`, and `rpois`. Their definition is similar to those of the binomial distribution (with 1 parameter less). Indeed, every distribution defined in R has functions of the form `dxxx`, `pxxx`, `qxxx`, and `rxxx`, with `xxx` the abbreviation of the name of the distribution.
 #
-# **Exercise 3.9** a. Compute the SD of 1000 samples of a Poisson distribution with $\lambda=10$. Is the answer as expected?
+# :::{exercise}
+# :label: ex-3-9
+#
+# a. Compute the SD of 1000 samples of a Poisson distribution with $\lambda=10$. Is the answer as expected?
 #
 # b. Plot the cdf's of the Poisson distributions with $\lambda = 1, 5$ and 20 in a single figure.
+# :::
 #
-# **Exercise 3.10** A web server can handle 100 requests per minute. Additional demand is lost. Arrivals occur according to Poisson distribution with average 90. Estimate the percentage of requests lost.
+# :::{exercise}
+# :label: ex-3-10
+#
+# A web server can handle 100 requests per minute. Additional demand is lost. Arrivals occur according to Poisson distribution with average 90. Estimate the percentage of requests lost.
 #
 # Hint: you can solve this problem by sampling the demand a number of times and calculating for every sample the number of requests lost. You can also obtain the exact result by using the distribution but this is more difficult and less intuitive.
+# :::
 #
 # **The uniform distribution**
 #
-# The uniform distribution is the first continuous distribution we discuss. It has a minimum and a maximum, commonly denoted with $a$ and $b$. The defining feature of the uniform distribution is that every interval between $a$ and $b$ of the same length is equally likely. For this reason the cfd, given in Figure 3.4, increases linearly in the interval $[a,b]$ from 0 to 1.
+# The uniform distribution is the first continuous distribution we discuss. It has a minimum and a maximum, commonly denoted with $a$ and $b$. The defining feature of the uniform distribution is that every interval between $a$ and $b$ of the same length is equally likely. For this reason the cfd, given in the figure below, increases linearly in the interval $[a,b]$ from 0 to 1.
 
 # %% [markdown]
-# ![Figure 3.4: The cdf of the uniform distribution with a = 1 and b = 5](images/lecture12_fig3.4.png)
+# ![The cdf of the uniform distribution with a = 1 and b = 5](images/lecture12_fig3.4.png)
 
 # %% [markdown]
 # For $U$ uniformly distributed on $[a,b]$, the expectation and standard deviation are as follows:
@@ -306,7 +355,7 @@
 # EU = \frac{a+b}{2} \qquad \text{and} \qquad \sigma(U) = \frac{b-a}{\sqrt{12}}.
 # $$
 #
-# The R functions are `dunif`, `punif`, `qunif` and `runif`. E.g., `punif(1,0,3)` gives $1/3$ and `qunif(2/3,0,3)` is equal to 2. See Box 3.6 for the interpretation of `dunif`.
+# The R functions are `dunif`, `punif`, `qunif` and `runif`. E.g., `punif(1,0,3)` gives $1/3$ and `qunif(2/3,0,3)` is equal to 2. See the box below for the interpretation of `dunif`.
 #
 # **Probabilities of eventualities**
 #
@@ -322,40 +371,50 @@
 # P(U \in [u,v]) = P(U \le v) - P(U \le u) = \texttt{punif(v,a,b)} - \texttt{punif(u,a,b)}.
 # $$
 #
-# Note that for continuous distributions $P(X \le x) = P(X < x)$. The explanation can be found in Box 3.6. For discrete distributions this does matter! Intervals like $A = [u,v]$ are called eventualities, $P(A)$ is its probability. As part of the fundamentals of probability more complicated sets $A$ are studied. We will stay far away from this type of mathematical sophistication.
+# Note that for continuous distributions $P(X \le x) = P(X < x)$. The explanation can be found in the box below. For discrete distributions this does matter! Intervals like $A = [u,v]$ are called eventualities, $P(A)$ is its probability. As part of the fundamentals of probability more complicated sets $A$ are studied. We will stay far away from this type of mathematical sophistication.
 #
-# **Exercise 3.11** For $U$ uniformly distributed with parameters 0 and 2, determine by hand $P(U \in [0.5,1])$. Check your answer by sampling in R many times from $U$ using `runif` and by using `punif`.
+# :::{exercise}
+# :label: ex-3-11
+#
+# For $U$ uniformly distributed with parameters 0 and 2, determine by hand $P(U \in [0.5,1])$. Check your answer by sampling in R many times from $U$ using `runif` and by using `punif`.
+# :::
 #
 # **The normal distribution**
 #
 # We continue our focus on distributions with the most famous of them all: the normal or Gaussian (after the German scientist) distribution. The normal distribution has two parameters: $\mu$ and $\sigma$, the expectation and the SD. Be careful: some tools require you to enter the SD, some require the variance. Of course, they are not the same, unless $\sigma=1$ (or 0, but then there is no variability: the degenerate distribution that has as outcome $\mu$ with probability 1).
 #
-# > **Box 3.6. Probability of a single outcome**
-# >
-# > A surprising and counter-intuitive feature of continuous distributions is that every possible outcome has probability 0. This is because there are infinitely many points in an interval such as $[a,b]$. If they all had a positive probability of occurring then they would sum up to more than 1. Indeed, if we measure all people in the world up to 10 decimals then nobody would be exactly 1m80. However, we can attribute a probability to intervals, such as all people having a length between 1m80 and 1m81.
-# >
-# > For discrete distributions, the R function `pxxx` gave the probability of a point. For continuous distribution, the definition is different: it gives the so-called density. Integrating the density over the real numbers gives 1, just as all probabilities of a discrete distribution sum up to 1.
+# :::{note} Probability of a Single Outcome
+# A surprising and counter-intuitive feature of continuous distributions is that every possible outcome has probability 0. This is because there are infinitely many points in an interval such as $[a,b]$. If they all had a positive probability of occurring then they would sum up to more than 1. Indeed, if we measure all people in the world up to 10 decimals then nobody would be exactly 1m80. However, we can attribute a probability to intervals, such as all people having a length between 1m80 and 1m81.
+#
+# For discrete distributions, the R function `pxxx` gave the probability of a point. For continuous distribution, the definition is different: it gives the so-called density. Integrating the density over the real numbers gives 1, just as all probabilities of a discrete distribution sum up to 1.
+# :::
 
 # %% [markdown]
-# The normal distribution is well-known for its symmetric bell-shaped density, which is plotted for two distributions in the left plot of Figure 3.5. The corresponding cdf's (which are easier to interpret) are in the plot on the right. In the figure we used the common notation $N(\mu,\sigma^2)$ for normal distributions. Note the usage of $\sigma^2$: thus $N(3,4)$ has SD 2. The $N(0,1)$ is the standard normal distribution. The R function for the normal distribution are `dnorm`, `pnorm`, etc.
+# The normal distribution is well-known for its symmetric bell-shaped density, which is plotted for two distributions in the left plot below. The corresponding cdf's (which are easier to interpret) are in the plot on the right. In the figure we used the common notation $N(\mu,\sigma^2)$ for normal distributions. Note the usage of $\sigma^2$: thus $N(3,4)$ has SD 2. The $N(0,1)$ is the standard normal distribution. The R function for the normal distribution are `dnorm`, `pnorm`, etc.
 #
-# **Exercise 3.12** a. Compute $P(X \le 0)$ for $X$ standard normal.
+# :::{exercise}
+# :label: ex-3-12
+#
+# a. Compute $P(X \le 0)$ for $X$ standard normal.
 #
 # b. Compute $P(X \ge 1)$ and $P(0 \le X \le 1)$.
 #
 # c. Give the 95th percentile of the standard normal distribution.
+# :::
 #
 # Every normal distribution can be derived from the standard normal. If $X \sim N(0,1)$ (meaning that $X$ is N(0,1) distributed), then $Y = \mu + \sigma X \sim N(\mu,\sigma^2)$.
 #
-# **Exercise 3.13** a. Compute $P(X \ge 0)$ for an $N(-2,10)$ distribution. Do this directly and using the $N(0,1)$ distribution.
-
-# %% [markdown]
-# ![Figure 3.5: Densities and cdf of the normal distributions N(0,1) (solid) and N(3,4) (dashed)](images/lecture12_fig3.5.png)
-
-# %% [markdown]
-# b. Suppose that $x_1, \dots, x_n$ are samples of a $N(\mu,\sigma^2)$ distribution. How can you turn them into samples of a standard normal distribution?
+# :::{exercise}
+# :label: ex-3-13
 #
-# Let $X$ and $Y$ be independent normally distributed RVs. Because of the formulas on page 39 we have:
+# a. Compute $P(X \ge 0)$ for an $N(-2,10)$ distribution. Do this directly and using the $N(0,1)$ distribution.
+#
+# ![Densities and cdf of the normal distributions N(0,1) (solid) and N(3,4) (dashed)](images/lecture12_fig3.5.png)
+#
+# b. Suppose that $x_1, \dots, x_n$ are samples of a $N(\mu,\sigma^2)$ distribution. How can you turn them into samples of a standard normal distribution?
+# :::
+#
+# Let $X$ and $Y$ be independent normally distributed RVs. Because of the sum formulas above we have:
 #
 # $$
 # E(X+Y) = EX + EY \qquad \text{and} \qquad \sigma^2(X+Y) = \sigma^2(X) + \sigma^2(Y).
@@ -363,88 +422,117 @@
 #
 # Moreover, the normal distribution has a very special property: sums of normal distributions have normal distributions. Note that not all distributions have this property. The normal and binomial distributions (with the same success probabilities) have this property, other distributions such as the uniform have not.
 #
-# **Exercise 3.14** Sample 10000 times from 2 normally distributed RVs, make a histogram of the sums and convince yourself that the statement above is true. How about $X - Y$? Can you explain this? Do the same thing for two uniform distributions.
+# :::{exercise}
+# :label: ex-3-14
+#
+# Sample 10000 times from 2 normally distributed RVs, make a histogram of the sums and convince yourself that the statement above is true. How about $X - Y$? Can you explain this? Do the same thing for two uniform distributions.
+# :::
 #
 # **Central limit theorem**
 #
-# Earlier, we saw that sums of normal distributions have a normal distribution. But there is more to it: all sums of independent RVs tend to look like normal distributions! For example, if you sum 10 uniform RVs, then the result looks pretty much like a normal distribution. The same holds for averages, as it is just a sum divided by a constant. Recall Equation (3.3) on page 40: $E\bar X = EX_1$ and $\sigma(\bar X) = \sigma(X_1)/\sqrt n$. Thus, as $n$ increases, $\bar X$ looks more and more like a normal distribution which is more and more concentrated around the mean $EX_1$. This is called the central limit theorem (CLT). It is illustrated in Figure 3.6. We see that already the distribution of the average of 10 uniform distributions has the bell shape of the density of a normal distribution.
+# Earlier, we saw that sums of normal distributions have a normal distribution. But there is more to it: all sums of independent RVs tend to look like normal distributions! For example, if you sum 10 uniform RVs, then the result looks pretty much like a normal distribution. The same holds for averages, as it is just a sum divided by a constant. Recall that $E\bar X = EX_1$ and $\sigma(\bar X) = \sigma(X_1)/\sqrt n$. Thus, as $n$ increases, $\bar X$ looks more and more like a normal distribution which is more and more concentrated around the mean $EX_1$. This is called the central limit theorem (CLT). It is illustrated in the figure below. We see that already the distribution of the average of 10 uniform distributions has the bell shape of the density of a normal distribution.
 
 # %% [markdown]
-# ![Figure 3.6: Illustration of the CLT: histograms of averages of 1, 2, 5 and 10 uniform(0,1) realizations](images/lecture12_fig3.6.png)
+# ![Illustration of the CLT: histograms of averages of 1, 2, 5 and 10 uniform(0,1) realizations](images/lecture12_fig3.6.png)
 
 # %% [markdown]
-# > **Box 3.7. Formal statement of the CLT**
-# >
-# > The formal statement of the CLT is as follows. First we rescale $\bar X$:
-# >
-# > $$
-# > Z_n = \frac{\sqrt n (\bar X - EX_1)}{\sigma}.
-# > $$
-# >
-# > Now $Z_n$ has $EZ_n=0$ and $\sigma^2(Z_n)=1$. Thus subtracting $EX_1$ moved the average to 0 and blowing it up with $\sqrt n$ avoided it to disappear in 0. The CLT states that $Z_n$ converges to a standard normal distribution, i.e., as $n$ increases it looks more and more like a normal distribution which it reaches at $\infty$.
-# >
-# > To make it really formal you have to define convergence of distributions. We won't go into that level of detail.
+# :::{note} Formal Statement of the CLT
+# The formal statement of the CLT is as follows. First we rescale $\bar X$:
+#
+# $$
+# Z_n = \frac{\sqrt n (\bar X - EX_1)}{\sigma}.
+# $$
+#
+# Now $Z_n$ has $EZ_n=0$ and $\sigma^2(Z_n)=1$. Thus subtracting $EX_1$ moved the average to 0 and blowing it up with $\sqrt n$ avoided it to disappear in 0. The CLT states that $Z_n$ converges to a standard normal distribution, i.e., as $n$ increases it looks more and more like a normal distribution which it reaches at $\infty$.
+#
+# To make it really formal you have to define convergence of distributions. We won't go into that level of detail.
+# :::
 #
 # Averages play an important role in statistics, because we use them as estimators for the expectation (thanks to the LLN). To say something about the accuracy of this estimator, we can use normal distributions (thanks to the CLT). Thus computations with normal distributions are important in statistics. The following rules of thumb are often used, for $X \sim N(\mu,\sigma^2)$:
 #
 # - $P(\mu - \sigma \le X \le \mu + \sigma) \approx 68\%$;
 # - $P(\mu - 2\sigma \le X \le \mu + 2\sigma) \approx 95\%$.
 #
-# The rule is illustrated in Table 3.7.
+# The rule is illustrated in the figure below.
 
 # %% [markdown]
-# ![Figure 3.7: Rule of thumb for the normal distribution (source: Wikipedia)](images/lecture12_fig3.7.png)
+# ![Rule of thumb for the normal distribution (source: Wikipedia)](images/lecture12_fig3.7.png)
 
 # %% [markdown]
-# **Exercise 3.15** Reproduce these numbers using `qnorm` in R and `NORM.INV` in Excel.
+# :::{exercise}
+# :label: ex-3-15
+#
+# Reproduce these numbers using `qnorm` in R and `NORM.INV` in Excel.
+# :::
 #
 # A common error is to apply this rule to all kinds of data and distributions. The answers that you will get are wrong! Sometimes analysts first calculate the average and SD, to use the rule of thumb to find for example the 95th percentile. Not only do they get the wrong answer, there is also a simpler procedure: In a dataset of say 1000 points, they could have taken right away the 950th largest number.
 #
-# **Exercise 3.16** A hospital performs knee surgery routinely in one of its operating rooms. An operation takes on average 50 minutes with a SD of 20, including cleaning, changing, etc. A session consists of 8 operations, a block of 7 hours is reserved for it. Approximate the probability that the 8 operations take more than the reserved session time. Do this in two ways:
+# :::{exercise}
+# :label: ex-3-16
+#
+# A hospital performs knee surgery routinely in one of its operating rooms. An operation takes on average 50 minutes with a SD of 20, including cleaning, changing, etc. A session consists of 8 operations, a block of 7 hours is reserved for it. Approximate the probability that the 8 operations take more than the reserved session time. Do this in two ways:
 #
 # - use a normal approximation;
 # - simulate the session many times, assuming that the operations have a uniform distribution.
 #
 # Note that for the latter exercise you first need to determine the parameters of the uniform distribution.
+# :::
 #
 # In the previous exercise, we saw the mathematical theory at work: for theoretical reasons we used a normal distribution, which gave us the same result as the one based on simulation.
 #
 # **The lognormal distribution**
 #
-# If data is positive and continuous then they often follow a lognormal distribution. Examples are durations of surgery or length of telephone calls. Lognormal RVs are of the form $e^X$ with $X$ a normally distributed RV and $e$ a mathematical constant, $e \approx 2.7$. A typical density and cdf can be found in Figure 3.8. The distribution is clearly skewed to the right. The plots can be made with the following R commands: `curve(dlnorm(x,3,0.5))` and `curve(plnorm(x,3,0.5))`. Note that 3 and 0.5 are the mean and SD at the logscale, of the underlying normal distribution. The real mean and SD are quite complicated formulas of the parameters. Probabilities and quantiles however can easily be derived from the underlying normal distribution. For example, `plnorm(x) = pnorm(log(x))`. `LOGNORM.DIST` and `LOGNORM.INV` are the Excel equivalents of `plnorm` and `qlnorm`.
+# If data is positive and continuous then they often follow a lognormal distribution. Examples are durations of surgery or length of telephone calls. Lognormal RVs are of the form $e^X$ with $X$ a normally distributed RV and $e$ a mathematical constant, $e \approx 2.7$. A typical density and cdf can be found in the figure below. The distribution is clearly skewed to the right. The plots can be made with the following R commands: `curve(dlnorm(x,3,0.5))` and `curve(plnorm(x,3,0.5))`. Note that 3 and 0.5 are the mean and SD at the logscale, of the underlying normal distribution. The real mean and SD are quite complicated formulas of the parameters. Probabilities and quantiles however can easily be derived from the underlying normal distribution. For example, `plnorm(x) = pnorm(log(x))`. `LOGNORM.DIST` and `LOGNORM.INV` are the Excel equivalents of `plnorm` and `qlnorm`.
 
 # %% [markdown]
-# ![Figure 3.8: Density and cdf of a lognormal distribution](images/lecture12_fig3.8.png)
+# ![Density and cdf of a lognormal distribution](images/lecture12_fig3.8.png)
 
 # %% [markdown]
-# **Exercise 3.17** Find the median of the distribution of Figure 3.8 in 3 ways: using the figure, using `qlnorm`, and using `qnorm`.
+# :::{exercise}
+# :label: ex-3-17
 #
-# **Exercise 3.18** Make a histogram of the product of 2 lognormal distributions. Do you recognize the distribution that you find? What could be the reason? (This requires some mathematical insights.)
+# Find the median of the distribution shown above in 3 ways: using the figure, using `qlnorm`, and using `qnorm`.
+# :::
 #
-# **Exercise 3.19** Sample from a lognormal distribution with mean 10 and SD 5. Note that you first have to compute $\mu$ and $\sigma$ of the underlying normal distribution, the formulas can for example be found on Wikipedia. Check that the sample has indeed the right mean and SD.
+# :::{exercise}
+# :label: ex-3-18
+#
+# Make a histogram of the product of 2 lognormal distributions. Do you recognize the distribution that you find? What could be the reason? (This requires some mathematical insights.)
+# :::
+#
+# :::{exercise}
+# :label: ex-3-19
+#
+# Sample from a lognormal distribution with mean 10 and SD 5. Note that you first have to compute $\mu$ and $\sigma$ of the underlying normal distribution, the formulas can for example be found on Wikipedia. Check that the sample has indeed the right mean and SD.
+# :::
 
 # %% [markdown]
-# #### 3.4 Parameter estimation
+# ## Parameter Estimation
 #
 # The goal of statistics is to infer unknown information from data. For this reason, we sometimes talk of inferential statistics, to differentiate from (statistical) data analysis. Data contains noise, for this reason we have to differentiate between noise and signal.
 #
 # There are basically two ways to proceed. Sometimes you have a hypothesis concerning the experiment that you want to test, for example if a coin is biased. Then we can use hypothesis testing. Sometimes we want a reliable estimator of some parameter, such as the average length of a population. This estimator can take the form of an interval, called a confidence interval.
 #
+# (confidence-intervals)=
 # **Confidence intervals**
 #
-# In both hypothesis testing and confidence intervals, the concept of the sample mean has a central place, defined in Equation (3.2). Suppose, as an example, we have measured the height of 100 arbitrary adult Dutch men and women and the average is 178 cm. Evidently, the average height of the whole population is not exactly 178 cm, because we took a sample, and we therefore certainly introduced an error. How big is this error? Can we construct an interval in which the true value falls with a certain level of confidence? This confidence interval (CI) is constructed as follows. Suppose that the height of the Dutch follows a distribution $X$ with mean $\mu$ and SD $\sigma$. Then, according to (3.3) and the CLT, $\bar X$ is approximately normal distributed with $\sigma(\bar X) = \sigma/\sqrt n$. Then a 95% CI is given by $[\bar X - 2\sigma/\sqrt n, \bar X + 2\sigma/\sqrt n]$, using the rule of thumb of Figure 3.7. However, we cannot compute this interval: in general we do not know $\sigma$. Therefore, we need to estimate it, by the sample SD, which is given by
+# In both hypothesis testing and confidence intervals, the concept of the sample mean has a central place. Suppose, as an example, we have measured the height of 100 arbitrary adult Dutch men and women and the average is 178 cm. Evidently, the average height of the whole population is not exactly 178 cm, because we took a sample, and we therefore certainly introduced an error. How big is this error? Can we construct an interval in which the true value falls with a certain level of confidence? This confidence interval (CI) is constructed as follows. Suppose that the height of the Dutch follows a distribution $X$ with mean $\mu$ and SD $\sigma$. Then, according to the averages formulas and the CLT, $\bar X$ is approximately normal distributed with $\sigma(\bar X) = \sigma/\sqrt n$. Then a 95% CI is given by $[\bar X - 2\sigma/\sqrt n, \bar X + 2\sigma/\sqrt n]$, using the rule of thumb above. However, we cannot compute this interval: in general we do not know $\sigma$. Therefore, we need to estimate it, by the sample SD, which is given by
 #
 # $$
 # S = \sqrt{\frac{\sum_{i=1}^n (X_i - \bar X)^2}{n-1}}.
 # $$
 #
-# **Exercise 3.20** One would expect $n$ instead of $n-1$ in the denominator of $S$. The reason is that $S$ in its current form is an unbiased estimator, i.e., $ES = \sigma$. Show this. (This exercise requires quite some mathematical skills.)
+# :::{exercise}
+# :label: ex-3-20
+#
+# One would expect $n$ instead of $n-1$ in the denominator of $S$. The reason is that $S$ in its current form is an unbiased estimator, i.e., $ES = \sigma$. Show this. (This exercise requires quite some mathematical skills.)
+# :::
 #
 # In our example, suppose that the sample SD of the height of the Dutch is 5 cm. Then the CI for the average height becomes $[178 - 2 \times 5/\sqrt{100}, 178 + 2 \times 5/\sqrt{100}] = [177, 179]$.
 #
-# > **Box 3.8. Interpretation of CI**
-# >
-# > A CI is commonly interpreted as an interval in which the true value falls with a certain probability. Correctly speaking, this is wrong: $\mu$ has an unknown but fixed value so it is within an interval or not. The correct interpretation of a CI is as follows: if you repeat an experiment multiple times and you create a CI every time, then in $\alpha$ (the confidence level) cases $\mu$ is inside the interval.
+# :::{note} Interpretation of CI
+# A CI is commonly interpreted as an interval in which the true value falls with a certain probability. Correctly speaking, this is wrong: $\mu$ has an unknown but fixed value so it is within an interval or not. The correct interpretation of a CI is as follows: if you repeat an experiment multiple times and you create a CI every time, then in $\alpha$ (the confidence level) cases $\mu$ is inside the interval.
+# :::
 #
 # **The CI made precise**
 #
@@ -452,8 +540,13 @@
 #
 # But there is more to it than that. Because we do not know $\sigma$ we replaced $(\bar X-\mu)/(\sqrt n \sigma)$ by $(\bar X-\mu)/(\sqrt n S)$. While the former has a standard normal distribution, the latter doesn't, because $S$ is a random variable. The true distribution of $(\bar X-\mu)/(\sqrt n S)$ is called Student's t-distribution with $n-1$ degrees of freedom. Thus we should replace 2 by `qt(0.975,99)`, 1.98. We see that the CI gets slightly larger, from 1.96 to 1.98. For larger $n$, the difference is even smaller, thus in almost all cases 2 is a very good approximation.
 #
-# **Exercise 3.21** A sample of 200 entries has average 9.8 and sample SD 5.4. Calculate a 90% CI for the population mean.
+# :::{exercise}
+# :label: ex-3-21
 #
+# A sample of 200 entries has average 9.8 and sample SD 5.4. Calculate a 90% CI for the population mean.
+# :::
+#
+# (hypothesis-testing)=
 # **Hypothesis testing**
 #
 # In a hypothesis test, we reject a hypothesis when the outcomes are very unlikely when the null hypothesis would be true. As an example, assume we want to test whether a coin is unbiased. We throw it 100 times and it comes up heads 62 times. What can we conclude? The standard procedure is to compute the probability of the outcome or more extreme under the null hypothesis, which is called the p-value. When this p-value is below the significance level (often 5%) then we reject the null hypothesis in favor of the alternative hypothesis. The probability of 62 or more is 1% (`1-pbinom(61,100,0.5)`). This is less than 5%, therefore the null hypothesis is rejected: we have sufficient statistical evidence to conclude that the coin is biased.
@@ -462,11 +555,15 @@
 #
 # R has a build-in test for this situation: `binom.test`, which should be used as follows: `binom.test(62,100)`. We get as p-value 2% because the default test is 2-sided.
 #
-# **Exercise 3.22** You roll a die 12 times.
+# :::{exercise}
+# :label: ex-3-22
+#
+# You roll a die 12 times.
 #
 # a. How many sixed do you expect?
 #
 # b. Assume that no sixes occurred. Can you conclude that the die is biased?
+# :::
 #
 # In the exercise, does the p-value mean that we can conclude that the die is not biased? The answer is no: if the p-value is higher than 5% no conclusion can be drawn. In this sense, hypothesis testing is asymmetric: only when the p-value is smaller than the significance level can a conclusion be drawn.
 #
@@ -480,7 +577,11 @@
 #
 # From `1-pnorm(sqrt(100)*(178-174)/5)` (or, using the mathematically correct t-distribution, `1-pt(sqrt(100)*(178-174)/5,99)`) it follows that the p-value is very small. The conclusion is therefore that the null-hypothesis is rejected and that the Dutch are taller than the world average. R also contains commands for directly executing tests. If the data is entered as an array called `"data"` in R, then you can use `t.test(data,mu=174,alt="g")`, where `"g"` refers to the alternative hypothesis which is not two-sided, but "greater".
 #
-# **Exercise 3.23** In this exercise we use the `beaver1` dataset in the R datasets package, which you should install first. Use a t-test to check whether this beaver's average body temperature is significantly different from the average human body temperature (37.3 Celcius). Also determine the p-value directly by computing mean and SD and draw your conclusions.
+# :::{exercise}
+# :label: ex-3-23
+#
+# In this exercise we use the `beaver1` dataset in the R datasets package, which you should install first. Use a t-test to check whether this beaver's average body temperature is significantly different from the average human body temperature (37.3 Celcius). Also determine the p-value directly by computing mean and SD and draw your conclusions.
+# :::
 #
 # **Other univariate tests**
 #
@@ -496,7 +597,11 @@
 #
 # where $S_X$ and $S_Y$ are the sample SDs. Note that the denominator is equal to $\sigma(\bar X - \bar Y)$ and that $T$ is approximately standard normal, under the null hypothesis. Now we can use the normal distribution to perform our test, or rely on the build-in function of R.
 #
-# **Exercise 3.24** Now we compare the average body temperatures of `beaver1` and `beaver2` in the datasets library. Compute the test statistic and determine whether we reject the null hypothesis that the temperatures are equal. Do this also using the R command `t.test`.
+# :::{exercise}
+# :label: ex-3-24
+#
+# Now we compare the average body temperatures of `beaver1` and `beaver2` in the datasets library. Compute the test statistic and determine whether we reject the null hypothesis that the temperatures are equal. Do this also using the R command `t.test`.
+# :::
 #
 # **Testing for a distribution**
 #
@@ -504,23 +609,24 @@
 #
 # The Shapiro-Wilk test is a test for normality, with `shapiro.test` the R command. You do not need to specify the parameters of the normal distribution.
 #
-# > **Box 3.9. Q-Q plots**
-# >
-# > It is a good habit to take a careful look at the data before testing for a distribution. One way to see graphically if a distribution might fit the data is by making a Q-Q plot. In a Q-Q plot, we plot the quantiles of the data against those of a certain distribution. A close to straight line indicates that your data might well come from that distribution.
-# >
-# > As an example, see the left plot of the figure below, generated by `qqnorm(beaver1$temp)`. In the middle, the line is quite straight; the deviations at the sides indicate outliers. This is confirmed by the histogram on the right. A further confirmation comes from the Shapiro-Wilk test, executed by `shapiro.test(beaver1$temp)`: normality is rejected.
-
-# %% [markdown]
-# ![Box 3.9 (left): Q-Q plot of the beaver1 temperature data](images/lecture12_box3.9-a.png)
+# :::{note} Q-Q Plots
+# It is a good habit to take a careful look at the data before testing for a distribution. One way to see graphically if a distribution might fit the data is by making a Q-Q plot. In a Q-Q plot, we plot the quantiles of the data against those of a certain distribution. A close to straight line indicates that your data might well come from that distribution.
 #
-# ![Box 3.9 (right): histogram of the beaver1 temperature data](images/lecture12_box3.9-b.png)
-
-# %% [markdown]
-# > Note that using `qqplot` any two datasets or distributions can be compared.
+# As an example, see the left plot of the figure below, generated by `qqnorm(beaver1$temp)`. In the middle, the line is quite straight; the deviations at the sides indicate outliers. This is confirmed by the histogram on the right. A further confirmation comes from the Shapiro-Wilk test, executed by `shapiro.test(beaver1$temp)`: normality is rejected.
+#
+# ![Q-Q plot of the beaver1 temperature data](images/lecture12_box3.9-a.png)
+#
+# ![Histogram of the beaver1 temperature data](images/lecture12_box3.9-b.png)
+#
+# Note that using `qqplot` any two datasets or distributions can be compared.
+# :::
 #
 # Another test is the Kolmogorov-Smirnov test, `ks.test` in R. It can be used in two ways: to find out if 2 datasets come from the same (continuous) distribution, and to test whether a dataset comes from a given distribution, which has to be specified including its parameters.
 #
-# **Exercise 3.25** We use the `Nile` dataset in the datasets library.
+# :::{exercise}
+# :label: ex-3-25
+#
+# We use the `Nile` dataset in the datasets library.
 #
 # a. Plot the histogram, boxplot and normal Q-Q plot. Does it look normal?
 #
@@ -529,25 +635,24 @@
 # c. Make a CI for the mean.
 #
 # d. Split the dataset in two by looking at the first 50 and the last 50 numbers. Is there a significant difference in average?
+# :::
 
 # %% [markdown]
-# #### 3.5 Additional reading
+# ## Additional Reading
 #
-# There are many books on probability theory. An accessible introduction is Ross [34]. The same holds for statistics. An accessible introduction is Triola [41].
+# There are many books on probability theory. An accessible introduction is Ross (2002). The same holds for statistics. An accessible introduction is Triola (2017).
 #
-# > **Box 3.10. Bayesian statistics**
-# >
-# > Central in Bayesian statistics is a distribution on the unknown parameter, such as the mean. This is in contrast with the frequentist approach which we discussed so far: there the unknown parameter was unknown but fixed. This distribution on the parameter is updated every time a new observation is made. From the a priori distribution we go, using Bayes' rule, to the a posteriori distribution. This can be done numerically, but for certain distributions analytical results are known.
-# >
-# > As an example, consider throwing a possibly biased coin. As initial distribution on the unknown success parameter, we choose the uniform distribution on $[0,1]$. Every time we throw the coin, we adapt this distribution using Bayes' rule. The resulting distributions are all so-called beta distributions. In the figure below we see a number of beta distributions. The top-left figure shows the uniform distribution. After two successes, the posterior distribution is as in the top-right, after 5 successes and 2 failures as in the left-bottom, and after 62 successes and 38 failures as in the right-bottom figure. The equivalent of a CI is a credible interval. A 95% credible interval of the last distribution is $[0.52, 0.71]$. This interval was computed with the R commands `qbeta(0.025,63,39)` and `qbeta(0.975,63,39)`.
+# :::{note} Bayesian Statistics
+# Central in Bayesian statistics is a distribution on the unknown parameter, such as the mean. This is in contrast with the frequentist approach which we discussed so far: there the unknown parameter was unknown but fixed. This distribution on the parameter is updated every time a new observation is made. From the a priori distribution we go, using Bayes' rule, to the a posteriori distribution. This can be done numerically, but for certain distributions analytical results are known.
+#
+# As an example, consider throwing a possibly biased coin. As initial distribution on the unknown success parameter, we choose the uniform distribution on $[0,1]$. Every time we throw the coin, we adapt this distribution using Bayes' rule. The resulting distributions are all so-called beta distributions. In the figure below we see a number of beta distributions. The top-left figure shows the uniform distribution. After two successes, the posterior distribution is as in the top-right, after 5 successes and 2 failures as in the left-bottom, and after 62 successes and 38 failures as in the right-bottom figure. The equivalent of a CI is a credible interval. A 95% credible interval of the last distribution is $[0.52, 0.71]$. This interval was computed with the R commands `qbeta(0.025,63,39)` and `qbeta(0.975,63,39)`.
+#
+# ![A sequence of beta distributions illustrating Bayesian updating (uniform prior; after 2 successes; after 5 successes and 2 failures; after 62 successes and 38 failures)](images/lecture12_box3.10.png)
+# :::
 
 # %% [markdown]
-# ![Box 3.10: a sequence of beta distributions illustrating Bayesian updating (uniform prior; after 2 successes; after 5 successes and 2 failures; after 62 successes and 38 failures)](images/lecture12_box3.10.png)
-
-# %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** "Read Chapter 3 (as a recap)" (listed under "Before lecture" in the schedule)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — Chapter 3 "Variability" (whole, recap)
-# - **Errata applied:** none
+# ## References
 #
-# > Chapter 3 is included as recap material (per the schedule's "Before lecture" prep reading for Lecture 12), and precedes [Lecture 12: Simulation](lecture12_simulation.ipynb) in the schedule.
+# - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 3, "Variability" (recap).
+# - Ross, S.M. (2002). *A First Course in Probability*, 6th ed. Prentice Hall.
+# - Triola, M.F. (2017). *Elementary Statistics*, 13th ed. Pearson.

@@ -16,15 +16,7 @@
 # # Lecture 9: Advanced Modeling
 
 # %% [markdown]
-# ## Compiled source text
-
-# %% [markdown]
-# ### Chapter 6 — Linear Optimization (§6.7)
-
-# %% [markdown]
-# #### 6.7 Modeling tricks
-#
-# In the previous section we saw which tooling to use. In this section we will see how to put problems in the (I)LO format. Thinking in the decision variables-objective-constraints framework often allows you to arrive at a problem formulation that resembles the standard (I)LO formulation. However, sometimes it is difficult to ensure that objective and constraints are linear. This section discusses some often-used tricks to formulate certain types of objectives and constraints in a linear way.
+# In the previous notebook we saw which tooling to use. In this notebook we will see how to put problems in the (I)LO format. Thinking in the decision variables-objective-constraints framework often allows you to arrive at a problem formulation that resembles the standard (I)LO formulation. However, sometimes it is difficult to ensure that objective and constraints are linear. This section discusses some often-used tricks to formulate certain types of objectives and constraints in a linear way.
 #
 # The first trick is useful when we want to minimize the absolute value of some decision variable, thus when the problem is of the form
 #
@@ -34,21 +26,21 @@
 #
 # for some vector $c \ge 0$.
 #
-# > **Box 6.2. A knapsack problem in AMPL**
-# >
-# > We give the AMPL implementation of the knapsack problem and a small instance which can be submitted right away to the NEOS server. The problem structure is implemented in the model file:
+# :::{note} A Knapsack Problem in AMPL
+# We give the AMPL implementation of the knapsack problem and a small instance which can be submitted right away to the NEOS server. The problem structure is implemented in the model file:
 #
-# ![Box 6.2 (model file): AMPL model file for the knapsack problem](images/lecture9_box6.2-model.png)
+# ![AMPL model file for the knapsack problem](images/lecture9_box6.2-model.png)
 #
-# > Next we need a data file in which the instance is given and finally the run file which tells the NEOS server what to do:
+# Next we need a data file in which the instance is given and finally the run file which tells the NEOS server what to do:
 #
-# ![Box 6.2 (data file): AMPL data file for the knapsack instance](images/lecture9_box6.2-data.png)
+# ![AMPL data file for the knapsack instance](images/lecture9_box6.2-data.png)
 #
-# ![Box 6.2 (run file): AMPL run file submitted to the NEOS server](images/lecture9_box6.2-run.png)
+# ![AMPL run file submitted to the NEOS server](images/lecture9_box6.2-run.png)
 #
-# > Note that the problem structure and data are separated. When a planner has to solve a knapsack problem every day, he only needs to change the data file.
-# >
-# > Further details on the AMPL syntax can be found online or in the AMPL book [10].
+# Note that the problem structure and data are separated. When a planner has to solve a knapsack problem every day, he only needs to change the data file.
+#
+# Further details on the AMPL syntax can be found online or in Fourer, Gay, and Kernighan (2003).
+# :::
 #
 # The crucial idea is that the variable $x_i$ can be rewritten as follows: $x_i = x_i^+ - x_i^-$ with $x_i^+, x_i^- \ge 0$ and one of them 0. Now the optimization problem can be rewritten as follows:
 #
@@ -58,12 +50,16 @@
 #
 # which is linear. Because $c \ge 0$ for each $i$ either $x_i^+ = 0$ or $x_i^- = 0$.
 #
-# **Exercise 6.16** Numbers $a_1, \dots, a_n$ are given. We are looking for $x$ that minimizes $\sum_i |x - a_i|$. Formulate this as LO problem, and implement it in Excel for the following numbers: 1, 2, 3, 5, 8, 10, 20, 35, 100. How can you interpret the outcome?
+# :::{exercise}
+# :label: ex-6-16
 #
-# The previous exercise shows that the median minimizes the sum of absolute errors, much as the average minimizes the sum of squared errors. We can extend this to linear functions. We already did this for squared errors, for which linear regression is the method. For absolute errors it is called quantile regression. Points $(x_i, y_i)$ are given and the objective is to find a function $y = a + bx$ such that the sum of absolute errors is minimized, see Figure 6.11.
+# Numbers $a_1, \dots, a_n$ are given. We are looking for $x$ that minimizes $\sum_i |x - a_i|$. Formulate this as LO problem, and implement it in Excel for the following numbers: 1, 2, 3, 5, 8, 10, 20, 35, 100. How can you interpret the outcome?
+# :::
+#
+# The previous exercise shows that the median minimizes the sum of absolute errors, much as the average minimizes the sum of squared errors. We can extend this to linear functions. We already did this for squared errors, for which linear regression is the method. For absolute errors it is called quantile regression. Points $(x_i, y_i)$ are given and the objective is to find a function $y = a + bx$ such that the sum of absolute errors is minimized, see the figure below.
 
 # %% [markdown]
-# ![Figure 6.11: Quantile regression](images/lecture9_fig6.11.png)
+# ![Quantile regression](images/lecture9_fig6.11.png)
 
 # %% [markdown]
 # In vector notation the problem can be formulated as follows:
@@ -86,7 +82,11 @@
 #
 # with $0 < p < 1$. This explains the term quantile regression.
 #
-# **Exercise 6.17** Consider Exercise 6.13. Assume we only have 8-hour shifts. To avoid overstaffing we replace the condition that staffing is met in every interval by the following objective: minimize the sum of absolute differences between demand and schedule. Formulate this as a LO problem and solve it using Excel.
+# :::{exercise}
+# :label: ex-6-17
+#
+# Consider [the call center staffing exercise](lecture9_ilo-applications.ipynb#ex-6-13). Assume we only have 8-hour shifts. To avoid overstaffing we replace the condition that staffing is met in every interval by the following objective: minimize the sum of absolute differences between demand and schedule. Formulate this as a LO problem and solve it using Excel.
+# :::
 #
 # The next modeling trick is for cases where the objective function is not a sum but a maximum. The full problem is then of the form
 #
@@ -108,9 +108,17 @@
 #
 # We assume $M$ is bigger than any $x_{ij}$ ever can be. Thus, $x_{ij} > 0 \Rightarrow M y_{ij} > 0 \Rightarrow y_{ij} = 1$. When $x_{ij} = 0$ then $y_{ij}$ can be 0 or 1. Because we are minimizing costs and $K > 0$, $y_{ij}$ will be 0. Thus $y_{ij} = 1 \Leftrightarrow x_{ij} > 0$.
 #
-# **Exercise 6.18** Consider Exercise 6.8, but with an additional feature: every link that is used has fixed costs 10. Determine the optimal solution, using ILO.
+# :::{exercise}
+# :label: ex-6-18
 #
-# **Exercise 6.19** Consider the multi-period production/inventory model of page 94. Extend it to fixed order costs, meaning that costs $K$ are incurred at $t$ when $x_t > 0$, keeping all constraints linear.
+# Consider [the transportation exercise](lecture8_linear-optimization.ipynb#ex-6-8), but with an additional feature: every link that is used has fixed costs 10. Determine the optimal solution, using ILO.
+# :::
+#
+# :::{exercise}
+# :label: ex-6-19
+#
+# Consider the [multi-period production/inventory model](lecture8_linear-optimization.ipynb#production-inventory-model). Extend it to fixed order costs, meaning that costs $K$ are incurred at $t$ when $x_t > 0$, keeping all constraints linear.
+# :::
 #
 # Big M can also be used in other situations, notably when a constraint only has to hold when a condition, which is part of the decision variables is satisfied. This condition is represented by a binary variable, let's say $y$, and the constraint is of the form $x \le b$. Then a linear implementation is $x \le b + (1-y)M$. When $y = 0$ the contraint always holds because the right-hand side is very big. When $y = 1$ then we find the original $x \le b$.
 #
@@ -126,9 +134,15 @@
 #
 # Here $y = 1$ corresponds to A before B.
 #
-# **Exercise 6.20** Assume that activities B and C of the project planning problem of Figure 6.5 use the same resource and therefore cannot be scheduled at the same time. Formulate this as ILO problem and solve it using Excel.
+# :::{exercise}
+# :label: ex-6-20
 #
-# **Machine scheduling**
+# Assume that activities B and C of [the project planning problem](lecture8_linear-optimization.ipynb#project-planning) use the same resource and therefore cannot be scheduled at the same time. Formulate this as ILO problem and solve it using Excel.
+# :::
+
+# %% [markdown]
+# (machine-scheduling)=
+# ## Machine Scheduling
 #
 # A problem in which several of these concepts occur is machine scheduling. We consider jobs that need to be scheduled on a single machine. Job $i$ has release date $r_i$ before which it cannot start, duration $d_i$, and due date $t_i$, $i = 1, \dots, n$. The decision variable are $x_i$, when to start job $i$, and also binary variables $y_{ij}$ with $y_{ij} = 1$ iff (read: if and only if) job $i$ goes before $j$, for all $i \ne j$. We give all constraints and discuss objectives right after that:
 #
@@ -153,7 +167,10 @@
 #
 # The model quickly becomes big, also for moderate $n$: the number of variables is $n^2$, and the number of constraints is $2n^2 + n$.
 #
-# **Exercise 6.21** Implement the single-machine scheduling problem with tardiness as objective in AMPL. Solve it for the following data with an appropriate solver on the NEOS server:
+# :::{exercise}
+# :label: ex-6-21
+#
+# Implement the single-machine scheduling problem with tardiness as objective in AMPL. Solve it for the following data with an appropriate solver on the NEOS server:
 #
 # | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
 # |---|---|---|---|---|---|---|---|---|---|---|
@@ -172,11 +189,16 @@
 # ```
 # var x {1..N, 1..M} binary;
 # ```
+# :::
 #
-# **Exercise 6.22** Change the objective of Exercise 6.14 as follows: the time the last class finishes has to be minimized.
+# :::{exercise}
+# :label: ex-6-22
+#
+# Change the objective of [the class-scheduling exercise](lecture9_ilo-applications.ipynb#ex-6-14) as follows: the time the last class finishes has to be minimized.
+# :::
 
 # %% [markdown]
-# ## Source map
-# - **Schedule topic(s):** Advanced modeling (§6.7)
-# - **Book source(s):** Koole, *An Introduction to Business Analytics* (2019) — §6.7 "Modeling tricks"
-# - **Errata applied:** none
+# ## References
+#
+# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.7 "Modeling Tricks."
+# - Fourer, R., Gay, D.M., & Kernighan, B.W. (2003). *AMPL: A Modeling Language for Mathematical Programming*. Duxbury, Thomson.
