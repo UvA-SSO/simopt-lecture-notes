@@ -5,18 +5,40 @@ project:
   title: Simulation and Optimization — Lecture Notes
   toc:
     - file: index.md
-    - file: notebooks/lecture8.ipynb
-      title: Lecture 8
-    - file: notebooks/lecture9.ipynb
-      title: Lecture 9
-    - file: notebooks/lecture10.ipynb
-      title: Lecture 10
-    - file: notebooks/lecture11.ipynb
-      title: Lecture 11
-    - file: notebooks/lecture12.ipynb
-      title: Lecture 12
-    - file: notebooks/lecture13.ipynb
-      title: Lecture 13
+    - title: Lecture 8
+      children:
+        - file: notebooks/lecture8_introduction.ipynb
+          title: Introduction to Business Analytics
+        - file: notebooks/lecture8_linear-optimization.ipynb
+          title: Linear Optimization
+        - file: notebooks/lecture8_integer-optimization.ipynb
+          title: Integer Optimization
+    - title: Lecture 9
+      children:
+        - file: notebooks/lecture9_ilo-applications.ipynb
+          title: Applications of ILO
+        - file: notebooks/lecture9_advanced-modeling.ipynb
+          title: Advanced Modeling
+    - title: Lecture 10
+      children:
+        - file: notebooks/lecture10_modeling-tools.ipynb
+          title: Modeling Tools and Solvers
+    - title: Lecture 11
+      children:
+        - file: notebooks/lecture11_algorithms-heuristics.ipynb
+          title: Algorithms and Heuristics
+        - file: notebooks/lecture11_complexity.ipynb
+          title: Complexity
+    - title: Lecture 12
+      children:
+        - file: notebooks/lecture12_variability-recap.ipynb
+          title: Variability (Recap)
+        - file: notebooks/lecture12_simulation.ipynb
+          title: Simulation
+    - title: Lecture 13
+      children:
+        - file: notebooks/lecture13_simulation-optimization.ipynb
+          title: Simulation Optimization
 site:
   title: Simulation and Optimization — Lecture Notes
   template: book-theme

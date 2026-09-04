@@ -48,25 +48,41 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
 
 ## Organizing lecture notes
 
-- Name notebooks/scripts `lectureN.ipynb` / `.py` (e.g. `lecture1.ipynb`,
-  `lecture2.ipynb`) — no need to include the topic in the filename.
-- One notebook per lecture.
-- A flat list of lectures in `project.toc` is fine; no need to group into sections.
+- One notebook per **topic** within a lecture, not one per lecture. Name
+  notebooks/scripts `lectureN_topic-slug.ipynb` / `.py` (e.g.
+  `lecture8_introduction.py`, `lecture8_linear-optimization.py`), with a short
+  kebab-case slug for the topic.
+- Each topic notebook ends with its own `## Source map` section (schedule topic,
+  book section(s), errata applied).
+- `project.toc` in `myst.yml` groups topic notebooks under a `title`-only parent
+  entry per lecture (no `file`, just `children`) so the left-hand nav shows
+  "Lecture N" as an expandable entry listing its topic notebooks — see below.
 
 ## Architecture: book structure via `myst.yml`
 
 `myst.yml` is the single source of truth for the book's structure and site config:
 
 - `project.toc` defines the table of contents — notebooks are only included in the
-  built book if listed here (adding a notebook file alone is not enough).
+  built book if listed here (adding a notebook file alone is not enough). Structure:
+  ```yaml
+  toc:
+    - file: index.md
+    - title: Lecture 8        # no `file`: an expandable, non-clickable nav group
+      children:
+        - file: notebooks/lecture8_introduction.ipynb
+          title: Introduction to Business Analytics
+        - file: notebooks/lecture8_linear-optimization.ipynb
+          title: Linear Optimization
+  ```
 - `site` configures the rendered site (theme, title, logo text).
 
-When adding a new lecture notebook:
+When adding a new lecture topic notebook:
 
 1. Create the paired `.py` file in `scripts/` (or `.ipynb` in `notebooks/`, then sync).
-2. Add a corresponding entry (`file: notebooks/lectureN.ipynb`) to the flat list in
-   `project.toc` in `myst.yml`.
-3. Run `uv run jupyter book start` to verify it renders and appears in the nav.
+2. Add a corresponding entry under the right lecture's `children` list in
+   `project.toc` in `myst.yml` (create the lecture's `title`-only entry if it's new).
+3. Update `index.md`'s lecture/topic list to match.
+4. Run `uv run jupyter book start` to verify it renders and appears in the nav.
 
 Build output goes to `_build/` (gitignored) and should never be committed.
 
