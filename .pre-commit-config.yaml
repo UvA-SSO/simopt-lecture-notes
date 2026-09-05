@@ -1,5 +1,11 @@
 fail_fast: true
 
+# `Course Materials/pulp_tutorial.py` is a reference file exported from Google
+# Colab (contains `!pip install ...` magics) — not valid standalone Python, and
+# not part of the jupytext-paired lecture scripts, so skip the Python-specific
+# hooks for it.
+exclude: ^Course Materials/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

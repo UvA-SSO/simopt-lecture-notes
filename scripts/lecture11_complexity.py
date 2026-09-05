@@ -16,7 +16,7 @@
 # # Lecture 11: Complexity
 
 # %% [markdown]
-# In the previous notebook we studied 3 archetypical CO problems: shortest path, max flow, and TSP (see [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb)). We saw a crucial difference between them: shortest path and max flow have run times polynomial in the size of the problem, but TSP grows as a factorial in $n$ (which is faster than exponential). This really makes a difference. The following table illustrates that.
+# In the previous notebook we studied 3 archetypical CO problems: shortest path, max flow, and TSP (see [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb)). We saw a crucial difference between them: shortest path and max flow have run times polynomial in the size of the problem, but TSP grows as a factorial in $n$ (which is faster than exponential). This really makes a difference. [](#tbl-complexity-growth) illustrates that.
 #
 # :::{note} ILO Solution of the TSP
 # We can try to construct an LO formulation for the TSP, just like we did for the shortest path and the max flow problem. With $c_{ij}$ we denote the length of the edge between $i$ and $j$ and $x_{ij}$ is the binary variable which indicates whether the edge $ij$ is included in the tour. Then the obvious LO formulation is:
@@ -40,11 +40,15 @@
 # By adding this constraint, we can solve the TSP to optimality. However, there are $2^n$ subsets of $V$, leading to an exponential number of constraints. This makes this solution approach practically infeasible.
 # :::
 #
+# :::{table} Growth rates of typical algorithm complexity classes.
+# :label: tbl-complexity-growth
+#
 # | $n$ | $n^2$ | $n^3$ | $2^n$ | $n!$ |
 # |---|---|---|---|---|
 # | 10 | 100 | 1000 | 1024 | 3.6 × 10⁶ |
 # | 100 | 10⁴ | 10⁶ | 1.3 × 10³⁰ | 9.3 × 10¹⁵⁷ |
 # | 1000 | 10⁶ | 10⁹ | 1.1 × 10³⁰¹ | 4.0 × 10²⁵⁶⁷ |
+# :::
 #
 # If a solution takes 1 µs to evaluate, then an algorithm with $n^3$ steps takes 1 second to evaluate for size 100; an algorithm with $n!$ steps would take many times the age of the earth... Even if Moore's law, which roughly states that computer power doubles every two years, continues to hold, it will take thousands of years before hardware is fast enough to make running times acceptable.
 #

@@ -20,18 +20,8 @@
 #
 # Note that binary problems are special cases of integer problems: the constraint $x_i \in \{0, 1\}$ is equivalent to the following 2 constraints: $x_i \in \{0, 1, 2, \dots\}$ and $x_i \le 1$.
 #
-# Product-mix problems where we have to produce integer numbers of items is a good example. In R we can add an additional argument to the solver call:
+# Product-mix problems where we have to produce integer numbers of items is a good example. In pulp we only need to change the `cat` of a decision variable from `"Continuous"` (the default) to `"Integer"` or `"Binary"` — everything else about building and solving the model stays the same.
 #
-# ```r
-# > lp ("max", f.obj, f.con, f.dir, f.rhs, all.int=TRUE)
-# ```
-#
-# In Excel we have to add additional constraints, as in the figure below.
-
-# %% [markdown]
-# ![Entering integer and binary constraints in Excel](images/lecture8_fig6.8.png)
-
-# %% [markdown]
 # :::{exercise}
 # :label: ex-6-9
 #
@@ -57,18 +47,43 @@
 # \end{aligned}
 # $$
 #
-# Solving this using R or Excel leads to the optimum $(1, 1, 0, 0, 1, 0, 0)$ with value 140.
+# Solving this with pulp:
+
+# %%
+import pulp
+
+revenue = [60, 60, 40, 10, 20, 10, 3]
+weight = [3, 5, 4, 1.4, 3, 3, 1]
+capacity = 11
+n_items = len(revenue)
+
+knapsack = pulp.LpProblem(name="knapsack", sense=pulp.LpMaximize)
+x = [pulp.LpVariable(name=f"x_{i+1}", cat="Binary") for i in range(n_items)]
+
+knapsack += pulp.lpSum(revenue[i] * x[i] for i in range(n_items))
+knapsack += pulp.lpSum(weight[i] * x[i] for i in range(n_items)) <= capacity
+
+knapsack.solve(pulp.PULP_CBC_CMD(msg=False))
+print("optimal solution:", [xi.value() for xi in x])
+print("optimal revenue:", knapsack.objective.value())
+
+# %% [markdown]
+# leads to the optimum $(1, 1, 0, 0, 1, 0, 0)$ with value 140, as expected.
 #
 # :::{exercise}
 # :label: ex-6-10
 #
-# Verify that this is indeed the optimal solution by solving the problem in R and Excel.
+# Verify by hand that changing any single 0 to a 1 above (while removing enough items to stay within the weight capacity) cannot improve on this solution.
 # :::
 #
-# Although the solver seemed to have found the optimal answer without any problems, it required much more work. This becomes apparent when we solve big real-life ILO problems with hundreds or thousands of variables. To gain more insight in how ILOs are solved, let us have a look at the figure below, where we see the steps to solve the knapsack example. We start with solving the LO relaxation, which is the problem without the integer or binary constraints (step 1). Sometimes we find an integer solution right away. Certain types of problems are even guaranteed to give integer solutions immediately. Here however $x_3$ is non-integer. Its value (150) is an upper bound to the best integer solution.
+# Although the solver seemed to have found the optimal answer without any problems, it required much more work. This becomes apparent when we solve big real-life ILO problems with hundreds or thousands of variables. To gain more insight in how ILOs are solved, let us have a look at [](#fig-branch-and-bound), where we see the steps to solve the knapsack example. We start with solving the LO relaxation, which is the problem without the integer or binary constraints (step 1). Sometimes we find an integer solution right away. Certain types of problems are even guaranteed to give integer solutions immediately. Here however $x_3$ is non-integer. Its value (150) is an upper bound to the best integer solution.
 
 # %% [markdown]
-# ![Solving an ILO problem](images/lecture8_fig6.9.png)
+# :::{figure} images/lecture8_fig6.9.png
+# :label: fig-branch-and-bound
+#
+# Solving an ILO problem.
+# :::
 #
 # > **Erratum applied (p. 97):** step 9 should have objective value 127.33 (not 128) and solution $(1, 0, 1, 1, 13/15, 0, 0)$ (not $(1, 0, 1, 1, 9/10, 0, 0)$).
 
@@ -80,7 +95,7 @@
 # :::{exercise}
 # :label: ex-6-11
 #
-# Solve by branch-and-bound the knapsack problem having rewards (15, 9, 10, 5), sizes (1, 3, 5, 4) and capacity 8. Check the result with R.
+# Solve by branch-and-bound the knapsack problem having rewards (15, 9, 10, 5), sizes (1, 3, 5, 4) and capacity 8. Check the result with pulp.
 # :::
 
 # %% [markdown]

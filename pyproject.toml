@@ -7,6 +7,11 @@ dependencies = [
     "jupyter-book>=2,<3",
     "jupytext>=1.16",
     "ipykernel>=6.29",
+    "pulp[cbc]>=2.9",
+    "scipy>=1.13",
+    "numpy>=1.26",
+    "matplotlib>=3.9",
+    "pandas>=2.2",
 ]
 
 [dependency-groups]

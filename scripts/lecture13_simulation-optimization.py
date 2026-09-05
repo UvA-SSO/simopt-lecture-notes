@@ -28,7 +28,7 @@
 #
 # - describe the concept of simulation optimization and its various methods
 # - reflect on its usefulness for solving business problems with various options and uncertain outcomes
-# - solve certain simple problems using R or Excel
+# - solve certain simple problems using Python
 
 # %% [markdown]
 # ## Introduction
@@ -88,11 +88,19 @@
 # :::
 #
 # :::{note} Common Random Numbers
-# It might take a long computation time to get a tight CI, especially in the case of complicated discrete-event simulations. Sometimes the variability of the differences between the scenarios can be reduced by a technique called common random numbers. The idea is that for random variables that are used in both scenarios, the same outcomes are taken. As a result the runs become dependent, and often the variability is reduced. For example, in a service center where we change the service delivery process, we might take the same customer arrival moments for both scenarios. This often reduces drastically the variance and therefore also reduces the width of the CI. This method is illustrated in the figures below: the left shows two independent traces with a small difference in process; the right shows the same random traces but with common random numbers.
+# It might take a long computation time to get a tight CI, especially in the case of complicated discrete-event simulations. Sometimes the variability of the differences between the scenarios can be reduced by a technique called common random numbers. The idea is that for random variables that are used in both scenarios, the same outcomes are taken. As a result the runs become dependent, and often the variability is reduced. For example, in a service center where we change the service delivery process, we might take the same customer arrival moments for both scenarios (in `numpy`, this simply means seeding both scenarios' random generators the same way, or sampling shared arrival times once and reusing them). This often reduces drastically the variance and therefore also reduces the width of the CI. This method is illustrated in the figures below: the left shows two independent traces with a small difference in process; the right shows the same random traces but with common random numbers.
 #
-# ![Two independent simulation traces with a small difference in process](images/lecture13_box8.2-a.png)
+# :::{figure} images/lecture13_box8.2-a.png
+# :label: fig-crn-independent
 #
-# ![The same random traces using common random numbers](images/lecture13_box8.2-b.png)
+# Two independent simulation traces with a small difference in process.
+# :::
+#
+# :::{figure} images/lecture13_box8.2-b.png
+# :label: fig-crn-common
+#
+# The same random traces using common random numbers.
+# :::
 # :::
 #
 # :::{exercise}
@@ -115,9 +123,9 @@
 # y(\pi) < y(\pi') - \frac{1.64\sqrt{s^2(\pi) + s^2(\pi')}}{\sqrt{m_0}}.
 # $$
 #
-# Note that in R `qnorm(0.95)` is equal to 1.64.
+# Note that `scipy.stats.norm.ppf(0.95)` is equal to 1.64.
 #
-# Now we have $|S|-1$ other solutions. The total probability of falsely discarding $\pi$ should be 0.05. For each comparison it should be $1 - \sqrt[|S|-1]{0.95}$. For $|S|=50$ this is equal to 0.001. In this case `qnorm(0.999)` gives 3.08.
+# Now we have $|S|-1$ other solutions. The total probability of falsely discarding $\pi$ should be 0.05. For each comparison it should be $1 - \sqrt[|S|-1]{0.95}$. For $|S|=50$ this is equal to 0.001. In this case `scipy.stats.norm.ppf(0.999)` gives 3.09.
 #
 # This leads to the following set of candidate solutions:
 #
@@ -160,7 +168,7 @@
 # :::{exercise}
 # :label: ex-8-4
 #
-# Solve the ranking-and-selection exercise above using local search with a budget of 5000. Take $N(x) = \{x-1, x+1\}$ (unless $x=1$ or 50, then $N$ is 2 or 49). Make a plot of the current solution as the algorithm progresses. You can do this in Excel or R. Doing it in R requires the use of for-loops.
+# Solve the ranking-and-selection exercise above using local search with a budget of 5000. Take $N(x) = \{x-1, x+1\}$ (unless $x=1$ or 50, then $N$ is 2 or 49). Make a plot of the current solution as the algorithm progresses.
 # :::
 
 # %% [markdown]

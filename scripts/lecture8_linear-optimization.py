@@ -16,13 +16,13 @@
 # # Lecture 8: Linear Optimization
 
 # %% [markdown]
-# In this chapter we discuss linear optimization problems. It is a framework used successfully in many industries to solve a broad variety of problems. We discuss different types of linear problems and show how you can solve them in Excel and R.
+# In this chapter we discuss linear optimization problems. It is a framework used successfully in many industries to solve a broad variety of problems. We discuss different types of linear problems and show how you can solve them in Python using [pulp](https://coin-or.github.io/pulp/), a Python library for linear and integer optimization.
 #
 # **Learning outcomes**
 #
 # On completion of this chapter, you will be able to:
 #
-# - implement linear optimization problems in R, Excel and dedicated modeling languages
+# - implement linear optimization problems in Python
 # - model appropriate business problems as linear optimization models
 # - reflect on the usefulness and applicability of linear optimization
 
@@ -53,29 +53,53 @@
 # \end{aligned}
 # $$
 #
-# Because the functions $2x_1 + 3x_2$, $x_1$ and $x_1 + 2x_2$ are linear in $x = (x_1, x_2)$ we call this a linear optimization (LO) problem. For LO, efficient solvers exist that are guaranteed to give an optimal solution, even for problems with thousands of variables and constraints. To solve our instance with R, the following code can be used:
-#
-# ```r
-# > install.packages("lpSolve")                          # install solver package (use only once)
-# > library(lpSolve)                                      # load library
-# > f.obj <- c(2, 3)                                       # set objective
-# > f.con <- matrix (c(1, 0, 1, 2), nrow=2, byrow=TRUE)     # constraint values
-# > f.dir <- c("<=", "<=")                                  # constraint types
-# > f.rhs <- c(5, 10)                                       # resource amounts
-# > lp ("max", f.obj, f.con, f.dir, f.rhs)                  # get optimal value
-# > lp ("max", f.obj, f.con, f.dir, f.rhs)$solution         # get optimal solution
-# ```
-#
+# Because the functions $2x_1 + 3x_2$, $x_1$ and $x_1 + 2x_2$ are linear in $x = (x_1, x_2)$ we call this a linear optimization (LO) problem. For LO, efficient solvers exist that are guaranteed to give an optimal solution, even for problems with thousands of variables and constraints. To solve our instance with [pulp](https://coin-or.github.io/pulp/), a Python library for linear and integer optimization, we first import it and separate the problem data from the model:
+
+# %%
+import pulp
+
+profit = [2, 3]  # profit per unit of product 1 and 2
+resource_use = [[1, 0], [1, 2]]  # resource_use[i][j]: resource i needed per unit of product j
+resource_availability = [5, 10]
+
+# %% [markdown]
+# Then we build the model: an `LpProblem`, one continuous decision variable per product, the objective, and one constraint per resource.
+
+# %%
+n_products = len(profit)
+n_resources = len(resource_availability)
+
+product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
+x = [pulp.LpVariable(name=f"x_{j+1}", lowBound=0) for j in range(n_products)]
+
+product_mix += pulp.lpSum(profit[j] * x[j] for j in range(n_products)), "profit"
+for i in range(n_resources):
+    product_mix += (
+        pulp.lpSum(resource_use[i][j] * x[j] for j in range(n_products))
+        <= resource_availability[i],
+        f"resource_{i+1}",
+    )
+
+product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[product_mix.status])
+print("optimal solution:", [xj.value() for xj in x])
+print("optimal profit:", product_mix.objective.value())
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-6-1
 #
-# Solve the product-mix problem above with R.
+# Re-solve the product-mix problem above by hand-deriving the corner points and checking which one pulp found.
 # :::
 #
-# There are different ways to understand what the R solver did. Let us first take a graphical look. In the figure below the problem is drawn with $x_1$ on the horizontal axis and $x_2$ on the vertical one. We see the two constraints who together with the non-negativity constraints ($x_1, x_2 \ge 0$, assumed by default) delimit the allowable area, often called the feasible region. Because of the linearity of the constraints and the objective, the optimum (if it exists, see below) must be at the edge, at a corner. To determine the optimal corner, we slide a line with equal objective value until we hit the feasible region, i.e., the set of points that satisfy all constraints. The line with value 36 is drawn in the figure. When we slide it down it hits the feasible region in the point with $x_1 = 5$ and $x_1 + 2x_2 = 10$. From this, the optimal solution follows again: $x_1 = 5$ and $x_2 = 2.5$.
+# There are different ways to understand what pulp did to find this. Let us first take a graphical look. In [](#fig-lo-graphical) the problem is drawn with $x_1$ on the horizontal axis and $x_2$ on the vertical one. We see the two constraints who together with the non-negativity constraints ($x_1, x_2 \ge 0$, assumed by default) delimit the allowable area, often called the feasible region. Because of the linearity of the constraints and the objective, the optimum (if it exists, see below) must be at the edge, at a corner. To determine the optimal corner, we slide a line with equal objective value until we hit the feasible region, i.e., the set of points that satisfy all constraints. The line with value 36 is drawn in the figure. When we slide it down it hits the feasible region in the point with $x_1 = 5$ and $x_1 + 2x_2 = 10$. From this, the optimal solution follows again: $x_1 = 5$ and $x_2 = 2.5$, matching what pulp found above.
 
 # %% [markdown]
-# ![A graphical view of LO](images/lecture8_fig6.1.png)
+# :::{figure} images/lecture8_fig6.1.png
+# :label: fig-lo-graphical
+#
+# A graphical view of LO.
+# :::
 #
 # > **Erratum applied (p. 87):** the objective line actually drawn in the figure corresponds to value 24, not 36 (the text above refers to the line "with value 36").
 
@@ -138,11 +162,11 @@
 # \end{aligned}
 # $$
 #
-# a. Solve it in R (see the online documentation of the R package lpSolve to find out how to change the signs of the constraints).
+# a. Solve it in pulp (mind the sign of `>=` and `==` constraints — pulp accepts them directly, unlike some solvers that require everything rewritten as `<=`).
 #
 # b. Rewrite it in the general form with maximization and "≤" constraints.
 #
-# c. Solve this problem in R.
+# c. Solve this problem in pulp and check it gives the same solution as a.
 # :::
 #
 # Sometimes we write the general formulation in matrix notation. Then it becomes:
@@ -153,25 +177,27 @@
 #
 # where $p$ and $x$ are $n$-dimensional column vectors (and thus $p$ transposed, $p^T$, is a row vector), $b$ is an $m$-dimensional column vector, and $A$ is an $m \times n$ matrix.
 #
-# Not all LO problems can be solved. Sometimes the problem is unbounded, meaning that solutions of arbitrarily large values can be found. On the other hand, there are also problems where there are no feasible solutions at all. Examples of both situations are shown below.
+# Not all LO problems can be solved. Sometimes the problem is unbounded, meaning that solutions of arbitrarily large values can be found. On the other hand, there are also problems where there are no feasible solutions at all. [](#fig-lo-degenerate) shows examples of both situations; pulp reports these as `LpStatus` values `"Unbounded"` and `"Infeasible"` respectively, instead of `"Optimal"`.
 
 # %% [markdown]
-# ![An unbounded (left) and an infeasible (right) LO problem](images/lecture8_fig6.2.png)
+# :::{figure} images/lecture8_fig6.2.png
+# :label: fig-lo-degenerate
+#
+# An unbounded (left) and an infeasible (right) LO problem.
+# :::
 
 # %% [markdown]
 # :::{exercise}
 # :label: ex-6-3
 #
-# Enter both problems shown above in R and see what output you get.
+# Enter both problems shown above in pulp and see what `LpStatus` you get.
 # :::
 
 # %% [markdown]
-# (lo-in-excel)=
-# ## Linear Optimization in Excel
+# (lo-larger-example)=
+# ## A Larger Example in pulp
 #
-# To solve LO problems in Excel, you should first make sure that the "solver add-in" is installed. You can check its availability under "Tools". How to install it depends on your version of Excel, for more details do a Google search for "install Excel solver".
-#
-# Now we show how to solve the following problem using Excel:
+# Now we show how to solve a slightly larger problem using pulp:
 #
 # $$
 # \begin{aligned}
@@ -182,39 +208,44 @@
 # \end{aligned}
 # $$
 #
-# The first step is to enter this problem in Excel in such a way that the decision variables, the objective value and the constraint values are in separate cells. See the figure below for a possible implementation of the above problem. For the decision variables we used arbitrary values (1, 2, 3).
+# Just like before, we separate the data from the model. This time the coefficients naturally form a matrix (one row per constraint, one column per variable), which we keep as a plain nested list — no separate "cells" for data versus formulas as in a spreadsheet, since in pulp the data and the constraint *expressions* are always kept apart by construction.
+
+# %%
+objective_coefs = [2, 4, 8]
+constraint_coefs = [[1, 3, 2], [1, 0, 3]]
+rhs = [10, 12]
+
+n = len(objective_coefs)
+m = len(rhs)
+
+larger_lo = pulp.LpProblem(name="larger_lo", sense=pulp.LpMaximize)
+y = [pulp.LpVariable(name=f"x_{j+1}", lowBound=0) for j in range(n)]
+
+larger_lo += pulp.lpSum(objective_coefs[j] * y[j] for j in range(n))
+for i in range(m):
+    larger_lo += pulp.lpSum(constraint_coefs[i][j] * y[j] for j in range(n)) <= rhs[i]
+
+larger_lo.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[larger_lo.status])
+print("optimal solution:", [yj.value() for yj in y])
+print("optimal objective:", larger_lo.objective.value())
 
 # %% [markdown]
-# ![LO implementation in Excel](images/lecture8_fig6.3.png)
-
-# %% [markdown]
-# The following formulas were entered:
-#
-# - cell E4: `=SUMPRODUCT(B$2:D$2,B4:D4)`
-# - cell E7: `=SUMPRODUCT(B$2:D$2,B7:D7)`
-# - cell E8: `=SUMPRODUCT(B$2:D$2,B8:D8)`
-#
-# Thanks to the $-signs, the formula only has to be entered once and can then be copied.
-#
-# We are now ready to open the solver dialog. After entering the right values the dialog should look like the figure below. The dialog can look slightly different, depending on your version of Excel. Hitting "Solve" will now solve the problem to optimality, with objective value 34.67.
+# This confirms the optimal objective value of 34.67 without ever needing a spreadsheet cell, a formula, or a solver dialog: the same three ingredients as before (data, decision variables, objective and constraints) are enough, and they scale to problems with many more variables and constraints exactly as they are.
 #
 # :::{exercise}
 # :label: ex-6-4
 #
-# Solve the LO problem above using Excel. Note that the constraints can be entered one by one each having a different sign.
+# Re-solve the LO problem above by adding the constraints one at a time and checking after each addition how the optimal objective value changes.
 # :::
 #
 # :::{exercise}
 # :label: ex-6-5
 #
-# The tax office can only check a subset of the tax declarations it received. There are 3 types of employees with different skills, and 3 types of declarations. Per declaration type, the expected revenues from additional taxation are as follows: (200, 1000, 500) Euros. Every tax employee can process every declaration, except for employee type 2 who cannot process declaration type 2 and employee type 3 who cannot process declaration type 3. The time per declaration depends on the declaration type and is (1, 3, 2) hours, respectively, except for employee type 3 who takes 2 hours for a type 1 declaration. The numbers of declarations are (15000, 6000, 8000), the numbers of available hours are (10000, 20000, 15000). How do you assign the employees to the different declaration types? Use Excel to solve this problem.
+# The tax office can only check a subset of the tax declarations it received. There are 3 types of employees with different skills, and 3 types of declarations. Per declaration type, the expected revenues from additional taxation are as follows: (200, 1000, 500) Euros. Every tax employee can process every declaration, except for employee type 2 who cannot process declaration type 2 and employee type 3 who cannot process declaration type 3. The time per declaration depends on the declaration type and is (1, 3, 2) hours, respectively, except for employee type 3 who takes 2 hours for a type 1 declaration. The numbers of declarations are (15000, 6000, 8000), the numbers of available hours are (10000, 20000, 15000). How do you assign the employees to the different declaration types? Use pulp to solve this problem.
 # :::
-
-# %% [markdown]
-# ![Excel solver dialog](images/lecture8_fig6.4.png)
-
-# %% [markdown]
-# The standard Excel solver is rather limited in capabilities. A simple alternative is the "OpenSolver" which is easy to install and comparable in use, but comes with a stronger solver without limitations on the numbers of variables or constraints. See OpenSolver.org.
+#
+# The CBC solver bundled with pulp is capable enough for problems like these. If you ever run into a bigger instance where CBC is too slow, pulp can call other solvers without changing the model itself — more on choosing a solver in [Modeling Tools and Solvers](lecture10_modeling-tools.ipynb).
 #
 # :::{exercise}
 # :label: ex-6-6
@@ -237,10 +268,14 @@
 # A graph is the mathematical name for a network consisting of nodes and edges connecting the nodes. Nodes are sometimes also called vertices. Edges can be directed or undirected, i.e., uni-directional or bi-directional. Directed edges are often called arcs. Many practical problems can be formulated as problems on graphs. One such problem is project planning.
 #
 # (project-planning)=
-# A project consists of a number of activities, each having a duration. These are the nodes in the graph. Additionally, certain activities require others to finish before they can get started. These precedence relations are modeled as directed edges in the graph. In the figure below an example of such a graph is given. We need to determine the earliest finish time of each activity. These are the decision variables, $x_i$ for activity $i$. Every precedence relation leads to a constraint. When $i$ precedes $j$ then this can be enforced by the constraint $x_i + d_j \le x_j$, where $d_j$ is the duration of activity $j$. For example, in the project below we model the relation $F \to G$ by the constraint $x_F + 2 \le x_G$.
+# A project consists of a number of activities, each having a duration. These are the nodes in the graph. Additionally, certain activities require others to finish before they can get started. These precedence relations are modeled as directed edges in the graph. In [](#fig-project-planning) an example of such a graph is given, with each node's duration shown above it. We need to determine the earliest finish time of each activity. These are the decision variables, $x_i$ for activity $i$. Every precedence relation leads to a constraint. When $i$ precedes $j$ then this can be enforced by the constraint $x_i + d_j \le x_j$, where $d_j$ is the duration of activity $j$. For example, in the project below we model the relation $F \to G$ by the constraint $x_F + d_G \le x_G$, i.e., $x_F + 2 \le x_G$.
 
 # %% [markdown]
-# ![Directed graph with weights of a project planning problem](images/lecture8_fig6.5.png)
+# :::{figure} images/lecture8_fig6.5.png
+# :label: fig-project-planning
+#
+# Directed graph with weights of a project planning problem.
+# :::
 
 # %% [markdown]
 # We are interested in the time at which all activities are finished. This can be modeled by an additional variable $z$, bigger than all finish times, that has to be minimized. This leads to the following LO formulation:
@@ -254,12 +289,40 @@
 # \end{aligned}
 # $$
 #
-# The last constraint ensures that no activity starts before time 0. Note that the finish time can also be found using an algorithm without LO, and that this algorithm can be extended to random activity durations. This is relevant in practice because often durations are hard to predict accurately, which is one of the main reasons why, for example, IT projects often finish after the scheduled deadline.
-#
+# The last constraint ensures that no activity starts before time 0. Note that the finish time can also be found using an algorithm without LO, and that this algorithm can be extended to random activity durations. This is relevant in practice because often durations are hard to predict accurately, which is one of the main reasons why, for example, IT projects often finish after the scheduled deadline. Let us solve the LO formulation in pulp for the project of [](#fig-project-planning):
+
+# %%
+duration = {"A": 2, "B": 3, "C": 2, "D": 1, "E": 2, "F": 3, "G": 2}
+precedences = [
+    ("A", "B"),
+    ("A", "C"),
+    ("B", "E"),
+    ("C", "D"),
+    ("C", "G"),
+    ("D", "E"),
+    ("F", "G"),
+    ("G", "E"),
+]
+
+project = pulp.LpProblem(name="project_planning", sense=pulp.LpMinimize)
+finish = {a: pulp.LpVariable(name=f"x_{a}", lowBound=duration[a]) for a in duration}
+makespan = pulp.LpVariable(name="z", lowBound=0)
+
+for a in duration:
+    project += makespan >= finish[a]
+for a, b in precedences:
+    project += finish[a] + duration[b] <= finish[b]
+project += makespan
+
+project.solve(pulp.PULP_CBC_CMD(msg=False))
+print("earliest finish times:", {a: finish[a].value() for a in duration})
+print("makespan:", makespan.value())
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-6-7
 #
-# Formulate the project planning problem above as LO problem and solve it using Excel.
+# Solve the project planning problem above by hand (without LO), by repeatedly picking the activity with no unfinished predecessors and the earliest possible start time. Check that you get the same makespan as pulp.
 # :::
 #
 # A more complicated problem that can be solved using LO is the so-called transportation problem. In this problem we have to transport a single type of good from $n$ sources to $m$ destinations. Source $i$ has supply $a_i$, destination $j$ has demand $b_j$, and link $i \to j$ has transportation costs $c_{ij}$ per unit transported on it. The question is: For each link, how much should you ship on it in order to satisfy the demand of each destination without violating supply constraints? See the figure below for an illustration. When link $i \to j$ does not exist we can take $c_{ij} = \infty$.
@@ -278,15 +341,19 @@
 # :::{exercise}
 # :label: ex-6-8
 #
-# Solve the following transportation problem, where "x" means there is no connection.
+# Solve the following transportation problem in pulp, where "x" means there is no connection (use a very large cost, e.g. `1e6`, in place of $\infty$).
 # :::
 
 # %% [markdown]
-# ![Transportation problem — supply $a_i$ per source $i$, demand $b_j$ per destination $j$, and costs $c_{ij}$ per source-destination pair (source 1: $a_1=10$, costs to destinations 1-4 are 0, 5, x, 0; source 2: $a_2=6$, costs 4, 6, 4, 3; source 3: $a_3=10$, costs 2, 4, 4, 6; demands $b_j$: 5, 5, 5, 5)](images/lecture8_fig6.6.png)
+# :::{figure} images/lecture8_fig6.6.png
+# :label: fig-transportation
+#
+# Transportation problem — supply $a_i$ per source $i$, demand $b_j$ per destination $j$, and costs $c_{ij}$ per source-destination pair (source 1: $a_1=10$, costs to destinations 1-4 are 0, 5, x, 0; source 2: $a_2=6$, costs 4, 6, 4, 3; source 3: $a_3=10$, costs 2, 4, 4, 6; demands $b_j$: 5, 5, 5, 5).
+# :::
 
 # %% [markdown]
 # (transshipment-problem)=
-# If we add intermediate nodes to the transportation problem, as in the figure below, then we obtain the transshipment problem. We can solve it by adding constraints of the form:
+# If we add intermediate nodes to the transportation problem, as in [](#fig-transshipment), then we obtain the transshipment problem. We can solve it by adding constraints of the form:
 #
 # $$
 # \sum_{i=1}^{n} x_{ik} = \sum_{j=1}^{m} x_{kj}
@@ -298,7 +365,11 @@
 # Next we consider multi-period production/inventory models. Here we assume there are multiple time periods, say $t = 1, \dots, T$, and a starting inventory $s_0$. Every day, the amount of production or supply has to be decided: $x_t$. There is demand, $d_t$ at time $t$, holding costs $h_t$, and production costs $c_t$. The problem is to find the production/order schedule that minimizes the total costs. This can be formulated as an LO problem as follows:
 
 # %% [markdown]
-# ![Transshipment problem](images/lecture8_fig6.7.png)
+# :::{figure} images/lecture8_fig6.7.png
+# :label: fig-transshipment
+#
+# Transshipment problem.
+# :::
 
 # %% [markdown]
 # $$
@@ -314,4 +385,5 @@
 # %% [markdown]
 # ## References
 #
-# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.1 "Problem Formulation", §6.2 "LO in Excel", §6.3 "Example LO Problems."
+# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.1 "Problem Formulation", §6.2 "LO in Excel", §6.3 "Example LO Problems." (Excel content replaced with pulp throughout this notebook.)
+# - PuLP documentation: https://coin-or.github.io/pulp/

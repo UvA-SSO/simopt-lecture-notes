@@ -53,7 +53,11 @@
 # To summarize, we distinguish the following steps in a BA project:
 
 # %% [markdown]
-# ![Data collection, data pre-processing, descriptive analytics, predictive analytics, prescriptive analytics, implementation — the full BA project spans all steps, the data science steps span descriptive through prescriptive analytics.](images/lecture8_fig-steps.png)
+# :::{figure} images/lecture8_fig-steps.png
+# :label: fig-ba-steps
+#
+# Data collection, data pre-processing, descriptive analytics, predictive analytics, prescriptive analytics, implementation — the full BA project spans all steps, the data science steps span descriptive through prescriptive analytics.
+# :::
 
 # %% [markdown]
 # The model above suggests a linear process, but in practice this is rarely the case. At many of the steps, depending on the outcome, you might revisit earlier steps. For example, if the predictions are not accurate enough for a particular application then you might collect extra data to improve them. Furthermore, not all BA projects include prescriptive analytics, many projects have insight or prediction as goal and therefore finish after the descriptive or predictive steps.
@@ -61,7 +65,11 @@
 # The major scientific fields of study corresponding to these BA steps are:
 
 # %% [markdown]
-# ![Business intelligence, cleaning & feature engineering, data analysis & visualisation, statistics & machine learning, optimization & reinforcement learning, soft skills.](images/lecture8_fig-fields.png)
+# :::{figure} images/lecture8_fig-fields.png
+# :label: fig-ba-fields
+#
+# Business intelligence, cleaning & feature engineering, data analysis & visualisation, statistics & machine learning, optimization & reinforcement learning, soft skills.
+# :::
 
 # %% [markdown]
 # Next to cleansing, feature engineering is an important part of data preparation, to be discussed later. During descriptive analytics you get an understanding of the data. You visualize the data and you summarize it using the tool of statistical data analysis. Getting a good understanding is crucial for making the right choices in the consecutive steps.
@@ -118,7 +126,7 @@
 # %% [markdown]
 # ## Non-Technical Overview
 #
-# In this section we give a non-technical overview of the most often used techniques and explain some of the technical terms that are regularly used. This section by nature can only be an oversimplification of reality, but it will help to get a flavor of the totality of the field, which even professionals in the field sometimes do not have. The techniques we discuss in this section are summarized in the figure below.
+# In this section we give a non-technical overview of the most often used techniques and explain some of the technical terms that are regularly used. This section by nature can only be an oversimplification of reality, but it will help to get a flavor of the totality of the field, which even professionals in the field sometimes do not have. The techniques we discuss in this section are summarized in [](#fig-overview-techniques).
 #
 # The four steps pre-processing, descriptive, predictive and prescriptive analytics, can also be described as follows:
 #
@@ -128,7 +136,11 @@
 # - maximizing the target value.
 
 # %% [markdown]
-# ![An overview of the most-often used data science techniques](images/lecture8_fig1.1.png)
+# :::{figure} images/lecture8_fig1.1.png
+# :label: fig-overview-techniques
+#
+# An overview of the most-often used data science techniques.
+# :::
 
 # %% [markdown]
 # Most predictive techniques require that you first structure the data. For example, topics can be extracted from text entered on social media or types of objects can be extracted from images. This brings us to a first distinction: between structured and unstructured data. Structured data usually consists of entries (e.g., people) with attributes (e.g., name, income, sex, nationality). The possible value for the attributes are well-defined (e.g., numerical, M/F, standard country codes). Structured data can be represented as a matrix: the rows are the entries, the columns the attributes.
@@ -149,7 +161,7 @@
 # Certain AI techniques are inspired by human intelligence or structures we find in nature, illustrated by names such as artificial neural networks or evolutionary computing. It is an interesting question whether or not we should try to copy human behavior with, eventually, the possibility that computers become "more intelligent" than humans. We could also argue that humans and computers have different capacities (seeing structures versus fast and errorless computation) and that our approaches to solving the same problem should be completely different. Your point of view might influence whether or not you find AI dangerous, as Stephen Hawking did for example.
 # :::
 #
-# Often the set of known data entries is split in a training and a test set: the algorithm is trained on the basis of the training set, and then evaluated on the basis of the test set. Usually an algorithm performs worse on the test set, but this is a more reliable comparison, as it avoids overfitting: the fact that the prediction of the algorithm is perfect for the training set but has no predictive value and therefore works bad on the test set. In statistics the terms in sample and out of sample are used for the same concepts. Understanding the background of the techniques and learning how to use them in the data science tool R is one of the main objectives of this book.
+# Often the set of known data entries is split in a training and a test set: the algorithm is trained on the basis of the training set, and then evaluated on the basis of the test set. Usually an algorithm performs worse on the test set, but this is a more reliable comparison, as it avoids overfitting: the fact that the prediction of the algorithm is perfect for the training set but has no predictive value and therefore works bad on the test set. In statistics the terms in sample and out of sample are used for the same concepts. Understanding the background of the techniques and learning how to use them in the data science tool Python is one of the main objectives of this course.
 #
 # Descriptive analytics is deductive in nature: from the data set, we derive characterizing quantities such as means and correlations. Extending the knowledge from the training data to the whole population is induction. This is what we do in statistics and machine learning as part of predictive analytics. Certain predictive models combine deduction and induction: A real-life system is modeled using components. By predicting the behavior of the components (induction) we can deduce the behavior of the whole system. For example, in this way a production plant or the progression of a disease in a body can be simulated. By changing (the behavior of) certain components different scenarios can be analysed, leading to optimization, i.e., prescriptive analytics. Optimization comes in different flavors. Linear optimization is a powerful framework, used in many planning problems, such as crew scheduling in airlines and logistics. When problems are dynamic (e.g., they evolve over time, such as managing an investment portfolio), then dynamic programming is the right framework. When dynamic optimization is combined with learning, then we speak of reinforcement learning.
 
@@ -161,25 +173,15 @@
 # - for data collection data warehouses exist with connections with operational IT systems;
 # - for distribution companies decision support systems exist that compute the optimal route of delivery trucks, saving many transit hours and petrol.
 #
-# We will first go into detail on software for ad-hoc tasks. For ad-hoc tasks there are a number of proprietary and open source tools — R (open source) and MS Excel (proprietary) are among the most popular ones. Both allow the user to efficiently manipulate data, often represented as matrices. Each tool functions in very different ways: R manipulates data in a declarative way, very much like programming languages. Additionally, the interactive environment RStudio allows for an easy manipulation of data, R scripts and figures. Excel is essentially a 2-dimensional worksheet, with the possibility to perform calculations in each cell and to add entities such as figures. Both have many useful functions, for example for statistical calculation. Many libraries exist containing algorithms that can be added to these tools, both open source and proprietary. Users can also add new functions or libraries to both tools. For a screenshot of a simple implementation of linear regression in both R and Excel, see the figures below.
-
-# %% [markdown]
-# ![A simple implementation of linear regression in Excel](images/lecture8_fig1.2.png)
-
-# %% [markdown]
-# Excel is omnipresent and is easy to learn, making it the favorite tool for many people doing relatively easy computational tasks. However, Excel is also known for the errors users make with it. This might be partly due to a lack of appropriate training, but the lack of structure also contributes. R enforces more structure, just like programming languages do. Learning R requires more time but it may well be worth the investment.
+# We will first go into detail on software for ad-hoc tasks. For ad-hoc tasks there are a number of proprietary and open source tools; Python (open source) is among the most popular. It allows the user to efficiently manipulate data, often represented as arrays or tables. Python manipulates data imperatively, very much like a general-purpose programming language — because it *is* one. Additionally, the interactive Jupyter notebook environment (what these lecture notes themselves are written in) allows for an easy combination of Python code, its output, and explanatory text and figures. Many libraries exist containing algorithms that can be added to Python, both open source and proprietary, and users can write their own functions or packages on top of it.
 #
-# As mentioned, Excel and R are both analytic environments with many built-in functions. Engines can be called from these environments to perform certain tasks, such as optimization. These engines can also be proprietary or open source. For example, for linear optimization (discussed in later notebooks), the best solvers, Gurobi and CPLEX, are proprietary; CBC is an example of an open-source solver.
+# Python's own built-in functions are deliberately minimal; almost all data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing) — these are the ones used throughout this course. Later in this course we introduce a further library, `pulp`, for optimization.
 #
-# Many other environments exist, often for specific analytics tasks. Examples are SPSS, often used in social sciences for statistical analysis, and
-
-# %% [markdown]
-# ![A simple implementation of linear regression in RStudio](images/lecture8_fig1.3.png)
-
-# %% [markdown]
-# AIMMS, an optimization environment. A special place is taken by Python. Python is a programming language with libraries containing many functions for data analysis. For this reason it is both used for ad hoc analysis and routine tasks, solving the so-called "two-language problem", the fact that you have to move from say R to a language like Java or C++ once you move from a successful pilot to a production system.
+# Engines can be called from Python to perform certain tasks, such as optimization. These engines can also be proprietary or open source. For example, for linear optimization (discussed in later notebooks), the best solvers, Gurobi and CPLEX, are proprietary; CBC is an example of an open-source solver, and it is the one `pulp` uses by default.
 #
-# Excel, although very different in functionality, is also often used for routine tasks. It has some functionality for this, such as the possibility to connect to databases and to add user-friendly screens, but it lacks others, such as user management. Although in principle everything can be built within Excel, thanks to the underlying programming language VBA (Visual Basic for Applications), in practice it often leads to slow error-prone systems consisting of a spaghetti of multiple sheets referring to each other.
+# Many other environments exist, often for specific analytics tasks. Examples are SPSS, often used in social sciences for statistical analysis, and AIMMS, an optimization environment. Historically, a special place was taken by R, a programming language purpose-built for statistics with libraries containing many functions for data analysis — R remains widely used in academic statistics, but Python has since become the default choice for most data science and BA work, because a single language now covers ad hoc analysis, routine production tasks, and everything in between (avoiding the so-called "two-language problem": having to move from a language like R to one like Java or C++ once a successful pilot needs to become a production system).
+#
+# Spreadsheet tools such as Excel are also still common, especially for routine tasks: they have some functionality for this, such as the possibility to connect to databases and to add user-friendly screens, but they lack others, such as proper version control and user management. Although in principle everything can be built within a spreadsheet, thanks to underlying scripting languages such as VBA (Visual Basic for Applications), in practice this often leads to slow, error-prone systems consisting of a spaghetti of multiple sheets referring to each other — one of the very reasons this course uses Python instead.
 #
 # Concerning software for routine tasks, there is a large variety in possible tooling. A major difference is between off-the-shelf and tailor-made software. In the area of prescriptive analytics decision support systems (DSS) form the main category of off-the-shelf software. This is software built for a specific goal, such as the routing of delivery vans or the pricing of hotel rooms. Next to the analytics algorithms, DSS typically have built-in connections to data sources and allow the user to interact with the software in such a way that input and output of the algorithms can be manipulated.
 #
@@ -187,13 +189,17 @@
 #
 # Tailor-made analytics software can be written in many different languages. We already mentioned Python, but popular languages include php, Java, C++ and C#, combined with mySQL (open source) or MS SQL server databases. Note the move of proprietary off-the-shelf tooling to cloud-based solutions, taking away the need for expensive servers at the customer site, and making maintenance and support much easier.
 #
-# The figure below gives an overview of the tools discussed. In this book we will mainly use R.
+# [](#fig-tools-overview) gives an overview of the tools discussed — it lists R and Excel as the ad hoc/routine examples of their era, but Python has since grown to fill the open source, ad hoc *and* routine roles at once, together with the same kind of database, DSS, and BI-tool interfaces shown in the figure. In this course we will use Python throughout.
 
 # %% [markdown]
-# ![Types of analytics tools with some examples; o = open source, p = proprietary](images/lecture8_fig1.4.png)
+# :::{figure} images/lecture8_fig1.4.png
+# :label: fig-tools-overview
+#
+# Types of analytics tools with some examples; o = open source, p = proprietary.
+# :::
 
 # %% [markdown]
-# Note that many interfaces exist between the tools and languages shown above. From within Excel and general programming languages databases can be accessed; DSS, spreadsheets and optimization environments call optimization engines, etc. Especially with the open source environments R and Python every imaginable data science project can be done, where Python is preferred in the case of big data or applications requiring intensive computation. R and Python are quickly gaining popularity: there is an enormous community developing new libraries and offering support through websites such as stackoverflow.com.
+# Note that many interfaces exist between the tools and languages shown above: general programming languages can access databases directly; DSS, spreadsheets and optimization environments call optimization engines, etc. Especially with an open source environment such as Python, every imaginable data science project can be done, and Python is often preferred in the case of big data or applications requiring intensive computation. Python's popularity keeps growing: there is an enormous community developing new libraries and offering support through websites such as stackoverflow.com.
 
 # %% [markdown]
 # (implementation)=
@@ -201,7 +207,7 @@
 #
 # A successful implementation of BA requires the right combination of tools and skills from the BA consultant(s). But more is needed: the organization should have reached the right maturity level to make the implementation possible. Let us consider first the required skills of the specialist.
 #
-# The core knowledge of any BA specialist is the command of suitable tooling (such as R) and a broad understanding of descriptive, predictive and prescriptive methods. Next to that, a specialist might have management skills (project management, change management, communication skills), programming skills (in for example C++ or Python), or deep knowledge on some of the technical areas, often clustered by the scientific disciplines of statistics, machine learning or optimization. These specialists are considered to be "T-shaped": they have breadth and also depth in a certain area. Sometimes people talk even of "Π-shaped", emphasizing the importance of knowledge of the application domain, the second vertical bar. However, the importance of breadth cannot be underestimated: It is important to be able to use the right method for the problems one encounters. Scientists are still too often specialized in one tool (e.g., a hammer) which they use for all problems they encounter (e.g., to put a screw in the wall).
+# The core knowledge of any BA specialist is the command of suitable tooling (such as Python) and a broad understanding of descriptive, predictive and prescriptive methods. Next to that, a specialist might have management skills (project management, change management, communication skills), programming skills (in for example C++ or Python), or deep knowledge on some of the technical areas, often clustered by the scientific disciplines of statistics, machine learning or optimization. These specialists are considered to be "T-shaped": they have breadth and also depth in a certain area. Sometimes people talk even of "Π-shaped", emphasizing the importance of knowledge of the application domain, the second vertical bar. However, the importance of breadth cannot be underestimated: It is important to be able to use the right method for the problems one encounters. Scientists are still too often specialized in one tool (e.g., a hammer) which they use for all problems they encounter (e.g., to put a screw in the wall).
 #
 # It is crucial to have good analysts, but an organization should also support the deployment of analytics. The extent to which an organization supports a certain concept is called its maturity with respect to this concept. The maturity is measured using maturity models. Different analytics maturity models have been developed. The more mature an organization, the higher the impact of analytics. We illustrate the concept using the INFORMS Analytics Maturity Model. It consists of three sets of questions, concerning the organization, its analytics capability, and its data and infrastructure. On the basis of this a score is calculated. For example, an organization with a central data warehouse and a centralized analytics strategy will score higher than a company lacking these.
 

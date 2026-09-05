@@ -23,7 +23,7 @@
 # On completion of this chapter, you will be able to:
 #
 # - describe Monte Carlo and discrete-event simulation
-# - perform Monte Carlo simulations in R and Excel
+# - perform Monte Carlo simulations in Python
 # - translate business simulation problems into simulation models
 # - reflect on the usefulness of simulation in practice
 
@@ -37,45 +37,44 @@
 #
 # A project consists of a number of activities with precedence constraints: an activity can only be started when all the preceding ones are finished. For example, the roof of a house can only be constructed when the walls are finished. Clearly, project planning is an important part of project management.
 #
-# The essence of projects is that each project is different. Therefore we cannot predict activity durations with certainty (as we can in manufacturing, for example following the lean approach). As a simple example, suppose we have two parallel activities followed by a third activity. Then the duration of the project is $g(x_1,x_2,x_3) = \max\{x_1,x_2\} + x_3$. Assume all three durations have uniform $[0,2]$ distributions (which have mean equal to 1). Then we can approximate the expected duration of the project with the following R command:
-#
-# ```r
-# > mean(pmax(runif(n,0,2),runif(n,0,2))+runif(n,0,2))
-# ```
-#
-# with $n$ equal to say 10000. With seed 0 this gives 2.33 as answer.
-#
-# Note that this is substantially more than 2, which would have been the answer in the case of deterministic durations with the same mean. Mistaking the duration of the means for the mean of the durations is a common mistake, called the strong form of the flaw of averages by Savage (2012).
+# The essence of projects is that each project is different. Therefore we cannot predict activity durations with certainty (as we can in manufacturing, for example following the lean approach). As a simple example, suppose we have two parallel activities followed by a third activity. Then the duration of the project is $g(x_1,x_2,x_3) = \max\{x_1,x_2\} + x_3$. Assume all three durations have uniform $[0,2]$ distributions (which have mean equal to 1).
 # :::
+#
+# We can approximate the expected duration of the project as follows:
+
+# %%
+import numpy as np
+
+rng = np.random.default_rng(0)
+n = 10000
+durations = np.maximum(rng.uniform(0, 2, n), rng.uniform(0, 2, n)) + rng.uniform(0, 2, n)
+print("estimated expected duration:", durations.mean())
+
+# %% [markdown]
+# Note that this is substantially more than 2, which would have been the answer in the case of deterministic durations with the same mean. Mistaking the duration of the means for the mean of the durations is a common mistake, called the strong form of the flaw of averages by Savage (2012).
 #
 # It is logical to question the accuracy of the answer. In simulation it is common to construct a [confidence interval](lecture12_variability-recap.ipynb#confidence-intervals) for the outcome. As discussed there, a 95% CI is given by $[m - 2s/\sqrt n, m + 2s/\sqrt n]$, with $m$ the average outcome and $s$ its SD.
-#
-# :::{note} Example: Project Duration (continued)
-# :label: eg-5-2
-#
-# Based on the same durations we can compute the sample SD of the small example project above: 0.75. The CI is $[2.31, 2.34]$.
-# :::
-#
+
+# %%
+m, s = durations.mean(), durations.std(ddof=1)
+print("sample SD:", s)
+print("95% CI:", (m - 2 * s / np.sqrt(n), m + 2 * s / np.sqrt(n)))
+
+# %% [markdown]
 # Note that, as long as the simulations are relatively simple, we can take the sample size $n$ as big as we like and thereby obtain an arbitrarily accurate answer.
 #
 # :::{exercise}
 # :label: ex-5-1
 #
-# a. Explain the difference between the R functions `max` and `pmax`.
+# a. Explain the difference between the numpy functions `np.maximum` and `np.max` (used above and elsewhere respectively).
 #
-# b. Using R, simulate the [project planning problem](lecture8_linear-optimization.ipynb#project-planning), with all activities having uniform distributions with mean as indicated and width $(b-a)$ equal to 2. Compute a CI.
+# b. Simulate the [project planning problem](lecture8_linear-optimization.ipynb#project-planning), with all activities having uniform distributions with mean as indicated and width $(b-a)$ equal to 2. Compute a CI.
 #
 # c. Simulate the project again with all activities having lognormal distributions with mean as indicated and SD 1. Note that the mean and SD of the underlying normal distributions first need to be computed.
 # :::
 #
-# :::{note} Simulation in Excel
-# Microsoft Excel or comparable spreadsheets are less appropriate for simulation. By using F9 the sheet is recalculated, and all random variables are sampled again. However, this does not allow us to compute a CI. This can be done by putting the whole simulation on 1 row and copying that row many times. Add-ins to Excel exist (such as Crystal Ball) that add simulation functionality to Excel.
-# :::
-#
-# :::{exercise}
-# :label: ex-5-2
-#
-# Repeat parts b) and c) of the exercise above using Excel.
+# :::{note} Simulating Without a Programming Language
+# Spreadsheets such as Excel are less appropriate for simulation. Recalculating the sheet resamples all random variables, but does not directly give a CI: that requires putting the whole simulation on one row and copying that row many times, or a dedicated add-in (such as Crystal Ball). This is one of several reasons this course simulates in Python instead: `numpy` samples thousands of realizations at once (as in the code above), and a CI is just two more lines of code away.
 # :::
 #
 # :::{note} Tail Probabilities
@@ -85,16 +84,15 @@
 # P(g(X) \ge \alpha) = \sum_{g(x) \ge \alpha} P(X=x) = \sum I\{g(x) \ge \alpha\} P(X=x) = EI(g(X) \ge \alpha),
 # $$
 #
-# with $I$ a special function, which is 1 when the argument is true and 0 otherwise, called the indicator function. Thus we end up estimating the expectation of the 0/1 function $I(g(X) \ge \alpha)$. For example, in the project planning example we are interested in the fraction of times that the project takes more than 2 time units. In R we compute this as follows:
-#
-# ```r
-# > durations=pmax(runif(n,0,2),runif(n,0,2))+runif(n,0,2)
-# > m=mean(durations>2);s=sd(durations>2)
-# > c(m-2*s/sqrt(n),m+2*s/sqrt(n))
-# ```
-#
-# This gives as CI $[0.65, 0.67]$.
+# with $I$ a special function, which is 1 when the argument is true and 0 otherwise, called the indicator function. Thus we end up estimating the expectation of the 0/1 function $I(g(X) \ge \alpha)$.
 # :::
+#
+# For example, in the project planning example we are interested in the fraction of times that the project takes more than 2 time units:
+
+# %%
+above_2 = durations > 2
+m, s = above_2.mean(), above_2.std(ddof=1)
+print("fraction above 2:", m, "95% CI:", (m - 2 * s / np.sqrt(n), m + 2 * s / np.sqrt(n)))
 #
 # :::{exercise}
 # :label: ex-5-3
@@ -133,10 +131,14 @@
 # In the service center we might be interested in the average waiting time during a day. In the warehouse we might be interested in the long-run probability of having no stock. In the case of the progression of a disease we might be interested in the time until death, while in the network situation we might be interested in the percentage of packets lost due to buffer overflow.
 # :::
 #
-# When employing DES there are two very distinct options: you can program the simulation in a programming language, or you can use a (graphical) tool. For certain programming languages there are libraries available with useful entities for simulation, but most code has to be programmed. Graphical simulation tools require less programming. For an impression of how such a tool works see the figure below. You can drag and drop components at the left to make a model in the middle. By clicking on the components they can be configured. A large number of graphical simulation tools exist, mostly proprietary, some of them focused on specific applications. The advantages of both methods are clear: programming offers flexibility and computational speed; using a tool offers speed in implementation plus a configurable graphical interface to impress customers.
+# When employing DES there are two very distinct options: you can program the simulation in a programming language, or you can use a (graphical) tool. For certain programming languages there are libraries available with useful entities for simulation, but most code has to be programmed. Graphical simulation tools require less programming. For an impression of how such a tool works see [](#fig-arena-des). You can drag and drop components at the left to make a model in the middle. By clicking on the components they can be configured. A large number of graphical simulation tools exist, mostly proprietary, some of them focused on specific applications. The advantages of both methods are clear: programming offers flexibility and computational speed; using a tool offers speed in implementation plus a configurable graphical interface to impress customers.
 
 # %% [markdown]
-# ![An impression of a simple model in the Arena DES tool](images/lecture12_fig5.1.png)
+# :::{figure} images/lecture12_fig5.1.png
+# :label: fig-arena-des
+#
+# An impression of a simple model in the Arena DES tool.
+# :::
 
 # %% [markdown]
 # :::{note} Object-Oriented Programming
@@ -170,9 +172,13 @@
 # :::
 #
 # :::{note} Long-Run Performance
-# Sometimes there is no natural termination moment for the simulation. In the supermarket example a day might be the right time frame, but in the network simulation there might not be such a moment. We are interested in the long-run stationary performance for constant parameters. Under certain conditions it can be shown (using the LLN) mathematically that the long-run average performance approaches the long-run expected performance. Because we cannot simulate for an infinitely long period, and because a single run does not give us information on the variability, it is customary to take the average over a number of runs. To avoid different "start-up" behavior, the first part of each simulation is not counted. See the figure below for an illustration of a service center with 10 counters. We clearly see the average over 100 runs increasing from the empty initial situation to around 15, and two runs constantly fluctuating.
+# Sometimes there is no natural termination moment for the simulation. In the supermarket example a day might be the right time frame, but in the network simulation there might not be such a moment. We are interested in the long-run stationary performance for constant parameters. Under certain conditions it can be shown (using the LLN) mathematically that the long-run average performance approaches the long-run expected performance. Because we cannot simulate for an infinitely long period, and because a single run does not give us information on the variability, it is customary to take the average over a number of runs. To avoid different "start-up" behavior, the first part of each simulation is not counted. The figure below illustrates this for a service center with 10 counters. We clearly see the average over 100 runs increasing from the empty initial situation to around 15, and two runs constantly fluctuating.
 #
-# ![Number of customers over time for a service center with 10 counters — the average over 100 runs rises from empty to around 15, while two individual runs fluctuate constantly](images/lecture12_box5.5.png)
+# :::{figure} images/lecture12_box5.5.png
+# :label: fig-long-run-performance
+#
+# Number of customers over time for a service center with 10 counters — the average over 100 runs rises from empty to around 15, while two individual runs fluctuate constantly.
+# :::
 # :::
 
 # %% [markdown]

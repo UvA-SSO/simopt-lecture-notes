@@ -46,7 +46,7 @@
 # | Hours | 1-6 | 1-4 | 5-8 | 7-10 | 7-12 | 9-12 |
 # | Wages | 8 | 6 | 6 | 3 | 7 | 3 |
 #
-# Solve it in Excel and use the SUMPRODUCT function and a matrix with the values of $a_{ui}$.
+# Solve it in pulp, using a matrix (nested list or dict) for the values of $a_{ui}$.
 # :::
 #
 # A generalization of the set cover problem is the covering problem. Instead of having to cover each element of the universe by 1 it can be more general. This leads to the following problem formulation:
@@ -76,7 +76,7 @@
 # - 8 hours working time, with a 30-minute unpaid break in the middle, wage 20 Euro/hr, possible starting times every half hour from 9am to 12:30pm;
 # - 4 hours consecutive, wage 24 Euro/hr, possible starting times every half hour from 9am to 5pm.
 #
-# Formulate this as a covering problem and solve it with the Excel solver.
+# Formulate this as a covering problem and solve it with pulp.
 # :::
 #
 # Machine scheduling is another important class of ILO problems. However, because it involves some modeling tricks that are discussed under [Machine Scheduling](lecture9_advanced-modeling.ipynb#machine-scheduling), we defer discussing it to that section.

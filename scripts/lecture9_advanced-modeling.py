@@ -26,20 +26,8 @@
 #
 # for some vector $c \ge 0$.
 #
-# :::{note} A Knapsack Problem in AMPL
-# We give the AMPL implementation of the knapsack problem and a small instance which can be submitted right away to the NEOS server. The problem structure is implemented in the model file:
-#
-# ![AMPL model file for the knapsack problem](images/lecture9_box6.2-model.png)
-#
-# Next we need a data file in which the instance is given and finally the run file which tells the NEOS server what to do:
-#
-# ![AMPL data file for the knapsack instance](images/lecture9_box6.2-data.png)
-#
-# ![AMPL run file submitted to the NEOS server](images/lecture9_box6.2-run.png)
-#
-# Note that the problem structure and data are separated. When a planner has to solve a knapsack problem every day, he only needs to change the data file.
-#
-# Further details on the AMPL syntax can be found online or in Fourer, Gay, and Kernighan (2003).
+# :::{note} Data-Model Separation, Revisited
+# Recall the [knapsack example](lecture8_integer-optimization.ipynb): the `revenue`, `weight` and `capacity` variables held the problem *data*, while the `pulp.LpProblem`, `pulp.LpVariable`, and the objective/constraint expressions built from them are the *model*. If a planner has to solve a similar knapsack problem every day with new items, only the data needs to change — the model-building code stays exactly the same. This is precisely the advantage that dedicated algebraic modeling languages such as AMPL or GAMS advertise, and it is why pulp is a good substitute for them: it keeps data and model separate by construction, while also giving you all of Python (loops, functions, `pandas`, etc.) to prepare that data. [Modeling Tools and Solvers](lecture10_modeling-tools.ipynb) goes further into structuring larger pulp models this way.
 # :::
 #
 # The crucial idea is that the variable $x_i$ can be rewritten as follows: $x_i = x_i^+ - x_i^-$ with $x_i^+, x_i^- \ge 0$ and one of them 0. Now the optimization problem can be rewritten as follows:
@@ -53,13 +41,17 @@
 # :::{exercise}
 # :label: ex-6-16
 #
-# Numbers $a_1, \dots, a_n$ are given. We are looking for $x$ that minimizes $\sum_i |x - a_i|$. Formulate this as LO problem, and implement it in Excel for the following numbers: 1, 2, 3, 5, 8, 10, 20, 35, 100. How can you interpret the outcome?
+# Numbers $a_1, \dots, a_n$ are given. We are looking for $x$ that minimizes $\sum_i |x - a_i|$. Formulate this as LO problem, and implement it in pulp for the following numbers: 1, 2, 3, 5, 8, 10, 20, 35, 100. How can you interpret the outcome?
 # :::
 #
-# The previous exercise shows that the median minimizes the sum of absolute errors, much as the average minimizes the sum of squared errors. We can extend this to linear functions. We already did this for squared errors, for which linear regression is the method. For absolute errors it is called quantile regression. Points $(x_i, y_i)$ are given and the objective is to find a function $y = a + bx$ such that the sum of absolute errors is minimized, see the figure below.
+# The previous exercise shows that the median minimizes the sum of absolute errors, much as the average minimizes the sum of squared errors. We can extend this to linear functions. We already did this for squared errors, for which linear regression is the method. For absolute errors it is called quantile regression. Points $(x_i, y_i)$ are given and the objective is to find a function $y = a + bx$ such that the sum of absolute errors is minimized, see [](#fig-quantile-regression).
 
 # %% [markdown]
-# ![Quantile regression](images/lecture9_fig6.11.png)
+# :::{figure} images/lecture9_fig6.11.png
+# :label: fig-quantile-regression
+#
+# Quantile regression.
+# :::
 
 # %% [markdown]
 # In vector notation the problem can be formulated as follows:
@@ -85,7 +77,7 @@
 # :::{exercise}
 # :label: ex-6-17
 #
-# Consider [the call center staffing exercise](lecture9_ilo-applications.ipynb#ex-6-13). Assume we only have 8-hour shifts. To avoid overstaffing we replace the condition that staffing is met in every interval by the following objective: minimize the sum of absolute differences between demand and schedule. Formulate this as a LO problem and solve it using Excel.
+# Consider [the call center staffing exercise](lecture9_ilo-applications.ipynb#ex-6-13). Assume we only have 8-hour shifts. To avoid overstaffing we replace the condition that staffing is met in every interval by the following objective: minimize the sum of absolute differences between demand and schedule. Formulate this as a LO problem and solve it using pulp.
 # :::
 #
 # The next modeling trick is for cases where the objective function is not a sum but a maximum. The full problem is then of the form
@@ -137,7 +129,7 @@
 # :::{exercise}
 # :label: ex-6-20
 #
-# Assume that activities B and C of [the project planning problem](lecture8_linear-optimization.ipynb#project-planning) use the same resource and therefore cannot be scheduled at the same time. Formulate this as ILO problem and solve it using Excel.
+# Assume that activities B and C of [the project planning problem](lecture8_linear-optimization.ipynb#project-planning) use the same resource and therefore cannot be scheduled at the same time. Formulate this as ILO problem and solve it using pulp.
 # :::
 
 # %% [markdown]
@@ -170,7 +162,7 @@
 # :::{exercise}
 # :label: ex-6-21
 #
-# Implement the single-machine scheduling problem with tardiness as objective in AMPL. Solve it for the following data with an appropriate solver on the NEOS server:
+# Implement the single-machine scheduling problem with tardiness as objective in pulp. Solve it for the following data:
 #
 # | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
 # |---|---|---|---|---|---|---|---|---|---|---|
@@ -178,16 +170,20 @@
 # | release time | 3 | 4 | 7 | 11 | 10 | 0 | 0 | 10 | 0 | 15 |
 # | due date | 11 | 12 | 20 | 25 | 20 | 10 | 30 | 30 | 10 | 20 |
 #
-# To implement a constraint that needs to hold for all $i, j$ with $i \ne j$ you can use the following AMPL syntax:
+# To implement a constraint that needs to hold for all $i, j$ with $i \ne j$, loop over both indices and `continue` (skip) when `i == j`:
 #
-# ```
-# subject to example_constraint {i in 1..N, j in 1..M: i<>j}:
+# ```python
+# for i in range(n):
+#     for j in range(n):
+#         if i == j:
+#             continue
+#         # add the constraint for this i, j
 # ```
 #
-# 2-dimensional binary variables are defined as follows:
+# 2-dimensional binary variables are defined the same way as the single-indexed ones in earlier notebooks, just nested:
 #
-# ```
-# var x {1..N, 1..M} binary;
+# ```python
+# y = [[pulp.LpVariable(name=f"y_{i}_{j}", cat="Binary") for j in range(n)] for i in range(n)]
 # ```
 # :::
 #
@@ -200,5 +196,4 @@
 # %% [markdown]
 # ## References
 #
-# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.7 "Modeling Tricks."
-# - Fourer, R., Gay, D.M., & Kernighan, B.W. (2003). *AMPL: A Modeling Language for Mathematical Programming*. Duxbury, Thomson.
+# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.7 "Modeling Tricks." (The book's AMPL example is replaced with pulp throughout this notebook.)

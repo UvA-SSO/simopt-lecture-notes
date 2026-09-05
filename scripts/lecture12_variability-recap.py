@@ -29,30 +29,38 @@
 # On completion of this chapter, you will be able to:
 #
 # - describe the basic notions of probability, descriptive statistics and hypothesis testing
-# - summarize data using R
-# - perform basic calculations by hand and in R related to distributions, confidence intervals and hypothesis testing
+# - summarize data using Python
+# - perform basic calculations by hand and in Python related to distributions, confidence intervals and hypothesis testing
 # - understand the sources of variability in business data
 
 # %% [markdown]
 # ## Summarizing Data
 #
-# Data can be summarized in numerical and graphical ways. For univariate, i.e., 1-dimensional data, numerical summaries mostly concentrate on centrality and variability. The most common measure for centrality is the mean (`mean()` in R, also called average), equal to the sum of the values divided by the number. Other measures for centrality are the trimmed mean (by adding a second argument to the `mean()` function) and the median (`median()`). The trimmed mean ignores the lowest and highest values, the median is the "middle" value, for which 50% is lower and 50% is higher.
+# Data can be summarized in numerical and graphical ways. For univariate, i.e., 1-dimensional data, numerical summaries mostly concentrate on centrality and variability. The most common measure for centrality is the mean (`numpy.mean`, also called average), equal to the sum of the values divided by the number. Other measures for centrality are the trimmed mean (`scipy.stats.trim_mean`) and the median (`numpy.median`). The trimmed mean ignores the lowest and highest values, the median is the "middle" value, for which 50% is lower and 50% is higher.
 #
-# For variability we mostly use the standard deviation (SD, `sd()` in R) or the variance (var, the square of the SD). They are defined later, but for both hold: the higher the value, the higher the variability.
+# For variability we mostly use the standard deviation (SD, `numpy.std`) or the variance (var, `numpy.var`, the square of the SD). They are defined later, but for both hold: the higher the value, the higher the variability. Note that pandas and numpy, by default, divide by $n-1$ rather than $n$ for the sample SD/variance (`ddof=1`) — the reason for this is explained later in this notebook.
 #
-# For example, the R datasets package contains a number of datasets of which `eurodist` is one. It contains distances (in km) between a number of major European cities. Then the R commands
-#
-# ```r
-# > mean(eurodist); mean(eurodist,trim=0.1); median(eurodist)
-# > sd(eurodist); var(eurodist)
-# ```
-#
-# result in: 1505.1, 1422.9, 1311.5, 898.8 and 807813. Note that the second command computes the trimmed mean, ignoring the 10% lowest and highest values.
-#
+# For example, `notebooks/data/eurodist.csv` contains a classic dataset with the distances (in km) between 21 major European cities, one row per pair. We load it with `pandas` and compute the summary statistics:
+
+# %%
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy import stats
+
+eurodist = pd.read_csv("data/eurodist.csv")["x"]
+
+print("mean:", eurodist.mean())
+print("10% trimmed mean:", stats.trim_mean(eurodist, 0.1))
+print("median:", eurodist.median())
+print("SD:", eurodist.std(ddof=1))
+print("variance:", eurodist.var(ddof=1))
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-3-1
 #
-# Reproduce this calculation (you might need to load the datasets library). Do the same thing for a dataset consisting of all the same numbers. You can construct such a dataset with the function `rep()`. Now change a few of the numbers and look at the consequences.
+# Reproduce this calculation. Do the same thing for a dataset consisting of all the same numbers — you can construct such a dataset with `numpy.full` or `numpy.repeat`. Now change a few of the numbers and look at the consequences.
 # :::
 #
 # :::{note} The Use of the Mean
@@ -61,12 +69,15 @@
 # For example, you might be interested in the average price of houses in a certain area, and see how it evolves over time. In many neighborhoods, this average is highly influenced by a small number of very expensive luxury houses. If you are interested in the price of a common house then the trimmed mean or the median might be a better choice.
 # :::
 #
-# Next we consider graphical summaries, especially histograms and boxplots, made using the R functions `hist()` and `boxplot()`. Output for the `eurodist` dataset can be found in the figure below. A histogram has different values grouped in buckets (here of length 500) on the horizontal axis and their frequencies on the vertical axis. We see, for example, that values between 1000 and 1500 km occur 52 times. A box plot is common in statistics and is essentially a 1-dimensional diagram in which the box is limited by the first and third quartile of the data (i.e., the points with 25% and 75% of the data below them, in R `quantile(eurodist,0.25)` and `quantile(eurodist,0.75)`), with the second quartile (the median) in the middle. There are different definitions for the horizontal lines (the whiskers) but the idea is that they show dispersion. Data points outside of the whiskers, the outliers, are shown as small circles.
+# Next we consider graphical summaries, especially histograms and boxplots, made with `matplotlib`. A histogram has different values grouped in buckets (here of length 500) on the horizontal axis and their frequencies on the vertical axis. We see, for example, that values between 1000 and 1500 km occur 52 times. A box plot is common in statistics and is essentially a 1-dimensional diagram in which the box is limited by the first and third quartile of the data (i.e., the points with 25% and 75% of the data below them, `numpy.quantile(eurodist, 0.25)` and `numpy.quantile(eurodist, 0.75)`), with the second quartile (the median) in the middle. There are different definitions for the horizontal lines (the whiskers) but the idea is that they show dispersion. Data points outside of the whiskers, the outliers, are shown as small circles. Below: a histogram and boxplot of the `eurodist` dataset.
 
-# %% [markdown]
-# ![Histogram of the eurodist dataset](images/lecture12_fig3.1-hist.png)
-#
-# ![Boxplot of the eurodist dataset](images/lecture12_fig3.1-boxplot.png)
+# %%
+fig, (ax_hist, ax_box) = plt.subplots(1, 2, figsize=(8, 3))
+ax_hist.hist(eurodist, bins=np.arange(0, 3500, 500))
+ax_hist.set_xlabel("distance (km)")
+ax_hist.set_ylabel("frequency")
+ax_box.boxplot(eurodist)
+fig.tight_layout()
 
 # %% [markdown]
 # Regardless of your ultimate goal, it is always good to start with summarizing your data. This helps you to get a general impression of the data, its outliers, skewness, etc.
@@ -74,19 +85,13 @@
 # :::{exercise}
 # :label: ex-3-2
 #
-# Use the `AirPassengers` dataset from the datasets package. Compute all 5 quartiles, the average and the SD. Plot the histogram and the boxplot. You can do this in R and/or in Excel.
+# Load `notebooks/data/AirPassengers.csv` (monthly airline passenger totals). Compute all 5 quartiles, the average and the SD. Plot the histogram and the boxplot.
 # :::
 #
 # :::{note} Skewness and Outliers
-# From the example we see that the dataset is not symmetric, but skewed to the right with two outliers beyond 4000. This skewness to the right results in a mean that is bigger than the median. The outliers make the SD high.
+# The `AirPassengers` dataset above is not symmetric, but skewed to the right, with a mean noticeably above the median. Skewness to the right like this results in a mean that is bigger than the median; strong skewness combined with a few extreme points also makes the SD high.
 #
 # Data is rarely symmetric. Only in certain cases theory predicts symmetry, in other cases we hardly ever find it.
-# :::
-#
-# :::{note} Summarizing Data in Excel
-# Functions in Excel have partly different names than in R: average, median, percentile, stdev, and var. To construct a histogram you can use the "data analysis" add-in, which is unfortunately not available in all versions of Excel. You can also make the histogram by hand, by calculating first the number of data points per bucket, as illustrated in the example below.
-#
-# ![Making a histogram by hand in Excel, calculating the number of data points per bucket](images/lecture12_box3.3-example.png)
 # :::
 
 # %% [markdown]
@@ -98,16 +103,20 @@
 #
 # Continuous RVs can take any value within a specified range, for example all values positive and negative (denoted by $\mathbb{R}$), only positive values ($\mathbb{R}^+$), or a range such as $[1, 5]$, the interval from 1 to 5. Examples are body heights and GDP of a country.
 #
-# In what follows, we discuss a number of often used distributions, starting with discrete ones. We start with the Bernoulli and binomial distributions. While discussing them we introduce some important concepts from probability theory.
+# In what follows, we discuss a number of often used distributions, starting with discrete ones. We start with the Bernoulli and binomial distributions. While discussing them we introduce some important concepts from probability theory. Every distribution in `scipy.stats` (`scipy.stats.binom`, `scipy.stats.norm`, ...) offers the same 4 functions, under the same names for every distribution: `.pmf`/`.pdf` (probability mass/density), `.cdf`, `.rvs` (random samples), and `.ppf` (the inverse of the cdf, i.e., percentiles) — so learning the pattern once means you already know how to use every distribution below.
 #
 # **The Bernoulli distribution**
 #
 # The Bernoulli distribution (named after the Swiss mathematician) can only take two values: 0 and 1. It models situations such as coin tossing. Random variables always have numbers as outcomes, therefore in the cointossing case "heads" and "tails" are translated to 0 and 1. A Bernoulli distributed RV $X$ is completely defined by the probability $p$ by which 1 occurs, written as $P(X=1) = p$, which should be read as "the probability that the RV $X$ is equal to 1 is equal to $p$".
 #
-# A common way to plot a distribution is by its cumulative distribution function (cdf), usually denoted as $F(x)$ or $F_X(x)$, and defined as $F_X(x) = P(X \le x)$. It follows that $F$ is a non-decreasing function with $F(-\infty) = 0$ and $F(\infty) = 1$. When $X$ is continuous $F$ is also continuous (hence the name). When $X$ is discrete, $F$ is a step function: it is constant between the values that can occur and at these points it makes jumps. $F_X$ for $X$ Bernoulli is plotted in the figure below.
+# A common way to plot a distribution is by its cumulative distribution function (cdf), usually denoted as $F(x)$ or $F_X(x)$, and defined as $F_X(x) = P(X \le x)$. It follows that $F$ is a non-decreasing function with $F(-\infty) = 0$ and $F(\infty) = 1$. When $X$ is continuous $F$ is also continuous (hence the name). When $X$ is discrete, $F$ is a step function: it is constant between the values that can occur and at these points it makes jumps. Below, the cdf $F_X$ for $X$ Bernoulli ($p = 0.4$):
 
-# %% [markdown]
-# ![The cdf of the Bernoulli distribution](images/lecture12_fig3.2.png)
+# %%
+p = 0.4
+x = np.arange(-0.5, 2.5, 0.01)
+plt.step(x, stats.bernoulli.cdf(x, p), where="post")
+plt.xlabel("x")
+plt.ylabel("$F_X(x)$")
 
 # %% [markdown]
 # :::{exercise}
@@ -148,12 +157,12 @@
 # For $X$ Bernoulli it is $\sigma^2(X) = (0-p)^2(1-p) + (1-p)^2 p = p - p^2$.
 # :::
 #
-# The Bernoulli distribution is a special case of the binomial distribution, which we will discuss next. R functions for both distributions will be introduced after that.
+# The Bernoulli distribution is a special case of the binomial distribution, which we will discuss next. `scipy.stats` functions for both distributions will be introduced after that.
 
 # %% [markdown]
 # **The binomial distribution**
 #
-# Suppose we repeat a 0/1 experiment $n$ times. We assume that they are independent, meaning that the outcome of one does not influence another. Let $N$ be the total number of 1s. Then $N$ has a so-called binomial distribution. The binomial distribution has two parameters: the success probability $p$, and $n$. For $n=10$ and $p=0.2$ its cdf is plotted in the figure below. This plot was made using the following R command: `curve(pbinom(x,10,0.2))`.
+# Suppose we repeat a 0/1 experiment $n$ times. We assume that they are independent, meaning that the outcome of one does not influence another. Let $N$ be the total number of 1s. Then $N$ has a so-called binomial distribution. The binomial distribution has two parameters: the success probability $p$, and $n$.
 #
 # :::{note} Independence
 # Independence is a very important property. Often we repeat an experiment multiple times. For example, we try a new medication on multiple patients, or we observe multiple visitors to a webshop. Statistical independence states that the outcome of one experiment does not influence the other. We assume it quite often, because it makes the analysis much simpler, although it might not be completely true. For example, a webshop customer who purchased a product might leave a positive review, thereby increasing the purchase probability of future customers. In this situation, the experiments are not independent, although the purchase probability might have only changed very little.
@@ -161,26 +170,37 @@
 # However, there are situations where we prefer not to have independence. For example, if we know the cancer type of each patient and the effect of a certain medication, then we might hope for dependence, i.e., a correlation between the type of cancer and the effect, in order to be able to give the right medication to the right patient. Similarly, you hope that attributes such as previous visits, age, time on website, etc., influence the conversion probability in order to be able to steer behavior of webshop visitors, for example by targeted advertising. These are typical examples of multivariate problems which we will discuss in later chapters.
 # :::
 #
-# The name binomial comes from Newton's binomium, written as $\binom{n}{k}$. It gives the number of ways to select $k$ items out of $n$, is related to the Triangle of Pascal, and is part of the formula for $P(N=k)$. We will not go into the mathematical details, instead we discuss the R functions by which we can compute expressions such as $P(N=k)$, the probability of $k$ successes. There are 4 R functions:
+# The name binomial comes from Newton's binomium, written as $\binom{n}{k}$. It gives the number of ways to select $k$ items out of $n$, is related to the Triangle of Pascal, and is part of the formula for $P(N=k)$. We will not go into the mathematical details, instead we discuss the `scipy.stats.binom` methods by which we can compute expressions such as $P(N=k)$, the probability of $k$ successes:
 #
-# - `dbinom(k, n, p)`, which gives $P(N=k)$ for parameters $n$ and $p$;
-# - `pbinom(k, n, p)`, which gives $P(N \le k)$ for parameters $n$ and $p$;
-# - `rbinom(k, n, p)`, which gives $k$ random independent outcomes of $N$ with parameters $n$ and $p$;
-# - `qbinom(q, n, p)`, which gives the inverse of the cdf: the number $k$ such that $P(N \le k)$ is equal or just above $q$.
+# - `stats.binom.pmf(k, n, p)`, which gives $P(N=k)$ for parameters $n$ and $p$;
+# - `stats.binom.cdf(k, n, p)`, which gives $P(N \le k)$ for parameters $n$ and $p$;
+# - `stats.binom.rvs(n, p, size=k)`, which gives $k$ random independent outcomes of $N$ with parameters $n$ and $p$;
+# - `stats.binom.ppf(q, n, p)`, which gives the inverse of the cdf: the number $k$ such that $P(N \le k)$ is equal or just above $q$.
 #
-# As an example, consider a school class with 30 kids who are randomly selected.
+# As an example, consider a school class with 30 kids who are randomly selected. Below, the cdf of the binomial distribution with n = 10 and p = 0.2:
+
+# %%
+x = np.arange(-0.5, 10.5, 0.01)
+plt.step(x, stats.binom.cdf(x, 10, 0.2), where="post")
+plt.xlabel("x")
+plt.ylabel("$F_N(x)$")
 
 # %% [markdown]
-# ![The cdf of the binomial distribution with n = 10 and p = 0.2](images/lecture12_fig3.3.png)
+# We assume that the probability of every child being male or female is exactly 50%.
+
+# %%
+print("P(15 of each sex):", stats.binom.pmf(15, 30, 0.5))
+print("P(10 or fewer girls):", stats.binom.cdf(10, 30, 0.5))
+rng = np.random.default_rng(0)
+print("10 sampled classes:", stats.binom.rvs(30, 0.5, size=10, random_state=rng))
+print("90th percentile:", stats.binom.ppf(0.9, 30, 0.5))
 
 # %% [markdown]
-# We assume that the probability of every child being male or female is exactly 50%. Then the probability of having 15 kids of each sex is `dbinom(15,30,0.5)` is equal to 14.4%. Having 10 or less girls has probability `pbinom(10,30,0.5)`, 5%.
+# So having 15 kids of each sex has probability 14.4%, having 10 or fewer girls has probability 4.9%.
 #
-# Generating 10 arbitrary classes by `rbinom(10,30,0.5)` leads to: 18 13 13 12 15 16 14 14 19 17.
+# Explaining the use of `.ppf` is a bit harder. Suppose we want to know the maximum number of girls to expect in 90% of the classes. The result above, 19, means that `stats.binom.cdf(19, 30, 0.5)` $= P(N \le 19) \ge 0.9$ while `stats.binom.cdf(18, 30, 0.5)` $= P(N \le 18) < 0.9$.
 #
-# Explaining the use of `qbinom()` is a bit harder. Suppose we want to know the maximum number of girls to expect in 90% of the classes. Then `qbinom(0.9,30,0.5)` gives the answer: 19. Indeed, `pbinom(19, 30, 0.5)` $= P(N \le 19) \ge 0.9$ and `pbinom(18, 30, 0.5)` $= P(N \le 18) < 0.9$.
-#
-# The values given by `qbinom()` are also called percentiles. The 25th, 50th and 75th percentile are called quartiles; the 50th percentile is the median of the distribution.
+# The values given by `.ppf` are also called percentiles. The 25th, 50th and 75th percentile are called quartiles; the 50th percentile is the median of the distribution.
 #
 # :::{exercise}
 # :label: ex-3-4
@@ -188,7 +208,7 @@
 # You roll a die 10 times. What is the probability that there are no 6s? Make a plot of the probability of $k$ 6s for $k \in \{0, \dots, 10\}$.
 # :::
 #
-# Note that the R functions for the binomial distribution can be used as well for the Bernoulli distribution, by taking $n=1$.
+# Note that the binomial functions can be used as well for the Bernoulli distribution, by taking $n=1$.
 #
 # The formulas for the expectation, SD and variance are as follows:
 #
@@ -296,7 +316,7 @@
 #
 # - in certain cases we have theoretical results concerning sums. The binomial distribution is an excellent illustration of this: it is itself a sum of Bernoulli distributions having the same $p$, and for the same reason sums of binomial distributions are again binomial, a long as they are independent and have the same $p$. Another example is the normal distribution, which will be discussed later on: sums of normals are again normal;
 # - for the majority of sums no mathematical expression is known. In that case we can often do a numerical calculation to compute the joint distribution;
-# - a simple and intuitive alternative is sampling or simulation, based on the LLN. You simply sample every component of the sum many times and you take the sums. For example, `rbinom(100,20,0.2)+rbinom(100,10,0.2)` gives 100 samples of a binomial distribution with parameters 30 and 0.2. If you change one of the $p$s the sum is not binomial anymore. However, the method can still be used.
+# - a simple and intuitive alternative is sampling or simulation, based on the LLN. You simply sample every component of the sum many times and you take the sums. For example, `stats.binom.rvs(20, 0.2, size=100) + stats.binom.rvs(10, 0.2, size=100)` gives 100 samples of a binomial distribution with parameters 30 and 0.2. If you change one of the $p$s the sum is not binomial anymore. However, the method can still be used.
 #
 # :::{exercise}
 # :label: ex-3-7
@@ -323,7 +343,7 @@
 # For a fixed $\lambda$, consider binomial distributions $N_n$ with $n$ experiments and success probability $\lambda/n$. Look up the formula for the binomial distribution (e.g., at Wikipedia) and show that $\lim_{n \to \infty} P(N_n=k)$ equals the Poisson distribution. (This exercise requires knowledge of calculus, the mathematical field that includes integration and limits.)
 # :::
 #
-# The R functions for the Poisson distribution are `dpois`, `ppois`, `qpois`, and `rpois`. Their definition is similar to those of the binomial distribution (with 1 parameter less). Indeed, every distribution defined in R has functions of the form `dxxx`, `pxxx`, `qxxx`, and `rxxx`, with `xxx` the abbreviation of the name of the distribution.
+# `scipy.stats.poisson` offers the same 4 methods (`.pmf`, `.cdf`, `.rvs`, `.ppf`) with one parameter less than the binomial (just $\lambda$, passed as `mu`).
 #
 # :::{exercise}
 # :label: ex-3-9
@@ -343,10 +363,14 @@
 #
 # **The uniform distribution**
 #
-# The uniform distribution is the first continuous distribution we discuss. It has a minimum and a maximum, commonly denoted with $a$ and $b$. The defining feature of the uniform distribution is that every interval between $a$ and $b$ of the same length is equally likely. For this reason the cfd, given in the figure below, increases linearly in the interval $[a,b]$ from 0 to 1.
+# The uniform distribution is the first continuous distribution we discuss. It has a minimum and a maximum, commonly denoted with $a$ and $b$. The defining feature of the uniform distribution is that every interval between $a$ and $b$ of the same length is equally likely. For this reason the cdf, plotted below for a = 1 and b = 5, increases linearly in the interval $[a,b]$ from 0 to 1.
 
-# %% [markdown]
-# ![The cdf of the uniform distribution with a = 1 and b = 5](images/lecture12_fig3.4.png)
+# %%
+a, b = 1, 5
+x = np.linspace(a - 1, b + 1, 200)
+plt.plot(x, stats.uniform.cdf(x, loc=a, scale=b - a))
+plt.xlabel("x")
+plt.ylabel("$F_U(x)$")
 
 # %% [markdown]
 # For $U$ uniformly distributed on $[a,b]$, the expectation and standard deviation are as follows:
@@ -355,20 +379,20 @@
 # EU = \frac{a+b}{2} \qquad \text{and} \qquad \sigma(U) = \frac{b-a}{\sqrt{12}}.
 # $$
 #
-# The R functions are `dunif`, `punif`, `qunif` and `runif`. E.g., `punif(1,0,3)` gives $1/3$ and `qunif(2/3,0,3)` is equal to 2. See the box below for the interpretation of `dunif`.
+# `scipy.stats.uniform` takes `loc=a` and `scale=b-a` (note: *not* `b` directly). E.g., `stats.uniform.cdf(1, loc=0, scale=3)` gives $1/3$ and `stats.uniform.ppf(2/3, loc=0, scale=3)` is equal to 2. See the box below for the interpretation of `.pdf`.
 #
 # **Probabilities of eventualities**
 #
-# Note that `punif(u,a,b)` gives $P(U \le u)$ with $U$ uniform with parameters $a$ and $b$. However, sometimes we are interested in probabilities of other intervals, such as $P(U>u)$ or $P(U \in [u,v])$. These expressions can be derived from `punif`. From $P(U \le u) + P(U > u) = 1$ it follows that
+# Note that `stats.uniform.cdf(u, loc=a, scale=b-a)` gives $P(U \le u)$ with $U$ uniform with parameters $a$ and $b$. However, sometimes we are interested in probabilities of other intervals, such as $P(U>u)$ or $P(U \in [u,v])$. These expressions can be derived from `.cdf`. From $P(U \le u) + P(U > u) = 1$ it follows that
 #
 # $$
-# P(U>u) = 1 - P(U \le u) = 1 - \texttt{punif(u,a,b)}.
+# P(U>u) = 1 - P(U \le u) = 1 - \texttt{stats.uniform.cdf(u, loc=a, scale=b-a)}.
 # $$
 #
 # Similarly,
 #
 # $$
-# P(U \in [u,v]) = P(U \le v) - P(U \le u) = \texttt{punif(v,a,b)} - \texttt{punif(u,a,b)}.
+# P(U \in [u,v]) = P(U \le v) - P(U \le u) = \texttt{stats.uniform.cdf(v, ...)} - \texttt{stats.uniform.cdf(u, ...)}.
 # $$
 #
 # Note that for continuous distributions $P(X \le x) = P(X < x)$. The explanation can be found in the box below. For discrete distributions this does matter! Intervals like $A = [u,v]$ are called eventualities, $P(A)$ is its probability. As part of the fundamentals of probability more complicated sets $A$ are studied. We will stay far away from this type of mathematical sophistication.
@@ -376,21 +400,21 @@
 # :::{exercise}
 # :label: ex-3-11
 #
-# For $U$ uniformly distributed with parameters 0 and 2, determine by hand $P(U \in [0.5,1])$. Check your answer by sampling in R many times from $U$ using `runif` and by using `punif`.
+# For $U$ uniformly distributed with parameters 0 and 2, determine by hand $P(U \in [0.5,1])$. Check your answer by sampling in Python many times from $U$ using `stats.uniform.rvs` and by using `.cdf`.
 # :::
 #
 # **The normal distribution**
 #
-# We continue our focus on distributions with the most famous of them all: the normal or Gaussian (after the German scientist) distribution. The normal distribution has two parameters: $\mu$ and $\sigma$, the expectation and the SD. Be careful: some tools require you to enter the SD, some require the variance. Of course, they are not the same, unless $\sigma=1$ (or 0, but then there is no variability: the degenerate distribution that has as outcome $\mu$ with probability 1).
+# We continue our focus on distributions with the most famous of them all: the normal or Gaussian (after the German scientist) distribution. The normal distribution has two parameters: $\mu$ and $\sigma$, the expectation and the SD. Be careful: some tools require you to enter the SD, some require the variance — `scipy.stats.norm` always takes the SD, as `loc=mu, scale=sigma`. Of course, they are not the same, unless $\sigma=1$ (or 0, but then there is no variability: the degenerate distribution that has as outcome $\mu$ with probability 1).
 #
 # :::{note} Probability of a Single Outcome
 # A surprising and counter-intuitive feature of continuous distributions is that every possible outcome has probability 0. This is because there are infinitely many points in an interval such as $[a,b]$. If they all had a positive probability of occurring then they would sum up to more than 1. Indeed, if we measure all people in the world up to 10 decimals then nobody would be exactly 1m80. However, we can attribute a probability to intervals, such as all people having a length between 1m80 and 1m81.
 #
-# For discrete distributions, the R function `pxxx` gave the probability of a point. For continuous distribution, the definition is different: it gives the so-called density. Integrating the density over the real numbers gives 1, just as all probabilities of a discrete distribution sum up to 1.
+# For discrete distributions, `.pmf` gave the probability of a point. For continuous distributions, `.pdf` gives the so-called density instead. Integrating the density over the real numbers gives 1, just as all probabilities of a discrete distribution sum up to 1.
 # :::
 
 # %% [markdown]
-# The normal distribution is well-known for its symmetric bell-shaped density, which is plotted for two distributions in the left plot below. The corresponding cdf's (which are easier to interpret) are in the plot on the right. In the figure we used the common notation $N(\mu,\sigma^2)$ for normal distributions. Note the usage of $\sigma^2$: thus $N(3,4)$ has SD 2. The $N(0,1)$ is the standard normal distribution. The R function for the normal distribution are `dnorm`, `pnorm`, etc.
+# The normal distribution is well-known for its symmetric bell-shaped density; its cdf (which is easier to interpret) is plotted alongside it further below. We use the common notation $N(\mu,\sigma^2)$ for normal distributions. Note the usage of $\sigma^2$: thus $N(3,4)$ has SD 2. The $N(0,1)$ is the standard normal distribution.
 #
 # :::{exercise}
 # :label: ex-3-12
@@ -402,14 +426,23 @@
 # c. Give the 95th percentile of the standard normal distribution.
 # :::
 #
-# Every normal distribution can be derived from the standard normal. If $X \sim N(0,1)$ (meaning that $X$ is N(0,1) distributed), then $Y = \mu + \sigma X \sim N(\mu,\sigma^2)$.
-#
+# Every normal distribution can be derived from the standard normal. If $X \sim N(0,1)$ (meaning that $X$ is N(0,1) distributed), then $Y = \mu + \sigma X \sim N(\mu,\sigma^2)$. Below, densities (left) and cdf's (right) of the normal distributions N(0,1) (solid) and N(3,4) (dashed):
+
+# %%
+x = np.linspace(-8, 8, 200)
+fig, (ax_pdf, ax_cdf) = plt.subplots(1, 2, figsize=(8, 3))
+for mu, sigma2, style in [(0, 1, "-"), (3, 4, "--")]:
+    sigma = np.sqrt(sigma2)
+    ax_pdf.plot(x, stats.norm.pdf(x, loc=mu, scale=sigma), style, label=f"N({mu},{sigma2})")
+    ax_cdf.plot(x, stats.norm.cdf(x, loc=mu, scale=sigma), style)
+ax_pdf.legend()
+fig.tight_layout()
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-3-13
 #
 # a. Compute $P(X \ge 0)$ for an $N(-2,10)$ distribution. Do this directly and using the $N(0,1)$ distribution.
-#
-# ![Densities and cdf of the normal distributions N(0,1) (solid) and N(3,4) (dashed)](images/lecture12_fig3.5.png)
 #
 # b. Suppose that $x_1, \dots, x_n$ are samples of a $N(\mu,\sigma^2)$ distribution. How can you turn them into samples of a standard normal distribution?
 # :::
@@ -430,10 +463,16 @@
 #
 # **Central limit theorem**
 #
-# Earlier, we saw that sums of normal distributions have a normal distribution. But there is more to it: all sums of independent RVs tend to look like normal distributions! For example, if you sum 10 uniform RVs, then the result looks pretty much like a normal distribution. The same holds for averages, as it is just a sum divided by a constant. Recall that $E\bar X = EX_1$ and $\sigma(\bar X) = \sigma(X_1)/\sqrt n$. Thus, as $n$ increases, $\bar X$ looks more and more like a normal distribution which is more and more concentrated around the mean $EX_1$. This is called the central limit theorem (CLT). It is illustrated in the figure below. We see that already the distribution of the average of 10 uniform distributions has the bell shape of the density of a normal distribution.
+# Earlier, we saw that sums of normal distributions have a normal distribution. But there is more to it: all sums of independent RVs tend to look like normal distributions! For example, if you sum 10 uniform RVs, then the result looks pretty much like a normal distribution. The same holds for averages, as it is just a sum divided by a constant. Recall that $E\bar X = EX_1$ and $\sigma(\bar X) = \sigma(X_1)/\sqrt n$. Thus, as $n$ increases, $\bar X$ looks more and more like a normal distribution which is more and more concentrated around the mean $EX_1$. This is called the central limit theorem (CLT). Below, histograms of averages of 1, 2, 5 and 10 uniform(0,1) realizations illustrate it: already the distribution of the average of 10 uniform distributions has the bell shape of the density of a normal distribution.
 
-# %% [markdown]
-# ![Illustration of the CLT: histograms of averages of 1, 2, 5 and 10 uniform(0,1) realizations](images/lecture12_fig3.6.png)
+# %%
+rng = np.random.default_rng(0)
+fig, axes = plt.subplots(1, 4, figsize=(10, 2.5), sharey=True)
+for ax, n_avg in zip(axes, [1, 2, 5, 10]):
+    samples = stats.uniform.rvs(size=(20000, n_avg), random_state=rng).mean(axis=1)
+    ax.hist(samples, bins=30)
+    ax.set_title(f"n = {n_avg}")
+fig.tight_layout()
 
 # %% [markdown]
 # :::{note} Formal Statement of the CLT
@@ -453,18 +492,26 @@
 # - $P(\mu - \sigma \le X \le \mu + \sigma) \approx 68\%$;
 # - $P(\mu - 2\sigma \le X \le \mu + 2\sigma) \approx 95\%$.
 #
-# The rule is illustrated in the figure below.
+# The rule is illustrated in [](#fig-rule-of-thumb).
 
 # %% [markdown]
-# ![Rule of thumb for the normal distribution (source: Wikipedia)](images/lecture12_fig3.7.png)
-
-# %% [markdown]
+# :::{figure} images/lecture12_fig3.7.png
+# :label: fig-rule-of-thumb
+#
+# Rule of thumb for the normal distribution (source: Wikipedia).
+# :::
+#
 # :::{exercise}
 # :label: ex-3-15
 #
-# Reproduce these numbers using `qnorm` in R and `NORM.INV` in Excel.
+# Reproduce these numbers using `scipy.stats.norm.ppf`.
 # :::
-#
+
+# %%
+print("68% rule:", stats.norm.ppf(0.5 + 0.68 / 2) - stats.norm.ppf(0.5 - 0.68 / 2))
+print("95% rule (z-value):", stats.norm.ppf(0.975))
+
+# %% [markdown]
 # A common error is to apply this rule to all kinds of data and distributions. The answers that you will get are wrong! Sometimes analysts first calculate the average and SD, to use the rule of thumb to find for example the 95th percentile. Not only do they get the wrong answer, there is also a simpler procedure: In a dataset of say 1000 points, they could have taken right away the 950th largest number.
 #
 # :::{exercise}
@@ -482,16 +529,21 @@
 #
 # **The lognormal distribution**
 #
-# If data is positive and continuous then they often follow a lognormal distribution. Examples are durations of surgery or length of telephone calls. Lognormal RVs are of the form $e^X$ with $X$ a normally distributed RV and $e$ a mathematical constant, $e \approx 2.7$. A typical density and cdf can be found in the figure below. The distribution is clearly skewed to the right. The plots can be made with the following R commands: `curve(dlnorm(x,3,0.5))` and `curve(plnorm(x,3,0.5))`. Note that 3 and 0.5 are the mean and SD at the logscale, of the underlying normal distribution. The real mean and SD are quite complicated formulas of the parameters. Probabilities and quantiles however can easily be derived from the underlying normal distribution. For example, `plnorm(x) = pnorm(log(x))`. `LOGNORM.DIST` and `LOGNORM.INV` are the Excel equivalents of `plnorm` and `qlnorm`.
+# If data is positive and continuous then they often follow a lognormal distribution. Examples are durations of surgery or length of telephone calls. Lognormal RVs are of the form $e^X$ with $X$ a normally distributed RV and $e$ a mathematical constant, $e \approx 2.7$. The distribution is clearly skewed to the right, as shown below. `scipy.stats.lognorm` takes `s` for the SD of the underlying normal and `scale=np.exp(mean)` for its mean (at the log scale) — a slightly awkward parametrization worth double-checking against the documentation every time. The real mean and SD (at the original scale) are quite complicated formulas of the parameters. Probabilities and quantiles however can easily be derived from the underlying normal distribution: `stats.lognorm.cdf(x, s, scale=...)` equals `stats.norm.cdf(np.log(x), loc=..., scale=s)`.
 
-# %% [markdown]
-# ![Density and cdf of a lognormal distribution](images/lecture12_fig3.8.png)
+# %%
+mu, sigma = 3, 0.5
+x = np.linspace(0.1, 60, 200)
+fig, (ax_pdf, ax_cdf) = plt.subplots(1, 2, figsize=(8, 3))
+ax_pdf.plot(x, stats.lognorm.pdf(x, sigma, scale=np.exp(mu)))
+ax_cdf.plot(x, stats.lognorm.cdf(x, sigma, scale=np.exp(mu)))
+fig.tight_layout()
 
 # %% [markdown]
 # :::{exercise}
 # :label: ex-3-17
 #
-# Find the median of the distribution shown above in 3 ways: using the figure, using `qlnorm`, and using `qnorm`.
+# Find the median of the distribution shown above in 2 ways: using the figure, and using `stats.lognorm.ppf`.
 # :::
 #
 # :::{exercise}
@@ -522,6 +574,8 @@
 # S = \sqrt{\frac{\sum_{i=1}^n (X_i - \bar X)^2}{n-1}}.
 # $$
 #
+# This is exactly `numpy`'s default sample SD with `ddof=1`, mentioned earlier.
+#
 # :::{exercise}
 # :label: ex-3-20
 #
@@ -536,9 +590,9 @@
 #
 # **The CI made precise**
 #
-# We said that the 95% CI for the mean is given by $[\bar X - 2S/\sqrt n, \bar X + 2S/\sqrt n]$. However, this is not completely true: the 97.5% quantile of the standard normal distribution is 1.96, which can be verified in R with `qnorm(0.975)`.
+# We said that the 95% CI for the mean is given by $[\bar X - 2S/\sqrt n, \bar X + 2S/\sqrt n]$. However, this is not completely true: the 97.5% quantile of the standard normal distribution is 1.96, which can be verified with `stats.norm.ppf(0.975)`.
 #
-# But there is more to it than that. Because we do not know $\sigma$ we replaced $(\bar X-\mu)/(\sqrt n \sigma)$ by $(\bar X-\mu)/(\sqrt n S)$. While the former has a standard normal distribution, the latter doesn't, because $S$ is a random variable. The true distribution of $(\bar X-\mu)/(\sqrt n S)$ is called Student's t-distribution with $n-1$ degrees of freedom. Thus we should replace 2 by `qt(0.975,99)`, 1.98. We see that the CI gets slightly larger, from 1.96 to 1.98. For larger $n$, the difference is even smaller, thus in almost all cases 2 is a very good approximation.
+# But there is more to it than that. Because we do not know $\sigma$ we replaced $(\bar X-\mu)/(\sqrt n \sigma)$ by $(\bar X-\mu)/(\sqrt n S)$. While the former has a standard normal distribution, the latter doesn't, because $S$ is a random variable. The true distribution of $(\bar X-\mu)/(\sqrt n S)$ is called Student's t-distribution with $n-1$ degrees of freedom. Thus we should replace 2 by `stats.t.ppf(0.975, 99)`, 1.98. We see that the CI gets slightly larger, from 1.96 to 1.98. For larger $n$, the difference is even smaller, thus in almost all cases 2 is a very good approximation.
 #
 # :::{exercise}
 # :label: ex-3-21
@@ -549,11 +603,21 @@
 # (hypothesis-testing)=
 # **Hypothesis testing**
 #
-# In a hypothesis test, we reject a hypothesis when the outcomes are very unlikely when the null hypothesis would be true. As an example, assume we want to test whether a coin is unbiased. We throw it 100 times and it comes up heads 62 times. What can we conclude? The standard procedure is to compute the probability of the outcome or more extreme under the null hypothesis, which is called the p-value. When this p-value is below the significance level (often 5%) then we reject the null hypothesis in favor of the alternative hypothesis. The probability of 62 or more is 1% (`1-pbinom(61,100,0.5)`). This is less than 5%, therefore the null hypothesis is rejected: we have sufficient statistical evidence to conclude that the coin is biased.
+# In a hypothesis test, we reject a hypothesis when the outcomes are very unlikely when the null hypothesis would be true. As an example, assume we want to test whether a coin is unbiased. We throw it 100 times and it comes up heads 62 times. What can we conclude? The standard procedure is to compute the probability of the outcome or more extreme under the null hypothesis, which is called the p-value. When this p-value is below the significance level (often 5%) then we reject the null hypothesis in favor of the alternative hypothesis.
+
+# %%
+print("P(62 or more heads):", 1 - stats.binom.cdf(61, 100, 0.5))
+
+# %% [markdown]
+# This is less than 5%, therefore the null hypothesis is rejected: we have sufficient statistical evidence to conclude that the coin is biased.
 #
-# We actually tested whether heads is more likely to come up then tails. This is called a one-sided test. For a two-sided test (biased or unbiased, no matter if heads or tails is overrepresented) we have to reserve 2.5% for both sides. Because 1% < 2.5% we still reject. Alternatively, we could multiply the probability by 2. This is actually the standard way to calculate the p-value.
-#
-# R has a build-in test for this situation: `binom.test`, which should be used as follows: `binom.test(62,100)`. We get as p-value 2% because the default test is 2-sided.
+# We actually tested whether heads is more likely to come up then tails. This is called a one-sided test. For a two-sided test (biased or unbiased, no matter if heads or tails is overrepresented) we have to reserve 2.5% for both sides. Because 1% < 2.5% we still reject. Alternatively, we could multiply the probability by 2. This is actually the standard way to calculate the p-value, and it's exactly what `scipy.stats.binomtest` does by default:
+
+# %%
+print(stats.binomtest(62, 100))
+
+# %% [markdown]
+# giving p-value 2%, matching our reasoning above (the default test is 2-sided).
 #
 # :::{exercise}
 # :label: ex-3-22
@@ -574,13 +638,25 @@
 # $$
 # H_0: \mu = \mu_0 = 174 \quad \text{versus} \quad H_1: \mu > \mu_0 = 174.
 # $$
+
+# %%
+print("p-value (normal approx.):", 1 - stats.norm.cdf(np.sqrt(100) * (178 - 174) / 5))
+print("p-value (t-distribution):", 1 - stats.t.cdf(np.sqrt(100) * (178 - 174) / 5, df=99))
+
+# %% [markdown]
+# The p-value is very small either way. The conclusion is therefore that the null-hypothesis is rejected and that the Dutch are taller than the world average. `scipy.stats.ttest_1samp` runs this kind of test directly on a full sample (not just its mean and SD): `stats.ttest_1samp(data, popmean=174, alternative="greater")`, where `alternative="greater"` mirrors $H_1: \mu > \mu_0$ above (`scipy`'s default is a two-sided test).
 #
-# From `1-pnorm(sqrt(100)*(178-174)/5)` (or, using the mathematically correct t-distribution, `1-pt(sqrt(100)*(178-174)/5,99)`) it follows that the p-value is very small. The conclusion is therefore that the null-hypothesis is rejected and that the Dutch are taller than the world average. R also contains commands for directly executing tests. If the data is entered as an array called `"data"` in R, then you can use `t.test(data,mu=174,alt="g")`, where `"g"` refers to the alternative hypothesis which is not two-sided, but "greater".
-#
+# We will use exactly this on a real dataset: `notebooks/data/beaver1.csv` records body temperature measurements of a beaver, a dataset commonly used to illustrate univariate tests.
+
+# %%
+beaver1 = pd.read_csv("data/beaver1.csv")
+print(beaver1["temp"].describe())
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-3-23
 #
-# In this exercise we use the `beaver1` dataset in the R datasets package, which you should install first. Use a t-test to check whether this beaver's average body temperature is significantly different from the average human body temperature (37.3 Celcius). Also determine the p-value directly by computing mean and SD and draw your conclusions.
+# Use a t-test to check whether this beaver's average body temperature is significantly different from the average human body temperature (37.3 Celsius). Also determine the p-value directly by computing mean and SD and draw your conclusions.
 # :::
 #
 # **Other univariate tests**
@@ -595,38 +671,41 @@
 # T = \frac{\bar X - \bar Y}{\sqrt{\frac{S_X^2}{n} + \frac{S_Y^2}{m}}},
 # $$
 #
-# where $S_X$ and $S_Y$ are the sample SDs. Note that the denominator is equal to $\sigma(\bar X - \bar Y)$ and that $T$ is approximately standard normal, under the null hypothesis. Now we can use the normal distribution to perform our test, or rely on the build-in function of R.
+# where $S_X$ and $S_Y$ are the sample SDs. Note that the denominator is equal to $\sigma(\bar X - \bar Y)$ and that $T$ is approximately standard normal, under the null hypothesis. Now we can use the normal distribution to perform our test, or rely on `scipy.stats.ttest_ind`.
 #
 # :::{exercise}
 # :label: ex-3-24
 #
-# Now we compare the average body temperatures of `beaver1` and `beaver2` in the datasets library. Compute the test statistic and determine whether we reject the null hypothesis that the temperatures are equal. Do this also using the R command `t.test`.
+# Now we compare the average body temperatures of `beaver1` (loaded above) and `notebooks/data/beaver2.csv`. Compute the test statistic and determine whether we reject the null hypothesis that the temperatures are equal. Do this also using `scipy.stats.ttest_ind`.
 # :::
 #
 # **Testing for a distribution**
 #
 # Often we are interested to know whether data comes from a certain distribution. However, a test can never confirm that data comes from a certain distribution; it can only tell us how unlikely it is. Different tests consider different aspects of distributions, so it might occur, for exactly the same null hypothesis, but a different statistic, that one test rejects the null hypothesis while another test does not reject.
 #
-# The Shapiro-Wilk test is a test for normality, with `shapiro.test` the R command. You do not need to specify the parameters of the normal distribution.
+# The Shapiro-Wilk test is a test for normality, with `scipy.stats.shapiro` the Python equivalent. You do not need to specify the parameters of the normal distribution.
 #
 # :::{note} Q-Q Plots
-# It is a good habit to take a careful look at the data before testing for a distribution. One way to see graphically if a distribution might fit the data is by making a Q-Q plot. In a Q-Q plot, we plot the quantiles of the data against those of a certain distribution. A close to straight line indicates that your data might well come from that distribution.
-#
-# As an example, see the left plot of the figure below, generated by `qqnorm(beaver1$temp)`. In the middle, the line is quite straight; the deviations at the sides indicate outliers. This is confirmed by the histogram on the right. A further confirmation comes from the Shapiro-Wilk test, executed by `shapiro.test(beaver1$temp)`: normality is rejected.
-#
-# ![Q-Q plot of the beaver1 temperature data](images/lecture12_box3.9-a.png)
-#
-# ![Histogram of the beaver1 temperature data](images/lecture12_box3.9-b.png)
-#
-# Note that using `qqplot` any two datasets or distributions can be compared.
+# It is a good habit to take a careful look at the data before testing for a distribution. One way to see graphically if a distribution might fit the data is by making a Q-Q plot. In a Q-Q plot, we plot the quantiles of the data against those of a certain distribution. A close to straight line indicates that your data might well come from that distribution. `scipy.stats.probplot` compares a dataset against a theoretical distribution; to compare two datasets or two samples directly, use `statsmodels.graphics.gofplots.qqplot_2samples` instead.
 # :::
+
+# %%
+fig, (ax_qq, ax_hist) = plt.subplots(1, 2, figsize=(8, 3))
+stats.probplot(beaver1["temp"], dist="norm", plot=ax_qq)
+ax_hist.hist(beaver1["temp"], bins=15)
+fig.tight_layout()
+
+print(stats.shapiro(beaver1["temp"]))
+
+# %% [markdown]
+# The Q-Q plot's line (left, above) is quite straight in the middle; the deviations at the sides indicate outliers. This is confirmed by the histogram (right, above). A further confirmation comes from the Shapiro-Wilk test above: with a p-value around 0.01, normality is rejected.
 #
-# Another test is the Kolmogorov-Smirnov test, `ks.test` in R. It can be used in two ways: to find out if 2 datasets come from the same (continuous) distribution, and to test whether a dataset comes from a given distribution, which has to be specified including its parameters.
+# Another test is the Kolmogorov-Smirnov test, `scipy.stats.kstest`. It can be used in two ways: to find out if 2 datasets come from the same (continuous) distribution, and to test whether a dataset comes from a given distribution, which has to be specified including its parameters.
 #
 # :::{exercise}
 # :label: ex-3-25
 #
-# We use the `Nile` dataset in the datasets library.
+# We use `notebooks/data/Nile.csv` (annual river flow measurements).
 #
 # a. Plot the histogram, boxplot and normal Q-Q plot. Does it look normal?
 #
@@ -645,10 +724,16 @@
 # :::{note} Bayesian Statistics
 # Central in Bayesian statistics is a distribution on the unknown parameter, such as the mean. This is in contrast with the frequentist approach which we discussed so far: there the unknown parameter was unknown but fixed. This distribution on the parameter is updated every time a new observation is made. From the a priori distribution we go, using Bayes' rule, to the a posteriori distribution. This can be done numerically, but for certain distributions analytical results are known.
 #
-# As an example, consider throwing a possibly biased coin. As initial distribution on the unknown success parameter, we choose the uniform distribution on $[0,1]$. Every time we throw the coin, we adapt this distribution using Bayes' rule. The resulting distributions are all so-called beta distributions. In the figure below we see a number of beta distributions. The top-left figure shows the uniform distribution. After two successes, the posterior distribution is as in the top-right, after 5 successes and 2 failures as in the left-bottom, and after 62 successes and 38 failures as in the right-bottom figure. The equivalent of a CI is a credible interval. A 95% credible interval of the last distribution is $[0.52, 0.71]$. This interval was computed with the R commands `qbeta(0.025,63,39)` and `qbeta(0.975,63,39)`.
+# As an example, consider throwing a possibly biased coin. As initial distribution on the unknown success parameter, we choose the uniform distribution on $[0,1]$. Every time we throw the coin, we adapt this distribution using Bayes' rule. The resulting distributions are all so-called beta distributions. In the figure below we see a number of beta distributions. The top-left figure shows the uniform distribution. After two successes, the posterior distribution is as in the top-right, after 5 successes and 2 failures as in the left-bottom, and after 62 successes and 38 failures as in the right-bottom figure. The equivalent of a CI is a credible interval.
 #
 # ![A sequence of beta distributions illustrating Bayesian updating (uniform prior; after 2 successes; after 5 successes and 2 failures; after 62 successes and 38 failures)](images/lecture12_box3.10.png)
 # :::
+
+# %%
+print("95% credible interval:", stats.beta.ppf(0.025, 63, 39), stats.beta.ppf(0.975, 63, 39))
+
+# %% [markdown]
+# giving a 95% credible interval of about $[0.52, 0.71]$ for the last distribution (bottom-right posterior in the figure above, after 62 successes and 38 failures).
 
 # %% [markdown]
 # ## References
@@ -656,3 +741,4 @@
 # - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 3, "Variability" (recap).
 # - Ross, S.M. (2002). *A First Course in Probability*, 6th ed. Prentice Hall.
 # - Triola, M.F. (2017). *Elementary Statistics*, 13th ed. Pearson.
+# - `eurodist`, `AirPassengers`, `beaver1`, `beaver2`, and `Nile` datasets: [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/) (originally distributed with R's `datasets` package), cached under `notebooks/data/`.

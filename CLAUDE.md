@@ -16,12 +16,21 @@ Dependencies are managed with `uv` (see `uv.lock`); Python `3.12` is pinned in
 `.python-version`.
 
 ```sh
-uv sync                    # install dependencies into .venv
-uv run jupyter book start  # build and serve the book locally (reads myst.yml)
-uv run pre-commit run --all-files   # run all lint/format/sync hooks
+uv sync                                        # install dependencies into .venv
+uv run jupyter book start --execute            # build, execute, and serve locally (reads myst.yml)
+uv run jupyter book build --execute --html     # one-shot build (used for verification)
+uv run pre-commit run --all-files              # run all lint/format/sync hooks
 ```
 
-There are no automated tests in this repo.
+Notebooks contain **real, executed Python code** (pulp for optimization, `numpy`/`pandas`/
+`scipy`/`matplotlib` for statistics and simulation) — the `--execute` flag is required or
+`jupyter book` will render stale/no output. Execution is a mystmd Beta feature: it starts a
+local Jupyter server per build (cached under `execute/`, gitignored). A broken code cell
+fails the whole build.
+
+There are no automated tests in this repo; a clean `--execute` build (or, if the sandbox's
+network policy blocks `api.mystmd.org`'s template fetch, extracting and running each
+script's code cells directly with `uv run python`) is the closest thing to one.
 
 ## Architecture: notebooks are paired with scripts via Jupytext
 
@@ -82,6 +91,35 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
     and the specific section(s) compiled on that page, followed by one entry per
     external work the page's text cites (replacing the book's own "[8]"-style
     bracket citations with author-year text, e.g. "Davenport & Harris (2007)").
+- All Excel/R/AMPL content has been converted to Python. Optimization uses
+  [pulp](https://coin-or.github.io/pulp/) (`pip install pulp[cbc]`, already a
+  project dependency); statistics/simulation use `scipy.stats`, `numpy`,
+  `pandas`, `matplotlib`. R-only base datasets (`eurodist`, `AirPassengers`,
+  `beaver1`, `beaver2`, `Nile`) are one-time snapshots fetched from
+  [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/) (via
+  `raw.githubusercontent.com`, not the blocked `.github.io` domain) and
+  committed under `notebooks/data/*.csv` — read them with
+  `pd.read_csv("data/<name>.csv")`, don't refetch at runtime.
+- Figures (`![caption](images/...)`) are wrapped in MyST `{figure}`/`{table}`
+  directives with a `:label:` (original book caption, no "Figure N.M:" numbering)
+  so they're auto-numbered and cross-referenceable via `[](#label)` — this is a
+  separate, verified-working mechanism from the code-cell one below.
+- **Do not** try to label a live matplotlib plot's *output* as a numbered
+  `{figure}` via mystmd's `#| label: cell-name` code-cell-tag convention +
+  `` :::{figure} #cell-name ` `` — it renders fine in mystmd itself, but this
+  project's pinned `ruff-format` (`ruff-pre-commit` rev `v0.6.9`, older than the
+  `ruff` used elsewhere) rewrites `#| label: x` to `# | label: x` on every
+  pre-commit run, silently breaking the cell tag. Just let the plot render as
+  plain, unlabeled code-cell output, introduced by a descriptive sentence
+  ("the figure below shows...") instead of a `[](#label)` cross-reference.
+- Put all `import` statements for a notebook in its **first** code cell. `isort`
+  runs with `--float-to-top` and will relocate any `import` found in a later
+  cell up to the first one on the next pre-commit run, which silently breaks
+  cell boundaries/comments placed next to it if it isn't already there.
+- `mypy` type-checks each script as a single flat file (cell boundaries aren't
+  scopes), so reusing a loop variable name (e.g. `i`) with an incompatible type
+  in a later cell (e.g. as a dict string key after it was an `int` range index
+  earlier) is a real type error — use distinct variable names per cell instead.
 
 ## Architecture: book structure via `myst.yml`
 
@@ -109,7 +147,8 @@ When adding a new lecture topic notebook:
 3. Update `index.md`'s lecture/topic list to match.
 4. Run `uv run jupyter book start` to verify it renders and appears in the nav.
 
-Build output goes to `_build/` (gitignored) and should never be committed.
+Build output goes to `_build/` and the execution cache to `execute/` (both
+gitignored) and should never be committed.
 
 ## Version control
 
