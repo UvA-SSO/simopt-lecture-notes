@@ -16,86 +16,150 @@
 # # Lecture 8: Integer Optimization
 
 # %% [markdown]
-# For the simplex algorithm to be used, it is essential that the objective and all constraints are linear. Many extensions exist to non-linear functions. One important class is where there is, in addition to the linear constraints, constraints requiring one or more of the decision variables to be integer (i.e., taking values in $\{0, 1, 2, \dots\}$) or binary (taking values in $\{0, 1\}$). We call these integer linear optimization (ILO) problems.
+# An **integer linear optimization (ILO)** problem is an LO problem with the extra
+# requirement that some or all decision variables take integer values,
+# $x_i \in \{0, 1, 2, \dots\}$, or are **binary**, $x_i \in \{0, 1\}$. (A binary variable
+# is just an integer one with the added constraint $x_i \le 1$.)
 #
-# Note that binary problems are special cases of integer problems: the constraint $x_i \in \{0, 1\}$ is equivalent to the following 2 constraints: $x_i \in \{0, 1, 2, \dots\}$ and $x_i \le 1$.
-#
-# Product-mix problems where we have to produce integer numbers of items is a good example. In pulp we only need to change the `cat` of a decision variable from `"Continuous"` (the default) to `"Integer"` or `"Binary"` — everything else about building and solving the model stays the same.
-#
-# :::{exercise}
-# :label: ex-6-9
-#
-# Solve the integer version of the [product-mix problem](lecture8_linear-optimization.ipynb#problem-formulation).
-# :::
-#
-# The archetypical binary LO problem is the knapsack problem. You have to make a selection out of a set of items. Each item has a revenue and a weight. The goal is to maximize the total revenue with a constraint on the total weight. Typical applications of the knapsack are logistics problems, for example selecting items which have to be transported in trucks, or so-called cutting problems, which arise, for example, in steel plants where you have to cuts plates in pieces of different sizes.
-#
-# As an example, consider a problem with total weight capacity 11. The items are as follows:
-#
-# | | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
-# |---|---|---|---|---|---|---|---|
-# | revenue | 60 | 60 | 40 | 10 | 20 | 10 | 3 |
-# | weight | 3 | 5 | 4 | 1.4 | 3 | 3 | 1 |
-#
-# Formulated as ILO we get:
-#
-# $$
-# \begin{aligned}
-# \text{maximize} \quad & 60x_1 + 60x_2 + 40x_3 + 10x_4 + 20x_5 + 10x_6 + 3x_7 \\
-# \text{subject to} \quad & 3x_1 + 5x_2 + 4x_3 + 1.4x_4 + 3x_5 + 3x_6 + x_7 \le 11 \\
-# & x_i \in \{0, 1\} \text{ for all } i.
-# \end{aligned}
-# $$
-#
-# Solving this with pulp:
+# In pulp this is a one-word change: set a variable's `cat` to `"Integer"` or `"Binary"`
+# instead of the default `"Continuous"`. Everything else about building and solving the
+# model is the same. Solving it, however, is a different matter — in general ILO is much
+# harder than LO, as this notebook and [Complexity](lecture11_complexity.ipynb) explain.
 
 # %%
 import pulp
 
-revenue = [60, 60, 40, 10, 20, 10, 3]
-weight = [3, 5, 4, 1.4, 3, 3, 1]
-capacity = 11
-n_items = len(revenue)
+# %% [markdown]
+# ## Why Integer Problems Are Harder
+#
+# Take the product-mix problem from [Linear Optimization](lecture8_linear-optimization.ipynb)
+# and require whole bookcases and desks. Its LO optimum was $(b, d) = (3.6, 2.8)$ with
+# profit 24.8 — not integer. Two things go wrong compared to LO:
+#
+# - **the optimal corner is no longer feasible**, so the simplex reasoning ("the optimum is
+#   at a corner") does not directly help;
+# - **rounding the LO optimum is not enough**: $(4, 3)$ violates the oak-panel constraint
+#   ($4 + 9 = 13 > 12$), and $(4, 2)$ or $(3, 3)$ each need checking. Evaluating the corners
+#   tells us little, because the integer optimum sits somewhere *inside* the feasible
+#   region.
+#
+# Let pulp solve the integer version:
 
-knapsack = pulp.LpProblem(name="knapsack", sense=pulp.LpMaximize)
-x = [pulp.LpVariable(name=f"x_{i+1}", cat="Binary") for i in range(n_items)]
+# %%
+profit = {"bookcase": 3, "desk": 5}
+use = {"oak panels": {"bookcase": 1, "desk": 3}, "assembly hours": {"bookcase": 2, "desk": 1}}
+available = {"oak panels": 12, "assembly hours": 10}
+products = list(profit)
 
-knapsack += pulp.lpSum(revenue[i] * x[i] for i in range(n_items))
-knapsack += pulp.lpSum(weight[i] * x[i] for i in range(n_items)) <= capacity
-
-knapsack.solve(pulp.PULP_CBC_CMD(msg=False))
-print("optimal solution:", [xi.value() for xi in x])
-print("optimal revenue:", knapsack.objective.value())
+int_mix = pulp.LpProblem(name="integer_product_mix", sense=pulp.LpMaximize)
+q = {p: pulp.LpVariable(name=p.replace(" ", "_"), lowBound=0, cat="Integer") for p in products}
+int_mix += pulp.lpSum(profit[p] * q[p] for p in products)
+for r, cap in available.items():
+    int_mix += pulp.lpSum(use[r][p] * q[p] for p in products) <= cap
+int_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+print("integer optimum:", {p: q[p].value() for p in products}, "profit", int_mix.objective.value())
 
 # %% [markdown]
-# leads to the optimum $(1, 1, 0, 0, 1, 0, 0)$ with value 140, as expected.
+# :::{exercise}
+# :label: ex-6-9
+#
+# Solve the larger LO problem from [Linear Optimization](lecture8_linear-optimization.ipynb)
+# again, once requiring all variables integer and once requiring them binary. Compare the
+# optimal objective values with the continuous one.
+# :::
+
+# %% [markdown]
+# ## Branch and Bound
+#
+# The method used to solve ILO problems exactly is **branch and bound**. It rests on two
+# ideas, stated here for a maximization problem:
+#
+# 1. The **LO relaxation** — the same problem with the integer constraints dropped
+#    ($x_i \in \{0,1\}$ becomes $0 \le x_i \le 1$; $x_i \in \{0,1,2,\dots\}$ becomes
+#    $x_i \ge 0$) — is less restrictive, so its optimal value is an **upper bound (UB)** on
+#    the ILO optimum.
+# 2. Any feasible *integer* solution gives a **lower bound (LB)** on the ILO optimum.
+#
+# If a subproblem's UB is $\le$ the best LB found so far, that subproblem cannot contain a
+# better solution and is **eliminated** — this is what makes the method cleverer than
+# checking every integer point. When a relaxation is non-integer, we **branch**: pick a
+# fractional variable, say $x_j = 2.5$, and create two subproblems, one with $x_j \le 2$ and
+# one with $x_j \ge 3$. When a relaxation is already integer, it is a candidate LB and we
+# stop branching that subproblem.
+#
+# For the integer product-mix problem:
+#
+# - **Root.** LO relaxation optimum $(3.6, 2.8)$, value $24.8$ → UB $= 24.8$. Branch on the
+#   fractional $d = 2.8$.
+# - **Branch $d \le 2$.** Relaxation optimum $(4, 2)$, value $22$ — integer, so LB $= 22$.
+# - **Branch $d \ge 3$.** Relaxation optimum $(3, 3)$, value $24$ — integer, so LB $= 24$.
+#
+# The best LB is $24$ from the right branch; the left branch's value $22$ is below it, so it
+# is eliminated. Every subproblem is now resolved, and $(3, 3)$ with profit $24$ is the
+# proven ILO optimum — matching what pulp reported above. Only three linear relaxations had
+# to be solved.
+#
+# Many LO solvers handle integer constraints this way; the best (proprietary) ones for
+# large instances are CPLEX and Gurobi.
+
+# %% [markdown]
+# ## The Knapsack Problem
+#
+# The archetypal binary ILO problem is the **knapsack problem**: from a set of items, each
+# with a *reward* and a *weight*, choose a subset of maximum total reward whose total weight
+# fits a capacity. Applications include which items to load in a truck, cutting stock in a
+# steel plant, and simple forms of portfolio selection.
+#
+# Consider capacity 10 and six items:
+#
+# | | 1 | 2 | 3 | 4 | 5 | 6 |
+# |---|---|---|---|---|---|---|
+# | reward | 10 | 13 | 18 | 31 | 7 | 15 |
+# | weight | 2 | 3 | 4 | 7 | 1 | 3 |
+#
+# With binary $x_i$ (1 = take item $i$):
+#
+# $$
+# \begin{aligned}
+# \text{maximize} \quad & \sum_i r_i x_i \\
+# \text{subject to} \quad & \sum_i w_i x_i \le 10 \\
+# & x_i \in \{0, 1\} \text{ for all } i.
+# \end{aligned}
+# $$
+
+# %%
+reward = [10, 13, 18, 31, 7, 15]
+weight = [2, 3, 4, 7, 1, 3]
+capacity = 10
+n_items = len(reward)
+
+knapsack = pulp.LpProblem(name="knapsack", sense=pulp.LpMaximize)
+take = [pulp.LpVariable(name=f"x_{i + 1}", cat="Binary") for i in range(n_items)]
+knapsack += pulp.lpSum(reward[i] * take[i] for i in range(n_items))
+knapsack += pulp.lpSum(weight[i] * take[i] for i in range(n_items)) <= capacity
+knapsack.solve(pulp.PULP_CBC_CMD(msg=False))
+print("take items:", [i + 1 for i in range(n_items) if take[i].value() == 1])
+print("total reward:", knapsack.objective.value())
+
+# %% [markdown]
+# The `build_knapsack` pattern and this data reappear in
+# [Modeling Tools and Solvers](lecture10_modeling-tools.ipynb) when we look at warm starting.
 #
 # :::{exercise}
 # :label: ex-6-10
 #
-# Verify by hand that changing any single 0 to a 1 above (while removing enough items to stay within the weight capacity) cannot improve on this solution.
+# Take the knapsack solution pulp found above. Verify by hand that no single swap — adding
+# one currently-excluded item and removing whatever is needed to stay within capacity —
+# improves the total reward.
 # :::
-#
-# Although the solver seemed to have found the optimal answer without any problems, it required much more work. This becomes apparent when we solve big real-life ILO problems with hundreds or thousands of variables. To gain more insight in how ILOs are solved, let us have a look at [](#fig-branch-and-bound), where we see the steps to solve the knapsack example. We start with solving the LO relaxation, which is the problem without the integer or binary constraints (step 1). Sometimes we find an integer solution right away. Certain types of problems are even guaranteed to give integer solutions immediately. Here however $x_3$ is non-integer. Its value (150) is an upper bound to the best integer solution.
-
-# %% [markdown]
-# :::{figure} images/lecture8_fig6.9.png
-# :label: fig-branch-and-bound
-#
-# Solving an ILO problem.
-# :::
-#
-# > **Erratum applied (p. 97):** step 9 should have objective value 127.33 (not 128) and solution $(1, 0, 1, 1, 13/15, 0, 0)$ (not $(1, 0, 1, 1, 9/10, 0, 0)$).
-
-# %% [markdown]
-# Now we branch on $x_3$, and we continue with the branch $x_3 = 0$. We solve the relaxation again, but with $x_3 = 0$. We find again a non-integer solution (step 2). We continue branching until we find an integer solution in step 4 with value 133. It is called a lower bound (LB) of the optimum: perhaps there are other integer solutions with values between 133 and 150. To find out if there are any such solutions we work our way back up to make sure all branches are dealt with. In step 5, we find an integer solution that is worse than the LB. In step 6, we find a higher binary value than the LB. It becomes the new LB, and the old LB is now sub-optimal (step 7). We have dealt with the left side of the tree, we move to the right. In step 8, we find a non-integer solution, we branch on $x_2$. In step 9 and 10, we find non-integer solutions which are worse or equal than the LB. Adding constraints will not make the value higher, therefore these branches can be discarded. We have dealt with all branches, and therefore the current LB is the optimum (step 11). This algorithm is called branch-and-bound.
-#
-# Many LO solvers can also handle integer constraints. However, not all solvers can solve big instances. The best solvers are proprietary, notably CPLEX and Gurobi.
 #
 # :::{exercise}
 # :label: ex-6-11
 #
-# Solve by branch-and-bound the knapsack problem having rewards (15, 9, 10, 5), sizes (1, 3, 5, 4) and capacity 8. Check the result with pulp.
+# Solve, by branch and bound *on paper*, the knapsack problem with rewards $(15, 9, 10, 5)$,
+# weights $(1, 3, 5, 4)$ and capacity 8. For the relaxation bound, fill the capacity with
+# items in decreasing order of reward-to-weight ratio, allowing a fraction of the last one.
+# Check your answer with pulp.
 # :::
 
 # %% [markdown]

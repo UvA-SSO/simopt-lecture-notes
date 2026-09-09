@@ -16,9 +16,9 @@ project:
     - title: Lecture 9
       children:
         - file: notebooks/lecture9_ilo-applications.ipynb
-          title: Applications of ILO
+          title: Applications of (I)LO
         - file: notebooks/lecture9_advanced-modeling.ipynb
-          title: Advanced Modeling
+          title: Machine Scheduling
     - title: Lecture 10
       children:
         - file: notebooks/lecture10_modeling-tools.ipynb

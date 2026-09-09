@@ -133,7 +133,7 @@ print("shortest distance A to F:", shortest_path.objective.value())
 
 # %% [markdown]
 # :::{note} LO Solution of the Shortest Path Problem
-# The shortest path problem can also be formulated as an LO problem. It is a special case of the [transshipment problem](lecture8_linear-optimization.ipynb#transshipment-problem), with demand 1. We determine the shortest path from the source $s$ to a single destination $d$. The LO formulation is as follows:
+# The shortest path problem can also be formulated as an LO problem. It is a special case of the [transshipment problem](lecture9_ilo-applications.ipynb#transshipment-problem), with demand 1. We determine the shortest path from the source $s$ to a single destination $d$. The LO formulation is as follows:
 #
 # $$
 # \begin{aligned}

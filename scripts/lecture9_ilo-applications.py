@@ -13,93 +13,276 @@
 # ---
 
 # %% [markdown]
-# # Lecture 9: Applications of Integer Linear Optimization
+# # Lecture 9: Applications of (Integer) Linear Optimization
 
 # %% [markdown]
-# In this section we discuss a number of problems that can be solved with ILO. The first is the set cover problem. We have a so-called universe $U = \{1, \dots, m\}$, and sets $S_1, \dots, S_n$, with $S_i \subset U$. We are looking for the smallest selection of sets that covers $U$.
+# This notebook shows the breadth of problems that fit the (integer) linear optimization
+# framework — the transportation problem, the set cover and covering problems, and shift
+# scheduling — partly for their own sake and partly as inspiration for modeling your own
+# problems. We start with *why* we lean so heavily on linear (and integer-linear) models in
+# the first place.
+
+# %%
+import pulp
+
+# %% [markdown]
+# ## Why Linearity Matters, and What Integrality Buys Back
 #
-# As an example, let $U$ be set of locations where incidents can happen, and every set $S_i$ the set of locations that can be reached by an ambulance from a certain base station within a certain target time. Then the set cover problem is as follows: what is the minimum number of ambulances needed and what are their base stations such that all locations can be reached within the target time?
+# Linearity is what makes LO efficiently solvable: the feasible region is a convex
+# polyhedron, the optimum sits at a corner, and a local optimum is automatically global. As
+# soon as the objective or a constraint is nonlinear, both of those break:
 #
-# The ILO formulation is as follows:
+# - **Nonlinear objective.** Maximize $x_1 x_2$ subject to $x_1 + x_2 \le 1$,
+#   $x_1, x_2 \ge 0$. The optimum is $(0.5, 0.5)$, in the *interior* of an edge, not at a
+#   corner.
+# - **Nonlinear constraint.** Maximize $x_1 + x_2$ subject to $\min(x_1, x_2) = 0$,
+#   $x_1 \le 2$, $x_2 \le 1$. The feasible set is two line segments meeting at the origin
+#   (either $x_1 = 0$ or $x_2 = 0$). It has two *local* optima, $(2, 0)$ and $(0, 1)$; you
+#   cannot be sure which is global without checking both.
+#
+# Nonlinear optimization therefore needs slower, less reliable algorithms. But there is a
+# large and useful middle ground: **integer** constraints. On the one hand, requiring
+# $x_i \in \{0, 1, 2, \dots\}$ is itself a nonlinear constraint. On the other hand, many
+# *other* nonlinearities — an either/or choice, a fixed cost that applies only when an
+# activity is used, a "this constraint holds only if..." condition — can be expressed with
+# integer (usually binary) variables and otherwise-linear constraints, and then solved with
+# branch and bound. That is why so much modeling effort goes into casting a problem as ILO.
+# [Machine Scheduling](lecture9_advanced-modeling.ipynb) is devoted to those tricks; this
+# notebook is about problems that are ILO more directly.
+
+# %% [markdown]
+# ## The Transportation Problem
+#
+# We must ship a single good from $n$ **sources** (supply $a_i$ at source $i$) to $m$
+# **destinations** (demand $b_j$ at destination $j$), at a cost $c_{ij}$ per unit shipped on
+# link $i \to j$. How much should we ship on each link so that every demand is met, no
+# supply is exceeded, and total cost is minimized?
+#
+# $$
+# \begin{aligned}
+# \text{minimize} \quad & \sum_{i=1}^{n} \sum_{j=1}^{m} c_{ij} x_{ij} \\
+# \text{subject to} \quad & \sum_{j=1}^{m} x_{ij} \le a_i \text{ for } i = 1, \dots, n; \\
+# & \sum_{i=1}^{n} x_{ij} \ge b_j \text{ for } j = 1, \dots, m; \\
+# & x_{ij} \ge 0 \text{ for all } i, j.
+# \end{aligned}
+# $$
+#
+# This is an LO problem (no integrality needed). If a link $i \to j$ does not exist, use a
+# very large $c_{ij}$. Many assignment problems — staff to tasks, students to rooms — have
+# this same shape.
+#
+# Two warehouses supply three stores:
+
+# %%
+supply = {"W1": 30, "W2": 25}
+demand = {"S1": 20, "S2": 15, "S3": 20}
+cost = {
+    ("W1", "S1"): 4,
+    ("W1", "S2"): 6,
+    ("W1", "S3"): 8,
+    ("W2", "S1"): 5,
+    ("W2", "S2"): 3,
+    ("W2", "S3"): 4,
+}
+
+transport = pulp.LpProblem(name="transportation", sense=pulp.LpMinimize)
+ship = {(i, j): pulp.LpVariable(name=f"x_{i}_{j}", lowBound=0) for (i, j) in cost}
+
+transport += pulp.lpSum(cost[i, j] * ship[i, j] for (i, j) in cost)
+for i, cap in supply.items():
+    transport += pulp.lpSum(ship[i, j] for j in demand) <= cap, f"supply_{i}"
+for j, req in demand.items():
+    transport += pulp.lpSum(ship[i, j] for i in supply) >= req, f"demand_{j}"
+
+transport.solve(pulp.PULP_CBC_CMD(msg=False))
+print("shipments:", {k: v.value() for k, v in ship.items() if v.value() > 0})
+print("total cost:", transport.objective.value())
+
+# %% [markdown]
+# :::{exercise}
+# :label: ex-6-8
+#
+# Solve the following transportation problem in pulp, where "x" means there is no
+# connection (use a very large cost, e.g. `1e6`, in place of $\infty$): source 1 has supply
+# 10 and costs $(0, 5, \text{x}, 0)$ to destinations 1–4; source 2 has supply 6 and costs
+# $(4, 6, 4, 3)$; source 3 has supply 10 and costs $(2, 4, 4, 6)$; each destination has
+# demand 5.
+# :::
+
+# %% [markdown]
+# (transshipment-problem)=
+# ### Transshipment
+#
+# If goods can pass through **intermediate nodes** on the way from sources to destinations,
+# we have the *transshipment problem*. It is solved by adding, for every intermediate node
+# $k$, a flow-conservation constraint — what comes in must go out:
+#
+# $$
+# \sum_{i} x_{ik} = \sum_{j} x_{kj}.
+# $$
+#
+# This extends to a full network by stacking several layers of intermediate nodes, and it
+# is the model behind the shortest-path and maximum-flow problems in
+# [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb).
+
+# %% [markdown]
+# ## Set Cover and Covering Problems
+#
+# In the **set cover problem** we have a universe $U = \{1, \dots, m\}$ and sets
+# $S_1, \dots, S_n$ with $S_i \subseteq U$, and we want the smallest selection of sets whose
+# union is all of $U$. The classic motivation is **facility location**: let $U$ be the
+# incident locations in a region and each $S_i$ the locations reachable within a target
+# response time from candidate base station $i$; then set cover asks for the fewest base
+# stations (ambulances, fire stations, ...) that cover the whole region. (IBM has used it
+# for efficient virus scanning: scan for a small covering collection of overlapping
+# signature sets rather than every signature.)
+#
+# With binary $x_i$ (1 = select set $i$) and $a_{ui} = 1$ if $u \in S_i$:
 #
 # $$
 # \begin{aligned}
 # \text{minimize} \quad & \sum_{i=1}^{n} x_i \\
-# \text{subject to} \quad & \sum_{i: u \in S_i} x_i \ge 1 \text{ for all } u \in U; \\
+# \text{subject to} \quad & \sum_{i=1}^{n} a_{ui} x_i \ge 1 \text{ for all } u \in U; \\
 # & x_i \in \{0, 1\} \text{ for all } i.
 # \end{aligned}
 # $$
 #
-# The binary constraints are necessary, as the following example shows. Let $U = \{1, 2, 3\}$ and $S_1 = \{1, 2\}$, $S_2 = \{1, 3\}$, and $S_3 = \{2, 3\}$. Then any combination of 2 sets is optimal but the LO relaxation has optimal value 1.5 with solution $(0.5, 0.5, 0.5)$.
+# > **Erratum applied (p. 98):** the summation index is $x_j$, not $x_i$ (the book prints
+# > $\sum_{j=1}^{n} a_{uj} x_i$).
 #
-# The main constraint is often replaced by the following more convenient notation: $\sum_{j=1}^{n} a_{uj} x_j \ge 1$ with $a_{uj} = 1$ if $u \in S_j$, 0 otherwise.
+# **The integrality constraint is essential here.** Take $U = \{1, 2, 3\}$ with
+# $S_1 = \{1, 2\}$, $S_2 = \{1, 3\}$, $S_3 = \{2, 3\}$. No single set covers $U$, so the
+# integer optimum is 2 (any two sets). But the LO relaxation can set every
+# $x_i = \tfrac12$: each element is then covered by $\tfrac12 + \tfrac12 = 1$, at total
+# "cost" $1.5$. Adding the three constraints gives $2(x_1 + x_2 + x_3) \ge 3$, so the
+# relaxation can never beat $1.5$ — and rounding $0.5$'s up gives all three sets, which is
+# worse than the true optimum of 2.
 #
-# > **Erratum applied (p. 98):** the summation index is $x_j$, not $x_i$ (the book prints $\sum_{j=1}^{n} a_{uj} x_i$).
-#
-# :::{exercise}
-# :label: ex-6-12
-#
-# Solve the following ILO problem, inspired by Guenin, Könemann, and Tunçel (2014). A swimming pool is open during 12 hours, and the lifeguards at duty should be selected. Every lifeguard has his/her own working hours and wage, as given in the table. Select the optimal combination of lifeguards assuring at least 1 lifeguard at every moment. The hours mentioned are the first and last hour that each lifeguards works, thus Ben/Celia/Fred is a feasible solution.
-#
-# | Lifeguard | Ann | Ben | Celia | Dick | Estelle | Fred |
-# |---|---|---|---|---|---|---|
-# | Hours | 1-6 | 1-4 | 5-8 | 7-10 | 7-12 | 9-12 |
-# | Wages | 8 | 6 | 6 | 3 | 7 | 3 |
-#
-# Solve it in pulp, using a matrix (nested list or dict) for the values of $a_{ui}$.
-# :::
-#
-# A generalization of the set cover problem is the covering problem. Instead of having to cover each element of the universe by 1 it can be more general. This leads to the following problem formulation:
+# A slightly larger instance, solved with pulp:
+
+# %%
+covers = {
+    "B1": {1, 2, 3},
+    "B2": {2, 3, 4},
+    "B3": {4, 5},
+    "B4": {5, 6},
+    "B5": {1, 6},
+    "B6": {3, 4, 5},
+}
+universe = sorted(set().union(*covers.values()))
+
+set_cover = pulp.LpProblem(name="set_cover", sense=pulp.LpMinimize)
+pick = {s: pulp.LpVariable(name=s, cat="Binary") for s in covers}
+set_cover += pulp.lpSum(pick.values())
+for u in universe:
+    set_cover += pulp.lpSum(pick[s] for s in covers if u in covers[s]) >= 1, f"cover_{u}"
+
+set_cover.solve(pulp.PULP_CBC_CMD(msg=False))
+print("stations:", [s for s in covers if pick[s].value() == 1])
+
+# %% [markdown]
+# The **covering problem** generalizes set cover: each element $u$ must be covered $b_u$
+# times, a set may be chosen more than once ($x_i \in \{0, 1, 2, \dots\}$), and each set $i$
+# has a cost $c_i$:
 #
 # $$
 # \begin{aligned}
-# \text{minimize} \quad & \sum_{i=1}^{n} x_i \\
+# \text{minimize} \quad & \sum_{i=1}^{n} c_i x_i \\
 # \text{subject to} \quad & \sum_{i=1}^{n} a_{ui} x_i \ge b_u \text{ for all } u \in U; \\
-# & x_i \in \mathbb{N}_0 = \{0, 1, 2, \dots\} \text{ for all } i.
+# & x_i \in \{0, 1, 2, \dots\} \text{ for all } i.
 # \end{aligned}
 # $$
 #
 # (shift-scheduling)=
-# This problem can be applied to shift scheduling, a problem already introduced by Dantzig (1954). In shift scheduling, we have to find the best combination of shifts of employees, which in total cover the required workforce in every time interval. The seminal problem studied by Dantzig involved employees at a toll station, where the required coverage fluctuates during the day.
+# ### Shift Scheduling
 #
-# To model this as a covering problem, let $U$ be the set of time intervals. Every set $S_i$ corresponds to a shift (with $a_{ui} = 1$ meaning shift $i$ works at time $u$), and $b_u$ the number of required workers at time $u$. Then $x_i$ corresponds to the number of employees that need to have shift $i$. By adding a coefficient to $x_i$ in the objective we can add different costs to the shifts.
+# The covering problem's main use is **shift scheduling** (studied by Dantzig in 1954 for
+# toll-booth staffing): split the day into time intervals $U$, let each shift type $i$ be
+# the set $S_i$ of intervals it works, $b_u$ the required staffing in interval $u$, $c_i$
+# the cost of one worker on shift $i$, and $x_i$ the number of workers assigned that shift.
+# The required staffing per interval typically comes from a forecast (predictive
+# analytics).
+#
+# A small shop is open 8:00–12:00 (four one-hour intervals) and needs $b = (3, 6, 7, 4)$
+# staff. Four shift types are available:
+
+# %%
+shift_intervals = {
+    "morning": {1, 2},
+    "midday": {2, 3},
+    "late": {3, 4},
+    "full": {1, 2, 3, 4},
+}
+shift_cost = {"morning": 30, "midday": 30, "late": 30, "full": 50}
+required = {1: 3, 2: 6, 3: 7, 4: 4}
+
+roster = pulp.LpProblem(name="shift_scheduling", sense=pulp.LpMinimize)
+count = {s: pulp.LpVariable(name=s, lowBound=0, cat="Integer") for s in shift_intervals}
+roster += pulp.lpSum(shift_cost[s] * count[s] for s in shift_intervals)
+for u, need in required.items():
+    roster += pulp.lpSum(count[s] for s in shift_intervals if u in shift_intervals[s]) >= need
+
+roster.solve(pulp.PULP_CBC_CMD(msg=False))
+print("roster:", {s: count[s].value() for s in shift_intervals}, "cost", roster.objective.value())
+
+# %% [markdown]
+# :::{exercise}
+# :label: ex-6-12
+#
+# Solve the following ILO problem, inspired by Guenin, Könemann, and Tunçel (2014). A
+# swimming pool is open for 12 hours and the lifeguards on duty must be selected. Each
+# lifeguard has fixed working hours (first and last hour worked) and a wage. Select the
+# cheapest set of lifeguards with at least one on duty every hour. (Ben + Celia + Fred is a
+# feasible solution.)
+#
+# | Lifeguard | Ann | Ben | Celia | Dick | Estelle | Fred |
+# |---|---|---|---|---|---|---|
+# | Hours | 1–6 | 1–4 | 5–8 | 7–10 | 7–12 | 9–12 |
+# | Wage | 8 | 6 | 6 | 3 | 7 | 3 |
+#
+# Use a matrix (nested list or dict) for $a_{ui}$.
+# :::
 #
 # :::{exercise}
 # :label: ex-6-13
 #
-# The required staffing in a call center, from 9am to 9pm in 30-minute intervals, is as follows:
+# The required staffing in a call center, 9am–9pm in 30-minute intervals, is:
 #
 # 10, 11, 13, 16, 16, 13, 11, 10, 10, 11, 12, 13, 14, 14, 13, 11, 10, 9, 9, 10, 9, 8, 8, 8.
 #
-# There are 2 types of shifts:
+# Two shift types are available:
 #
-# - 8 hours working time, with a 30-minute unpaid break in the middle, wage 20 Euro/hr, possible starting times every half hour from 9am to 12:30pm;
-# - 4 hours consecutive, wage 24 Euro/hr, possible starting times every half hour from 9am to 5pm.
+# - 8 hours working, with a 30-minute unpaid break in the middle, wage €20/hr, starting
+#   every half hour from 9:00 to 12:30;
+# - 4 consecutive hours, wage €24/hr, starting every half hour from 9:00 to 17:00.
 #
 # Formulate this as a covering problem and solve it with pulp.
 # :::
 #
-# Machine scheduling is another important class of ILO problems. However, because it involves some modeling tricks that are discussed under [Machine Scheduling](lecture9_advanced-modeling.ipynb#machine-scheduling), we defer discussing it to that section.
-#
-# The next two exercises concern problems that can be solved with appropriately chosen binary decision variables.
-#
 # :::{exercise}
 # :label: ex-6-14
 #
-# For a day at a school, classes have to be assigned to professors such that each class has an hour with each required professor and such that there are no conflicts such as a professor having to teach two classes at the same time. A matrix with entries $a_{cp}$ indicates which classes need to have which professors: when $a_{cp} = 1$ then class $c$ needs to have professor $p$, otherwise $a_{cp} = 0$.
-#
-# Formulate an ILO model that minimizes the total number of hours that classes have to spend at school. A class remains at school until right after the last hour it has seen a professor.
+# For one school day, classes must be assigned to professors so that each class has one hour
+# with each professor it needs and no professor teaches two classes at once. A matrix
+# $a_{cp}$ gives which classes need which professors ($a_{cp} = 1$ if class $c$ needs
+# professor $p$). Formulate an ILO model that minimizes the total number of hours classes
+# spend at school (a class stays until right after its last professor hour).
 # :::
 #
 # :::{exercise}
 # :label: ex-6-15
 #
-# For a classroom assignment, pairs need to be made of $n$ students. Each student can give a list of students he or she is willing to work with. Formulate an ILO model that maximizes the number of pairs that can be made. Each student is only allowed to be part of one pair, but it might not be possible to assign all students to a pair.
+# Pairs must be made among $n$ students; each student lists the students they are willing to
+# work with. Formulate an ILO model maximizing the number of pairs, each student in at most
+# one pair (not everyone need be paired).
 # :::
 
 # %% [markdown]
 # ## References
 #
-# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.5 "Example ILO Problems."
-# - Dantzig, G.B. (1954). "A comment on Edie's 'Traffic delays at toll booths.'" *Journal of the Operations Research Society of America*, 2(3):339–341.
-# - Guenin, B., Könemann, J., & Tunçel, L. (2014). *A Gentle Introduction to Optimization*. Cambridge University Press.
+# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.3 "Example LO Problems"
+#   (transportation), §6.5 "Example ILO Problems." Spreadsheet material replaced with pulp.
+# - Dantzig, G.B. (1954). "A comment on Edie's 'Traffic delays at toll booths.'" *Journal of
+#   the Operations Research Society of America*, 2(3):339–341.
+# - Guenin, B., Könemann, J., & Tunçel, L. (2014). *A Gentle Introduction to Optimization*.
+#   Cambridge University Press.
