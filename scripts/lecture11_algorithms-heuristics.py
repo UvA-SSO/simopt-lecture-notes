@@ -28,6 +28,19 @@
 # - describe the concept of complexity and reflect on its implications for algorithms and problem solving
 
 # %% [markdown]
+# ## Algorithms and Their Characteristics
+#
+# An algorithm is a computational procedure that produces a solution for a class of problems: the simplex method for LO, branch-and-bound for ILO, Dijkstra's algorithm for shortest path — all are algorithms. It is useful to characterize an algorithm along three axes:
+#
+# - **Dedicated or general.** Dijkstra's algorithm and the Ford-Fulkerson algorithm below are dedicated to one specific problem structure; the simplex method, branch-and-bound, and evolutionary algorithms are general-purpose. A dedicated algorithm exploits the problem structure and is typically much faster than a general one — this is precisely why it is worth studying Dijkstra's algorithm at all, even though the shortest path problem can already be formulated as an LO problem (see below).
+# - **Polynomial or non-polynomial complexity**, i.e., how the running time grows with the size of the problem — the topic of the [Complexity](lecture11_complexity.ipynb) notebook.
+# - **Exact or heuristic.** An exact algorithm is guaranteed to find the optimum; a heuristic is not, but aims to find a good solution in a reasonable amount of time instead.
+#
+# A well-known folklore result, the "no free lunch" theorem, is a useful caution here: informally, no search algorithm can be uniformly better than every other algorithm across *all* possible problems — any advantage gained on one class of problems is paid for by a disadvantage on another. There is no single best algorithm, only algorithms well- or poorly-suited to a given problem structure.
+#
+# The rest of this notebook demonstrates three classical combinatorial problems, each with (i) an (I)LO formulation and (ii) a dedicated algorithm: shortest path, maximum flow, and the traveling salesman problem.
+
+# %% [markdown]
 # ## The Shortest Path Problem
 #
 # The shortest path problem consists of finding the shortest distance between two nodes in a (uni or bi-directional) [graph](lecture8_linear-optimization.ipynb#graphs-intro) with (positive) distances on the arcs. The importance of this problem is evident: it has to be solved every time we use navigation software, and many other less obvious applications exist.
@@ -266,9 +279,34 @@ print("maximum flow:", max_flow.objective.value())
 # > **Erratum applied (p. 113):** the numbers along the edges of this graph are distances, not capacities (the maximum-flow exercise above uses them as capacities, while the TSP discussion below uses the same numbers as distances).
 
 # %% [markdown]
-# For the TSP, no efficient algorithm is known; essentially only enumeration is guaranteed to find the shortest tour. However, there are $(n-1)!$ different tours, which will take very long even for moderately sized problems! Therefore the TSP is solved using heuristics, i.e., algorithms that are not guaranteed to terminate with an optimal solution.
+# Just like shortest path and max flow, the TSP has an ILO formulation. Let $x_{ij} \in \{0, 1\}$ indicate whether edge $ij$ is used in the tour, and $c_{ij}$ the distance between $i$ and $j$ (with $c_{ii}$ set very large so that no self-loop is ever chosen). The natural formulation is:
 #
-# An example of such a heuristic is 2-opt. It starts with some initial tour and then one by one all combinations of 2 edges are removed from the tour and replaced by the other 2 edges connecting them in order to make a tour again. When an edge does not exist, we assume it has length $\infty$. When the length of the new tour is shorter, we consider it as our next solution. This continues until no improvement can be found.
+# $$
+# \begin{aligned}
+# \text{minimize} \quad & \sum_{i,j,\, i \ne j} c_{ij} x_{ij} \\
+# \text{subject to} \quad & \sum_{i \ne k} x_{ik} = \sum_{j \ne k} x_{kj} = 1 \text{ for all nodes } k; \\
+# & x_{ij} \in \{0, 1\} \text{ for all } i, j,\ i \ne j.
+# \end{aligned}
+# $$
+#
+# Requiring exactly one incoming and one outgoing edge per node, however, does not by itself force a single tour through all $n$ nodes — it is equally satisfied by several disjoint sub-tours that together cover every node (e.g., two separate 3-node tours in a 6-node graph). To rule this out we add a **subtour elimination constraint** for every subset $S$ of nodes with $2 \le |S| \le n-2$: a tour restricted to the nodes in $S$ alone would use exactly $|S|$ edges, so forcing
+#
+# $$
+# \sum_{i,j \in S} x_{ij} \le |S| - 1 \quad \text{for all } S \subset V \text{ with } 2 \le |S| \le n-2
+# $$
+#
+# makes any such subtour infeasible. This repairs the model, but at a cost: an $n$-node graph has $2^n$ subsets, so this adds an exponential number of constraints — impractical to write down explicitly for anything but tiny instances. (In practice, solvers add these constraints lazily: solve the relaxed model, and if the solution contains a subtour, add just that subtour's constraint and re-solve, repeating until a single tour emerges.)
+#
+# For the TSP, no efficient exact algorithm is known — not via this ILO formulation, nor via any other approach; essentially only enumeration is guaranteed to find the shortest tour. However, there are $(n-1)!$ different tours, which will take very long even for moderately sized problems! Therefore the TSP is in practice solved using heuristics, i.e., algorithms that are not guaranteed to terminate with an optimal solution.
+#
+# ### Heuristics
+#
+# Because no fast exact algorithm exists for the TSP — or, more generally, for any [NP-complete](lecture11_complexity.ipynb) problem — we turn to heuristics: procedures that aim for a good solution in a reasonable amount of time rather than a guaranteed optimum. Heuristics come in two flavors:
+#
+# - **Metaheuristics** are not tailored to any one specific problem: local search, evolutionary algorithms, tabu search, and simulated annealing all fall in this category, and can in principle be pointed at any optimization problem (though some problem-specific tailoring, e.g. how a "move" is defined, is usually still needed).
+# - **Problem-specific heuristics** exploit the structure of one particular problem. The 2-opt heuristic below is a classic example for the TSP; most well-studied combinatorial problems have their own body of literature of dedicated heuristics.
+#
+# An example of a problem-specific heuristic — and a form of local search — is 2-opt. It starts with some initial tour and then one by one all combinations of 2 edges are removed from the tour and replaced by the other 2 edges connecting them in order to make a tour again. When an edge does not exist, we assume it has length $\infty$. When the length of the new tour is shorter, we consider it as our next solution. This continues until no improvement can be found.
 #
 # Let us apply this to the graph above. We start with the left tour below which has length 21. If we replace the edges BD and EG we get the right graph below with length 18. No further improvements can be found.
 
