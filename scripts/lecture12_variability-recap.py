@@ -34,7 +34,41 @@
 # - understand the sources of variability in business data
 
 # %% [markdown]
-# ## Summarizing Data
+# ## What Lecture 12 Needs from This Recap
+#
+# Lecture 12's simulation material leans on a short list of probability concepts from this recap. If you already know them, skip ahead to [Simulation](lecture12_simulation.ipynb); otherwise, here is exactly what you need, with pointers into the fuller treatment below for more detail and derivations.
+#
+# **Random variables.** A random variable (RV) $X$ models an uncertain outcome. It comes in two flavors: *discrete* RVs take a finite or countable number of values (e.g., the number of customers arriving at a desk in an hour), described by a probability mass function (pmf) $P(X=x)$; *continuous* RVs take any value in a range (e.g., a service duration), described by a probability density function (pdf) $f(x)$. Both types share a cumulative distribution function (cdf) $F(x) = P(X \le x)$.
+#
+# **Expectation and variance.** The expectation $EX$ is the long-run average outcome of $X$; the variance $\sigma^2(X) = E[(X-EX)^2]$ measures the spread of outcomes around $EX$, and the SD $\sigma(X) = \sqrt{\sigma^2(X)}$ has the same units as $X$. Two sets of properties do all the work in Lecture 12:
+#
+# $$
+# E(X+Y) = EX + EY, \qquad E(aX) = aEX,
+# $$
+#
+# which hold regardless of dependence between $X$ and $Y$, and
+#
+# $$
+# \sigma^2(X+Y) = \sigma^2(X) + \sigma^2(Y) \text{ (if independent)}, \qquad \sigma^2(aX) = a^2 \sigma^2(X).
+# $$
+#
+# See [](#sums-of-rvs) below for the derivation and worked examples.
+#
+# **Law of large numbers (LLN).** If $X_1, \dots, X_n$ are i.i.d. copies of $X$, the sample average $(X_1+\dots+X_n)/n$ has expectation $EX$ and variance $\sigma^2(X)/n$, which shrinks to 0 as $n \to \infty$. This is why a simulation's sample average converges to the true expectation as we simulate longer. See [](#lln) below.
+#
+# **Central limit theorem (CLT).** The CLT sharpens the LLN: for large $n$, the sample average is *approximately* normally distributed, $N(EX, \sigma^2(X)/n)$, essentially regardless of the distribution of $X$ itself. See [](#clt) below.
+#
+# **Confidence intervals.** Based on $n$ samples with sample mean $\bar X$ and sample SD $S$, a 95% confidence interval (CI) for $EX$ is $[\bar X - 2S/\sqrt n, \bar X + 2S/\sqrt n]$. Its correct interpretation matters: it is *not* "there is a 95% probability that $EX$ lies in this interval" — $EX$ is fixed, not random. It means that if we repeated the sampling many times and built a CI every time, 95% of those intervals would contain $EX$. See [](#confidence-intervals) below.
+#
+# That is the toolkit Lecture 12 draws on. The rest of this notebook is a deeper, optional recap.
+
+# %% [markdown]
+# ## Deeper and Optional Recap
+#
+# The sections below go beyond what Lecture 12 strictly needs: a fuller treatment of the concepts above, plus the distribution catalogue, parameter estimation, and hypothesis testing. Feel free to read selectively.
+
+# %% [markdown]
+# ### Summarizing Data
 #
 # Data can be summarized in numerical and graphical ways. For univariate, i.e., 1-dimensional data, numerical summaries mostly concentrate on centrality and variability. The most common measure for centrality is the mean (`numpy.mean`, also called average), equal to the sum of the values divided by the number. Other measures for centrality are the trimmed mean (`scipy.stats.trim_mean`) and the median (`numpy.median`). The trimmed mean ignores the lowest and highest values, the median is the "middle" value, for which 50% is lower and 50% is higher.
 #
@@ -95,7 +129,7 @@ fig.tight_layout()
 # :::
 
 # %% [markdown]
-# ## Probability Theory and the Binomial Distribution
+# ### Probability Theory and the Binomial Distribution
 #
 # In the previous section we analyzed data, which might be useful by itself. However, we might also consider the data to be outcomes of some experiment with uncertain, random outcomes. What can we say of the experiment on the basis of its outcomes? How can we define the experiment in a useful way? Probability theory gives the framework to answer this type of question. In probability, a random experiment is called a random variable (RV), often denoted with the letter $X$. An RV $X$ is different from a regular variable $x$ in the sense that it can take multiple values, according to its distribution. For example, if $X$ models the rolling of a die then it can take values $\{1, 2, \dots, 6\}$, each with probability $1/6$.
 #
@@ -225,6 +259,7 @@ print("90th percentile:", stats.binom.ppf(0.9, 30, 0.5))
 # :::
 
 # %% [markdown]
+# (sums-of-rvs)=
 # **Sums of independent random variables**
 #
 # Often we are interested in sums or averages of usually independent random variables. We will discuss two aspects of this: the distribution of sums and the expectation and SD of sums and averages. Let us start with the latter. For random variables, the following rules hold:
@@ -327,7 +362,7 @@ print("90th percentile:", stats.binom.ppf(0.9, 30, 0.5))
 # :::
 
 # %% [markdown]
-# ## Other Distributions and the Central Limit Theorem
+# ### Other Distributions and the Central Limit Theorem
 #
 # In the previous section we introduced the binomial distribution and used it to introduce some important concepts from probability theory. In this section we introduce some other well-known distributions.
 #
@@ -461,6 +496,7 @@ fig.tight_layout()
 # Sample 10000 times from 2 normally distributed RVs, make a histogram of the sums and convince yourself that the statement above is true. How about $X - Y$? Can you explain this? Do the same thing for two uniform distributions.
 # :::
 #
+# (clt)=
 # **Central limit theorem**
 #
 # Earlier, we saw that sums of normal distributions have a normal distribution. But there is more to it: all sums of independent RVs tend to look like normal distributions! For example, if you sum 10 uniform RVs, then the result looks pretty much like a normal distribution. The same holds for averages, as it is just a sum divided by a constant. Recall that $E\bar X = EX_1$ and $\sigma(\bar X) = \sigma(X_1)/\sqrt n$. Thus, as $n$ increases, $\bar X$ looks more and more like a normal distribution which is more and more concentrated around the mean $EX_1$. This is called the central limit theorem (CLT). Below, histograms of averages of 1, 2, 5 and 10 uniform(0,1) realizations illustrate it: already the distribution of the average of 10 uniform distributions has the bell shape of the density of a normal distribution.
@@ -559,7 +595,7 @@ fig.tight_layout()
 # :::
 
 # %% [markdown]
-# ## Parameter Estimation
+# ### Parameter Estimation
 #
 # The goal of statistics is to infer unknown information from data. For this reason, we sometimes talk of inferential statistics, to differentiate from (statistical) data analysis. Data contains noise, for this reason we have to differentiate between noise and signal.
 #
