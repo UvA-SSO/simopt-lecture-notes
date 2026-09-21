@@ -1,4 +1,4 @@
-name: Test and deploy Jupyter Book
+name: Build and possibly deploy Jupyter Book
 
 on:
   push:

@@ -67,11 +67,13 @@ closest thing to one.
 
 ## Deployment
 
-`.github/workflows/deploy-pages.yml` runs on every push and pull request: it
-runs the same lint/format/sync checks as `pre-commit` and builds the book
-(with execution), so a broken notebook or failing check shows up directly on
-a PR. Only on a push to `main`, after that build succeeds, does it publish
-the result to GitHub Pages. Enable Pages once, per repo: **Settings → Pages →
+`.github/workflows/build-and-possibly-deploy.yml` has two jobs. `build` runs on every push
+and pull request: it runs the same lint/format/sync checks as `pre-commit`
+and builds the book (with execution), so a broken notebook or failing check
+shows up directly on a PR — nothing is published at this point. `deploy` runs
+only after `build` succeeds, and only on a push to `main`; it takes that
+build's output and publishes it to GitHub Pages. A pull request never
+triggers a deployment. Enable Pages once, per repo: **Settings → Pages →
 Source → GitHub Actions**. To make the check block merging until it passes,
 also add a branch protection rule for `main` under **Settings → Branches**
 requiring the `build` check to succeed.
