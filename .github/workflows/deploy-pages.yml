@@ -1,18 +1,17 @@
-name: Deploy Jupyter Book to GitHub Pages
+name: Test and deploy Jupyter Book
 
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Only one Pages deployment at a time; cancel in-progress runs on new pushes.
+# Only one run per ref at a time; cancel in-progress runs on new pushes.
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -29,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Run lint/format/sync checks
+        run: uv run pre-commit run --all-files
+
       - name: Build the book
         # BASE_URL tells MyST the site is served from a subpath
         # (https://<user>.github.io/<repo>/), not the domain root.
@@ -36,18 +38,32 @@ jobs:
           BASE_URL: /${{ github.event.repository.name }}
         run: uv run jupyter book build --execute --html
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: book-html
+          path: _build/html
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: book-html
+          path: _build/html
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _build/html
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
