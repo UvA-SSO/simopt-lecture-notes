@@ -7,7 +7,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 *.mps
+.idea/
 
-# Course construction files: not for public distribution (copyrighted
-# textbook/slides, internal schedule) — kept locally only.
+# Course construction files (not for sharing on Github)
 /Course Materials/
