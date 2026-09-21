@@ -126,8 +126,8 @@ print("optimal profit:", mix.objective.value())
 # %%
 b = np.linspace(0, 6, 200)
 plt.figure(figsize=(5, 5))
-plt.plot(b, (12 - b) / 3, label=r"$b + 3d \le 12$ (oak panels)")
-plt.plot(b, 10 - 2 * b, label=r"$2b + d \le 10$ (assembly hours)")
+plt.plot(b, (12 - b) / 3, label=r"$b + 3d \leq 12$ (oak panels)")
+plt.plot(b, 10 - 2 * b, label=r"$2b + d \leq 10$ (assembly hours)")
 
 # feasible region: below both lines, first quadrant
 d_upper = np.minimum((12 - b) / 3, 10 - 2 * b)
