@@ -78,6 +78,14 @@ Source → GitHub Actions**. To make the check block merging until it passes,
 also add a branch protection rule for `main` under **Settings → Branches**
 requiring the `build` check to succeed.
 
+## Suggesting an improvement
+
+Spotted an error, unclear explanation, or broken example in the notes? Open
+an [issue](https://github.com/UvA-SSO/simopt-lecture-notes/issues) describing
+it, or a [pull request](https://github.com/UvA-SSO/simopt-lecture-notes/pulls)
+with a fix — PRs are automatically checked (lint, formatting, and a full
+notebook execution) before they can be merged, see [Deployment](#deployment).
+
 ## Repository structure
 
 ```
