@@ -45,3 +45,4 @@ site:
   options:
     logo: images/logo.png
     logo_text: SimOpt Lecture Notes
+    favicon: images/logo.png
