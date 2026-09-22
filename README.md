@@ -93,6 +93,7 @@ notebooks/        Jupyter notebooks (generated/synced from scripts/, do not hand
 scripts/           Paired plain-Python source (edit these)
 notebooks/data/    Small committed datasets (CSV)
 notebooks/images/  Figures referenced by the notebooks
+images/            Site branding assets (logo), referenced from myst.yml
 myst.yml           Book structure (table of contents) and site config
 ```
 

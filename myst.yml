@@ -42,3 +42,6 @@ project:
 site:
   title: Simulation and Optimization — Lecture Notes
   template: book-theme
+  options:
+    logo: images/logo.png
+    logo_text: SimOpt Lecture Notes
