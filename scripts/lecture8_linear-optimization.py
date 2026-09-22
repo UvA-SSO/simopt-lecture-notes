@@ -22,10 +22,9 @@
 # This notebook introduces linear optimization (LO), also called linear programming. It is
 # the most widely used optimization framework in practice: efficient solvers exist that are
 # guaranteed to find the optimum even for problems with thousands of variables and
-# constraints. We introduce it through an example, look at what the solver is doing both
-# graphically and algebraically, see what can go wrong, and end with the general
-# formulation. We solve everything in Python with
-# [pulp](https://coin-or.github.io/pulp/).
+# constraints. We introduce it through an example, model it, solve it in Python with
+# [pulp](https://coin-or.github.io/pulp/), look at what the solver is doing both graphically
+# and algebraically, and see what can go wrong.
 #
 # **Learning outcomes**
 #
@@ -33,13 +32,59 @@
 #
 # - formulate a real-life decision problem as an LO model (decision variables, objective,
 #   constraints);
-# - solve an LO model in Python with pulp and interpret the solution both graphically and
-#   algebraically;
-# - recognize infeasibility, unboundedness, and multiple optima, and explain why linearity
-#   makes LO efficiently solvable.
+# - implement an LO model in pulp, both directly and with the data kept separate from the
+#   model;
+# - interpret an LO solution both graphically and algebraically;
+# - recognize infeasibility and unboundedness in pulp's solve status.
 
 # %% [markdown]
+# ## A Motivating Problem: Optimal Product Mix
 #
+# A workshop makes two products from two limited resources. Producing one unit of product
+# $x$ uses 1 unit of resource 1 and 1 unit of resource 2; one unit of product $y$ uses 0
+# units of resource 1 and 2 units of resource 2. Product $x$ earns a profit of 2 per unit,
+# product $y$ a profit of 3 per unit.
+#
+# | | profit | resource 1 needed | resource 2 needed |
+# |---|---|---|---|
+# | $x$ | 2 | 1 | 1 |
+# | $y$ | 3 | 0 | 2 |
+#
+# There are 5 units of resource 1 and 10 units of resource 2 available. Which product mix
+# maximizes profit?
+
+# %% [markdown]
+# ## The Modeling Approach
+#
+# We follow the same four steps for every problem in this course:
+#
+# 1. **study the problem** in detail (done above);
+# 2. **define the decision variables**: let $x$ and $y$ be the quantities of the two
+#    products produced;
+# 3. **define the objective**: maximize profit, $2x + 3y$;
+# 4. **define the constraints**: the resource-1 usage, $x$, cannot exceed 5; the resource-2
+#    usage, $x + 2y$, cannot exceed 10; and $x, y \ge 0$.
+#
+# In mathematical form:
+#
+# $$
+# \begin{aligned}
+# \text{maximize} \quad & 2x + 3y & \text{(objective)} \\
+# \text{subject to} \quad & x \le 5 & \text{(resource 1)} \\
+# & x + 2y \le 10 & \text{(resource 2)} \\
+# & x, y \ge 0.
+# \end{aligned}
+# $$
+#
+# The objective and all constraints are linear functions of the decision variables
+# $(x, y)$, hence the name *linear* optimization.
+
+# %% [markdown]
+# ## Solving the Model Directly in pulp
+#
+# For a small, one-off model like this, the fastest way from model to answer is to write it
+# in pulp exactly as it appears above, with the numbers typed directly into the variable
+# bounds and constraints:
 
 # %%
 import matplotlib.pyplot as plt
@@ -54,81 +99,19 @@ except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
     import pulp
 
-# %% [markdown]
-# (product-mix)=
-# ## A Motivating Problem: Optimal Product Mix
-#
-# Recall from [the introduction](lecture8_introduction.ipynb) that a real-life optimization
-# problem has three ingredients: a *decision*, a *system* that limits the allowed decisions,
-# and an *outcome* to be optimized.
-#
-# A workshop makes two products, bookcases and desks, from two limited resources, oak
-# panels and assembly hours:
-#
-# | | profit (€) | oak panels needed | assembly hours needed |
-# |---|---|---|---|
-# | bookcase | 3 | 1 | 2 |
-# | desk     | 5 | 3 | 1 |
-#
-# There are 12 oak panels and 10 assembly hours available this week. Which product mix
-# maximizes profit?
-#
-# (Excel and other spreadsheet tools can also solve small problems like this, for example
-# via `SUMPRODUCT` plus the Solver add-in, but this course works in Python throughout.)
-
-# %% [markdown]
-# ### The Modeling Approach
-#
-# We follow the same four steps for every problem:
-#
-# 1. **study the problem** in detail (done above);
-# 2. **define the decision variables**: let $b$ and $d$ be the number of bookcases and
-#    desks produced;
-# 3. **define the objective**: maximize profit, $3b + 5d$;
-# 4. **define the constraints**: the oak panels used, $b + 3d$, cannot exceed 12; the
-#    assembly hours used, $2b + d$, cannot exceed 10; and $b, d \ge 0$.
-#
-# In mathematical form:
-#
-# $$
-# \begin{aligned}
-# \text{maximize} \quad & 3b + 5d & \text{(objective)} \\
-# \text{subject to} \quad & b + 3d \le 12 & \text{(oak panels)} \\
-# & 2b + d \le 10 & \text{(assembly hours)} \\
-# & b, d \ge 0.
-# \end{aligned}
-# $$
-#
-# The objective and all constraints are linear functions of the decision variables
-# $(b, d)$, hence the name *linear* optimization.
-#
-# To solve it with pulp we keep the problem data separate from the model:
-
 # %%
-profit = {"bookcase": 3, "desk": 5}
-resource_use = {  # resource_use[r][p]: units of resource r per unit of product p
-    "oak panels": {"bookcase": 1, "desk": 3},
-    "assembly hours": {"bookcase": 2, "desk": 1},
-}
-available = {"oak panels": 12, "assembly hours": 10}
-products = list(profit)
+product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
+x = pulp.LpVariable(name="x", lowBound=0)
+y = pulp.LpVariable(name="y", lowBound=0)
 
-# %% [markdown]
-# The model is an `LpProblem`, one non-negative continuous variable per product, the
-# objective, and one constraint per resource:
+product_mix += 2 * x + 3 * y, "profit"
+product_mix += x <= 5, "resource_1"
+product_mix += x + 2 * y <= 10, "resource_2"
 
-# %%
-mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
-x = {p: pulp.LpVariable(name=p.replace(" ", "_"), lowBound=0) for p in products}
-
-mix += pulp.lpSum(profit[p] * x[p] for p in products), "profit"
-for r, cap in available.items():
-    mix += pulp.lpSum(resource_use[r][p] * x[p] for p in products) <= cap, r.replace(" ", "_")
-
-mix.solve(pulp.PULP_CBC_CMD(msg=False))
-print("status:", pulp.LpStatus[mix.status])
-print("optimal mix:", {p: x[p].value() for p in products})
-print("optimal profit:", mix.objective.value())
+product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[product_mix.status])
+print(f"x = {x.value()}, y = {y.value()}")
+print("optimal profit:", product_mix.objective.value())
 
 # %% [markdown]
 # :::{exercise}
@@ -139,137 +122,58 @@ print("optimal profit:", mix.objective.value())
 # :::
 
 # %% [markdown]
-# ## A Graphical View
+# ## Separating Data from the Model
 #
-# With only two decision variables we can draw the problem. Each constraint is a line; the
-# feasible region is the set of points satisfying all of them at once. Because both the
-# constraints and the objective are linear, the objective-value contour lines are straight
-# and parallel. Sliding one in the direction of increasing profit, the last feasible point
-# it touches is an optimal solution, and it is always a corner of the feasible region.
+# The direct version above hardcodes every number into the model itself, which is fine for
+# a problem you solve once. It breaks down as soon as you want to re-solve for different
+# data (more products, different resource limits) or reuse the same model code elsewhere:
+# every number would have to be found and edited inside the model-building code, which is
+# slow and error-prone. The fix is to keep the instance *data* in plain Python structures,
+# separate from the *model*-building code, and build the model from that data:
 
 # %%
-b = np.linspace(0, 6, 200)
-plt.figure(figsize=(5, 5))
-plt.plot(b, (12 - b) / 3, label=r"$b + 3d \leq 12$ (oak panels)")
-plt.plot(b, 10 - 2 * b, label=r"$2b + d \leq 10$ (assembly hours)")
+profit = {"x": 2, "y": 3}
+resource_use = {  # resource_use[r][p]: units of resource r per unit of product p
+    "resource 1": {"x": 1, "y": 0},
+    "resource 2": {"x": 1, "y": 2},
+}
+available = {"resource 1": 5, "resource 2": 10}
+products = list(profit)
 
-# feasible region: below both lines, first quadrant
-d_upper = np.minimum((12 - b) / 3, 10 - 2 * b)
-plt.fill_between(b, 0, d_upper, where=d_upper > 0, alpha=0.2, label="feasible region")
+product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
+q = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
-b_opt, d_opt = x["bookcase"].value(), x["desk"].value()
-for level, style in [(15, ":"), (mix.objective.value(), "-")]:
-    plt.plot(b, (level - 3 * b) / 5, style, color="grey")
-plt.plot(b_opt, d_opt, "ko")
-plt.annotate(
-    f"optimum ({b_opt:.1f}, {d_opt:.1f})", (b_opt, d_opt), textcoords="offset points", xytext=(8, 8)
-)
+product_mix += pulp.lpSum(profit[p] * q[p] for p in products), "profit"
+for r, cap in available.items():
+    product_mix += (
+        pulp.lpSum(resource_use[r][p] * q[p] for p in products) <= cap,
+        r.replace(" ", "_"),
+    )
 
-plt.xlim(0, 6)
-plt.ylim(0, 6)
-plt.xlabel("bookcases $b$")
-plt.ylabel("desks $d$")
-plt.legend(loc="upper right", fontsize=8)
-plt.title("The two grey lines are objective contours; the solid one is optimal")
-plt.show()
+product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[product_mix.status])
+print("optimal mix:", {p: q[p].value() for p in products})
+print("optimal profit:", product_mix.objective.value())
 
 # %% [markdown]
-# The dotted grey line (profit 15) still has feasible points but we can do better; sliding
-# it out until it just leaves the feasible region gives the solid line, which touches the
-# region only at the corner where the two resource constraints meet: the optimum pulp
-# reported above.
-
-# %% [markdown]
-# ## An Algebraic View
-#
-# The same optimum can be understood without a picture. Turn each "$\le$" constraint into
-# an equality by adding a non-negative slack variable, the amount of the resource left
-# unused:
-#
-# $$
-# \begin{aligned}
-# b + 3d \le 12 \\
-# 2b + d \le 10 \\
-# b, d \ge 0
-# \end{aligned}
-# \quad\Leftrightarrow\quad
-# \begin{aligned}
-# b + 3d + s_1 &= 12 \\
-# 2b + d + s_2 &= 10 \\
-# b, d, s_1, s_2 &\ge 0
-# \end{aligned}
-# $$
-#
-# There are now 2 equations and 4 variables. As a rule, a system of $k$ independent linear
-# equations in $k$ unknowns has exactly one solution, so if we set any 2 of the 4 variables
-# to zero the other 2 are determined. Each such choice corresponds to a corner of the
-# feasible region (some combinations give a negative value and are infeasible; those are
-# corners of the lines' intersections that lie outside the region). The corners here are:
-#
-# - $(b, d, s_1, s_2) = (0, 0, 12, 10)$: the origin;
-# - $(0, 4, 0, 6)$: oak panels fully used;
-# - $(5, 0, 7, 0)$: assembly hours fully used;
-# - the point where both resource constraints are tight ($s_1 = s_2 = 0$): the optimum.
-#
-# The simplex algorithm (G.B. Dantzig, 1947), which pulp's default solver uses for LO, hops
-# from corner to neighbouring corner, each time to one with a better objective value, and
-# stops when no neighbouring corner is better. Why is that enough to guarantee the *global*
-# optimum? Because the feasible region of an LO problem is a convex polyhedron: a shape with
-# flat faces and no hidden hills. If every neighbour of your current corner is worse, there
-# is nowhere higher to go, since reaching a higher point would require the boundary to
-# curve, and linear constraints never curve. So for LO, a local optimum is automatically a
-# global optimum.
-#
-# :::{note} History of Linear Optimization
-# Several researchers formulated linear optimization problems, but it was G.B. Dantzig
-# (1914–2005) who invented the simplex algorithm in 1947. Until recently the field was
-# commonly called *linear programming*. Its dynamic, random counterpart is *dynamic
-# programming*, developed by R.E. Bellman (1920–1984); the division between deterministic
-# and random problems is still very visible in operations research.
-# :::
-
-# %% [markdown]
-# ## Three Possible Outcomes
-#
-# Not every LO problem has an optimal solution. There are exactly three possibilities:
-#
-# 1. **an optimal solution exists** (the case above);
-# 2. **unbounded**: solutions of arbitrarily large objective value exist. For the
-#    product-mix problem this happens if we drop the assembly-hours constraint, since we
-#    could then make unlimited desks;
-# 3. **infeasible**: no point satisfies all constraints. This happens if, for example, a
-#    customer contract forces $d \ge 12$ while the oak-panel constraint allows at most
-#    $d = 4$.
-#
-# pulp reports these as the `LpStatus` values `"Unbounded"` and `"Infeasible"` instead of
-# `"Optimal"`. [](#fig-lo-degenerate) shows both situations schematically.
-
-# %% [markdown]
-# :::{figure} images/lecture8_fig6.2.png
-# :label: fig-lo-degenerate
-#
-# An unbounded (left) and an infeasible (right) LO problem.
-# :::
-
-# %% [markdown]
-# :::{exercise}
-# :label: ex-6-3
-#
-# Enter the unbounded and the infeasible variants described above in pulp and check what
-# `LpStatus` you get for each.
-# :::
+# The model-building code (the `for` loop and the `pulp.lpSum` calls) no longer mentions 2,
+# 3, 5, or 10 anywhere: it works unchanged for any number of products and resources, as
+# long as `profit`, `resource_use`, and `available` describe them. This is the pattern we
+# use for every larger model from here on, and it is also the discipline behind the
+# algebraic modeling languages (AMLs) introduced in
+# [Modeling Tools and Solvers](lecture10_modeling-tools.ipynb).
 
 # %% [markdown]
 # ## A Larger Example in pulp
 #
-# The same three ingredients scale to any size. Consider:
+# The same three ingredients, and the same data/model split, scale to any size. Consider a
+# three-product version with two resources:
 #
 # $$
 # \begin{aligned}
-# \text{maximize} \quad & 5x_1 + 4x_2 + 3x_3 \\
-# \text{subject to} \quad & 2x_1 + 3x_2 + x_3 \le 5 \\
-# & 4x_1 + x_2 + 2x_3 \le 11 \\
-# & 3x_1 + 4x_2 + 2x_3 \le 8 \\
+# \text{maximize} \quad & 2x_1 + 4x_2 + 8x_3 \\
+# \text{subject to} \quad & x_1 + 3x_2 + 2x_3 \le 10 \\
+# & x_1 + 3x_3 \le 12 \\
 # & x_1, x_2, x_3 \ge 0.
 # \end{aligned}
 # $$
@@ -278,9 +182,9 @@ plt.show()
 # variable), which we keep as a plain nested list:
 
 # %%
-objective_coefs = [5, 4, 3]
-constraint_coefs = [[2, 3, 1], [4, 1, 2], [3, 4, 2]]
-rhs = [5, 11, 8]
+objective_coefs = [2, 4, 8]
+constraint_coefs = [[1, 3, 2], [1, 0, 3]]
+rhs = [10, 12]
 
 n_vars = len(objective_coefs)
 
@@ -302,7 +206,7 @@ print("optimal objective:", larger_lo.objective.value())
 # :::{exercise}
 # :label: ex-6-4
 #
-# Re-solve the larger LO problem above adding the three constraints one at a time, and note
+# Re-solve the larger LO problem above adding the two constraints one at a time, and note
 # how the optimal objective value changes after each addition.
 # :::
 #
@@ -347,12 +251,161 @@ print("optimal objective:", larger_lo.objective.value())
 #
 # Extend the larger LO problem above. It helps to ask what the additional *decision* is.
 #
-# a. Next to the 5 units of the first resource, you can buy extra units of it for a price of
-#    1 per unit. What is the optimal solution now?
+# a. Next to the 10 units of the first resource, you can buy extra units of it for a price
+#    of 1 per unit. What is the optimal solution now?
 #
 # b. The same, but the price per extra unit is 3.
 #
 # c. The same, but the price is 6. Can you interpret the result?
+# :::
+
+# %% [markdown]
+# ## A Graphical View
+#
+# With only two decision variables we can draw the product-mix problem. Each constraint is
+# a line; the feasible region is the set of points satisfying all of them at once. Because
+# both the constraints and the objective are linear, the objective-value contour lines are
+# straight and parallel. Sliding one in the direction of increasing profit, the last
+# feasible point it touches is an optimal solution, and it is always a corner of the
+# feasible region.
+#
+# The code below only produces the figure; reproducing it is not itself something you need
+# to learn, so feel free to skip straight to the plot.
+
+# %% tags=["hide-input"]
+x_grid = np.linspace(0, 6, 200)
+plt.figure(figsize=(5, 5))
+plt.axvline(5, color="C0", label=r"$x \leq 5$ (resource 1)")
+plt.plot(x_grid, (10 - x_grid) / 2, color="C1", label=r"$x + 2y \leq 10$ (resource 2)")
+plt.fill_between(
+    x_grid, 0, (10 - x_grid) / 2, where=(x_grid <= 5), alpha=0.2, label="feasible region"
+)
+
+x_opt, y_opt = q["x"].value(), q["y"].value()
+for level, style in [(16, ":"), (product_mix.objective.value(), "-")]:
+    plt.plot(x_grid, (level - 2 * x_grid) / 3, style, color="grey")
+plt.plot(x_opt, y_opt, "ko")
+plt.annotate(
+    f"optimum ({x_opt:.1f}, {y_opt:.1f})", (x_opt, y_opt), textcoords="offset points", xytext=(8, 8)
+)
+
+plt.xlim(0, 6)
+plt.ylim(0, 6)
+plt.xlabel("$x$")
+plt.ylabel("$y$")
+plt.legend(loc="upper right", fontsize=8)
+plt.title("The two grey lines are objective contours; the solid one is optimal")
+plt.show()
+
+# %% [markdown]
+# The dotted grey line (profit 16) still has feasible points but we can do better; sliding
+# it out until it just leaves the feasible region gives the solid line, which touches the
+# region only at the corner where the two resource constraints meet: the optimum pulp
+# reported above.
+
+# %% [markdown]
+# ## An Algebraic View
+#
+# The same optimum can be understood without a picture. Turn each "$\le$" constraint into
+# an equality by adding a non-negative slack variable, the amount of the resource left
+# unused:
+#
+# $$
+# \begin{aligned}
+# x \le 5 \\
+# x + 2y \le 10 \\
+# x, y \ge 0
+# \end{aligned}
+# \quad\Leftrightarrow\quad
+# \begin{aligned}
+# x + s_1 &= 5 \\
+# x + 2y + s_2 &= 10 \\
+# x, y, s_1, s_2 &\ge 0
+# \end{aligned}
+# $$
+#
+# There are now 2 equations and 4 variables. As a rule, a system of $k$ independent linear
+# equations in $k$ unknowns has exactly one solution, so if we set any 2 of the 4 variables
+# to zero the other 2 are determined. Each such choice corresponds to a corner of the
+# feasible region (some combinations give a negative value and are infeasible; those are
+# corners of the lines' intersections that lie outside the region). The corners here are:
+#
+# - $(x, y, s_1, s_2) = (0, 0, 5, 10)$: the origin;
+# - $(5, 0, 0, 5)$: resource 1 fully used;
+# - $(0, 5, 5, 0)$: resource 2 fully used;
+# - $(5, 2.5, 0, 0)$: both resource constraints tight, the optimum.
+#
+# The simplex algorithm (G.B. Dantzig, 1947), which pulp's default solver uses for LO, hops
+# from corner to neighbouring corner, each time to one with a better objective value, and
+# stops when no neighbouring corner is better. Why is that enough to guarantee the *global*
+# optimum? Because the feasible region of an LO problem is a convex polyhedron: a shape with
+# flat faces and no hidden hills. If every neighbour of your current corner is worse, there
+# is nowhere higher to go, since reaching a higher point would require the boundary to
+# curve, and linear constraints never curve. So for LO, a local optimum is automatically a
+# global optimum.
+#
+# :::{note} History of Linear Optimization
+# Several researchers formulated linear optimization problems, but it was G.B. Dantzig
+# (1914–2005) who invented the simplex algorithm in 1947. Until recently the field was
+# commonly called *linear programming*. Its dynamic, random counterpart is *dynamic
+# programming*, developed by R.E. Bellman (1920–1984); the division between deterministic
+# and random problems is still very visible in operations research.
+# :::
+
+# %% [markdown]
+# ## Three Possible Outcomes
+#
+# Not every LO problem has an optimal solution. There are exactly three possibilities:
+#
+# 1. **an optimal solution exists** (the case above);
+# 2. **unbounded**: solutions of arbitrarily large objective value exist. For the
+#    product-mix problem this happens if we drop the resource-2 constraint, since we could
+#    then make unlimited units of $y$;
+# 3. **infeasible**: no point satisfies all constraints. This happens if, for example, a
+#    customer contract forces $y \ge 12$ while the resource-2 constraint allows at most
+#    $y = 5$.
+#
+# pulp reports these as the `LpStatus` values `"Unbounded"` and `"Infeasible"` instead of
+# `"Optimal"`. [](#fig-lo-degenerate) shows both situations schematically.
+
+# %% [markdown]
+# :::{figure} images/lecture8_fig6.2.png
+# :label: fig-lo-degenerate
+#
+# An unbounded (left) and an infeasible (right) LO problem.
+# :::
+
+# %% [markdown]
+# The same two problems, this time solved with pulp:
+
+# %%
+unbounded_lp = pulp.LpProblem(name="unbounded_example", sense=pulp.LpMaximize)
+x = pulp.LpVariable(name="x", lowBound=0)
+y = pulp.LpVariable(name="y", lowBound=0)
+unbounded_lp += 2 * x + 3 * y
+unbounded_lp += x <= 5  # the resource-2 constraint is dropped
+
+unbounded_lp.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[unbounded_lp.status])
+
+# %%
+infeasible_lp = pulp.LpProblem(name="infeasible_example", sense=pulp.LpMaximize)
+x = pulp.LpVariable(name="x", lowBound=0)
+y = pulp.LpVariable(name="y", lowBound=0)
+infeasible_lp += 2 * x + 3 * y
+infeasible_lp += x <= 5
+infeasible_lp += x + 2 * y <= 10
+infeasible_lp += y >= 12  # the customer contract
+
+infeasible_lp.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[infeasible_lp.status])
+
+# %% [markdown]
+# :::{exercise}
+# :label: ex-6-3
+#
+# Formulate and solve, in pulp, one more unbounded and one more infeasible variant of the
+# product-mix problem of your own, and check that `LpStatus` reports what you expect.
 # :::
 
 # %% [markdown]
@@ -429,42 +482,7 @@ print("project finish time (makespan):", makespan.value())
 # :::
 
 # %% [markdown]
-# ## The General Formulation and Linearity
-#
-# In general, an LO problem with $n$ decision variables and $m$ constraints is
-#
-# $$
-# \begin{aligned}
-# \text{maximize} \quad & \sum_{j=1}^{n} p_j x_j \\
-# \text{subject to} \quad & \sum_{j=1}^{n} a_{ij} x_j \le b_i, \quad i = 1, \dots, m \\
-# & x_1, \dots, x_n \ge 0,
-# \end{aligned}
-# $$
-#
-# or in matrix notation $\max\{p^T x \mid A x \le b,\ x \ge 0\}$, with $p, x$ column vectors
-# of length $n$, $b$ a column vector of length $m$, and $A$ an $m \times n$ matrix.
-#
-# This one form covers more than it seems. Every other case can be rewritten into it:
-#
-# - **minimization**: $\min p^T x = -\max (-p^T x)$;
-# - **"$\ge$" constraints**: $Ax \ge b \Leftrightarrow -Ax \le -b$;
-# - **"$=$" constraints**: $Ax = b \Leftrightarrow Ax \le b$ and $Ax \ge b$;
-# - **free (unrestricted) variables**: replace $x$ by $x^+ - x^-$ with $x^+, x^- \ge 0$.
-#
-# What *cannot* be relaxed is linearity. If the objective is nonlinear, the optimum need
-# not lie at a corner (think of $\max -x^2$ on $[-1, 1]$, optimal at the interior point 0).
-# If a constraint is nonlinear, the feasible region is no longer a convex polyhedron, so it
-# can have several local optima and the simplex reasoning above breaks down: you are not
-# sure you have found the best solution until you have checked every local optimum, which
-# is usually intractable. Nonlinear optimization therefore needs different, less efficient
-# algorithms. One important structured case that we *can* handle well is when variables are
-# required to be integer: integer linear optimization, the subject of
-# [the next notebook](lecture8_integer-optimization.ipynb).
-
-# %% [markdown]
 # ## References
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. §6.1 "Problem Formulation",
-#   §6.3 "Example LO Problems" (project planning). The book's spreadsheet material (§6.2) is
-#   replaced with pulp throughout.
-# - PuLP documentation: https://coin-or.github.io/pulp/
+#   §6.3 "Example LO Problems" (project planning).

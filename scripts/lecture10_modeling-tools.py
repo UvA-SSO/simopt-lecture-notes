@@ -184,8 +184,8 @@ plt.show()
 #
 # The trick also works when the absolute value is a *penalty* rather than the whole
 # objective. For the product-mix problem, suppose we dislike making the two products in very
-# different quantities and add $-|b - d|$ to the profit. Introduce $\delta^+, \delta^- \ge 0$
-# with $b - d = \delta^+ - \delta^-$ and subtract $\delta^+ + \delta^-$ from the objective.
+# different quantities and add $-|x - y|$ to the profit. Introduce $\delta^+, \delta^- \ge 0$
+# with $x - y = \delta^+ - \delta^-$ and subtract $\delta^+ + \delta^-$ from the objective.
 
 # %% [markdown]
 # ## Solvers

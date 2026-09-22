@@ -36,7 +36,9 @@
 # - recognize when a problem needs integer or binary decision variables, and formulate and
 #   solve it in pulp;
 # - explain why ILO is generally harder to solve than LO;
-# - explain how branch and bound finds the optimum of an ILO problem.
+# - explain how branch and bound finds the optimum of an ILO problem;
+# - write any LO problem in the general matrix form, and explain why linearity (but not
+#   integrality) is essential for efficient solvability.
 
 # %%
 try:
@@ -52,26 +54,26 @@ except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
 # ## Why Integer Problems Are Harder
 #
 # Take the product-mix problem from [Linear Optimization](lecture8_linear-optimization.ipynb)
-# and require whole bookcases and desks. Its LO optimum was $(b, d) = (3.6, 2.8)$ with
-# profit 24.8, not integer. Two things go wrong compared to LO:
+# and require whole units of $x$ and $y$. Its LO optimum was $(x, y) = (5, 2.5)$ with profit
+# 17.5, not integer. Two things go wrong compared to LO:
 #
 # - **the optimal corner is no longer feasible**, so the simplex reasoning ("the optimum is
 #   at a corner") does not directly help;
-# - **rounding the LO optimum is not enough**: $(4, 3)$ violates the oak-panel constraint
-#   ($4 + 9 = 13 > 12$), and $(4, 2)$ or $(3, 3)$ each need checking. Evaluating the corners
-#   tells us little, because the integer optimum sits somewhere *inside* the feasible
-#   region.
+# - **rounding the LO optimum is not enough**: rounding $y$ up to 3 while keeping $x = 5$
+#   violates the resource-2 constraint ($5 + 6 = 11 > 10$), and $(5, 2)$ or $(4, 3)$ each
+#   need checking. Evaluating the corners tells us little, because the integer optimum sits
+#   somewhere *inside* the feasible region.
 #
 # Let pulp solve the integer version:
 
 # %%
-profit = {"bookcase": 3, "desk": 5}
-use = {"oak panels": {"bookcase": 1, "desk": 3}, "assembly hours": {"bookcase": 2, "desk": 1}}
-available = {"oak panels": 12, "assembly hours": 10}
+profit = {"x": 2, "y": 3}
+use = {"resource 1": {"x": 1, "y": 0}, "resource 2": {"x": 1, "y": 2}}
+available = {"resource 1": 5, "resource 2": 10}
 products = list(profit)
 
 int_mix = pulp.LpProblem(name="integer_product_mix", sense=pulp.LpMaximize)
-q = {p: pulp.LpVariable(name=p.replace(" ", "_"), lowBound=0, cat="Integer") for p in products}
+q = {p: pulp.LpVariable(name=p, lowBound=0, cat="Integer") for p in products}
 int_mix += pulp.lpSum(profit[p] * q[p] for p in products)
 for r, cap in available.items():
     int_mix += pulp.lpSum(use[r][p] * q[p] for p in products) <= cap
@@ -108,13 +110,13 @@ print("integer optimum:", {p: q[p].value() for p in products}, "profit", int_mix
 #
 # For the integer product-mix problem:
 #
-# - **Root.** LO relaxation optimum $(3.6, 2.8)$, value $24.8$, so UB $= 24.8$. Branch on
-#   the fractional $d = 2.8$.
-# - **Branch $d \le 2$.** Relaxation optimum $(4, 2)$, value $22$, integer, so LB $= 22$.
-# - **Branch $d \ge 3$.** Relaxation optimum $(3, 3)$, value $24$, integer, so LB $= 24$.
+# - **Root.** LO relaxation optimum $(5, 2.5)$, value $17.5$, so UB $= 17.5$. Branch on the
+#   fractional $y = 2.5$.
+# - **Branch $y \le 2$.** Relaxation optimum $(5, 2)$, value $16$, integer, so LB $= 16$.
+# - **Branch $y \ge 3$.** Relaxation optimum $(4, 3)$, value $17$, integer, so LB $= 17$.
 #
-# The best LB is $24$ from the right branch; the left branch's value $22$ is below it, so it
-# is eliminated. Every subproblem is now resolved, and $(3, 3)$ with profit $24$ is the
+# The best LB is $17$ from the right branch; the left branch's value $16$ is below it, so it
+# is eliminated. Every subproblem is now resolved, and $(4, 3)$ with profit $17$ is the
 # proven ILO optimum, matching what pulp reported above. Only three linear relaxations had
 # to be solved.
 #
@@ -180,6 +182,44 @@ print("total reward:", knapsack.objective.value())
 # items in decreasing order of reward-to-weight ratio, allowing a fraction of the last one.
 # Check your answer with pulp.
 # :::
+
+# %% [markdown]
+# ## The General Formulation and Linearity
+#
+# Having now seen both LO and ILO in action, we can step back and write down the general
+# form both fit into. An LO problem with $n$ decision variables and $m$ constraints is
+#
+# $$
+# \begin{aligned}
+# \text{maximize} \quad & \sum_{j=1}^{n} p_j x_j \\
+# \text{subject to} \quad & \sum_{j=1}^{n} a_{ij} x_j \le b_i, \quad i = 1, \dots, m \\
+# & x_1, \dots, x_n \ge 0,
+# \end{aligned}
+# $$
+#
+# or in matrix notation $\max\{p^T x \mid A x \le b,\ x \ge 0\}$, with $p, x$ column vectors
+# of length $n$, $b$ a column vector of length $m$, and $A$ an $m \times n$ matrix.
+#
+# This one form covers more than it seems. Every other case can be rewritten into it:
+#
+# - **minimization**: $\min p^T x = -\max (-p^T x)$;
+# - **"$\ge$" constraints**: $Ax \ge b \Leftrightarrow -Ax \le -b$;
+# - **"$=$" constraints**: $Ax = b \Leftrightarrow Ax \le b$ and $Ax \ge b$;
+# - **free (unrestricted) variables**: replace $x$ by $x^+ - x^-$ with $x^+, x^- \ge 0$.
+#
+# What *cannot* be relaxed is linearity. If the objective is nonlinear, the optimum need
+# not lie at a corner (think of $\max -x^2$ on $[-1, 1]$, optimal at the interior point 0).
+# If a constraint is nonlinear, the feasible region is no longer a convex polyhedron, so it
+# can have several local optima and the simplex reasoning from
+# [Linear Optimization](lecture8_linear-optimization.ipynb) breaks down: you are not sure
+# you have found the best solution until you have checked every local optimum, which is
+# usually intractable. Nonlinear optimization therefore needs different, less efficient
+# algorithms.
+#
+# Integrality, the one structured deviation from pure linearity that this notebook has been
+# about, sits in between: it does make a problem harder to solve (as branch and bound's
+# extra work above shows), but not intractably so, which is exactly why ILO is worth
+# treating as its own class rather than lumping it in with general nonlinear optimization.
 
 # %% [markdown]
 # ## References

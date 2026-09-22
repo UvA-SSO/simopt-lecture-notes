@@ -95,7 +95,9 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
     and the specific section(s) compiled on that page, followed by one entry per
     external work the page's text cites (replacing the book's own "[8]"-style
     bracket citations with author-year text, e.g. "Davenport & Harris (2007)").
-- All Excel/R/AMPL content has been converted to Python. Optimization uses
+- All Excel/R/AMPL content has been converted to Python and Excel is not part of
+  this course's tooling: don't reference it, even where the source book or a
+  lecture's own slides demo a technique in Excel. Optimization uses
   [pulp](https://coin-or.github.io/pulp/) (`pip install pulp[cbc]`, already a
   project dependency); statistics/simulation use `scipy.stats`, `numpy`,
   `pandas`, `matplotlib`. R-only base datasets (`eurodist`, `AirPassengers`,
@@ -124,6 +126,30 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   scopes), so reusing a loop variable name (e.g. `i`) with an incompatible type
   in a later cell (e.g. as a dict string key after it was an `int` range index
   earlier) is a real type error — use distinct variable names per cell instead.
+- When a lecture's slide deck exists under `Course Materials/Lecture Slides/`,
+  use it (not just the Koole book) as the source for a notebook's motivating
+  examples, notation, and numbers — it is what was actually taught live, and
+  matching it (variable names, data values) makes the notebook a recognizable
+  companion to the lecture rather than a parallel, differently-numbered retelling.
+- The four-step modeling approach (study the problem, define the decision
+  variables, define the objective, define the constraints) is the same for every
+  optimization problem in this course. State that generality explicitly the first
+  time it appears rather than re-deriving "the" approach fresh in each notebook.
+- When introducing a new way of formulating a model in pulp, show a minimal
+  direct implementation first, with the problem's numbers hardcoded into the
+  `LpVariable`/constraint calls, before showing the data-and-model-separated
+  version. Motivate the separation explicitly (reuse across instances, no magic
+  numbers, mirrors what an algebraic modeling language gives you for free) in
+  its own short section rather than jumping straight to the separated form.
+- A code cell that only produces a supporting figure, where writing that
+  plotting code is not itself something students need to learn, should be
+  collapsed by default so it doesn't compete for attention with modeling code:
+  tag it `# %% tags=["hide-input"]` in the paired script (jupytext preserves
+  cell tags; mystmd renders a `hide-input`-tagged cell as a collapsed, optional
+  dropdown around the code, with its output still shown).
+- Where a concept has distinct qualitative outcomes (e.g. a solve status of
+  optimal/infeasible/unbounded), demonstrate each with a small runnable pulp
+  snippet, not just a prose description or a static figure alone.
 
 ## Writing style
 
