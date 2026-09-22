@@ -1,0 +1,90 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.5
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Lecture 8: Exercises
+
+# %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_exercises.ipynb)
+
+# %% [markdown]
+# The smaller exercises embedded in [Introduction](lecture8_introduction.ipynb),
+# [Linear Optimization](lecture8_linear-optimization.ipynb), and
+# [Integer Optimization](lecture8_integer-optimization.ipynb) check what you just read.
+# This notebook collects the larger exercises for Lecture 8: independent problems worth
+# more time.
+
+# %% [markdown]
+# :::{exercise}
+# :label: ex-6-2
+#
+# Consider the following LO problem:
+#
+# $$
+# \begin{aligned}
+# \text{minimize} \quad & 2x_1 + x_2 + 4x_3 \\
+# \text{subject to} \quad & x_1 - 2x_2 + 2x_3 \le 120 \\
+# & -x_1 - x_2 + 3x_3 = 100 \\
+# & x_1 - x_2 + x_3 \ge 80 \\
+# & x_i \ge 0 \text{ for all } i.
+# \end{aligned}
+# $$
+#
+# a. Solve it in pulp (pulp accepts `>=` and `==` constraints directly).
+#
+# b. Rewrite it in the general form below (maximization, only "$\le$" constraints).
+#
+# c. Solve the rewritten problem and check it gives the same solution as a.
+# :::
+
+# %% [markdown]
+# :::{exercise}
+# :label: ex-6-4
+#
+# Re-solve the larger LO problem from
+# [Linear Optimization](lecture8_linear-optimization.ipynb#larger-lo-example) adding the
+# two resource constraints one at a time, and note how the optimal objective value changes
+# after each addition.
+# :::
+
+# %% [markdown]
+# :::{exercise}
+# :label: ex-6-5
+#
+# The tax office can only check a subset of the declarations it received. There are 3 types
+# of employees with different skills and 3 types of declarations. The expected extra-tax
+# revenue per declaration type is (200, 1000, 500) euros. Every employee can process every
+# declaration, except employee type 2 who cannot process declaration type 2 and employee
+# type 3 who cannot process declaration type 3. The time per declaration is (1, 3, 2) hours,
+# except employee type 3 who takes 2 hours for a type 1 declaration. The numbers of
+# declarations are (15000, 6000, 8000); the numbers of available hours are
+# (10000, 20000, 15000). How do you assign the employees to the declaration types? Solve
+# with pulp.
+# :::
+
+# %% [markdown]
+# :::{exercise}
+# :label: ex-6-6
+#
+# Extend the larger LO problem from
+# [Linear Optimization](lecture8_linear-optimization.ipynb#larger-lo-example). It helps to
+# ask what the additional *decision* is.
+#
+# a. Next to the 9 oak panels, you can buy extra ones for a price of 1 per panel. What is
+#    the optimal solution now?
+#
+# b. The same, but the price per extra panel is 3.
+#
+# c. The same, but the price is 6. Can you interpret the result?
+# :::

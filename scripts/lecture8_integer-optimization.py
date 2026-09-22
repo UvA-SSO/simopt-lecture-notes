@@ -54,22 +54,22 @@ except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
 # ## Why Integer Problems Are Harder
 #
 # Take the product-mix problem from [Linear Optimization](lecture8_linear-optimization.ipynb)
-# and require whole units of $x$ and $y$. Its LO optimum was $(x, y) = (5, 2.5)$ with profit
-# 17.5, not integer. Two things go wrong compared to LO:
+# and require whole units of $x$ and $y$. Its LO optimum was $(x, y) = (6, 4.5)$ with profit
+# 40.5, not integer. Two things go wrong compared to LO:
 #
 # - **the optimal corner is no longer feasible**, so the simplex reasoning ("the optimum is
 #   at a corner") does not directly help;
-# - **rounding the LO optimum is not enough**: rounding $y$ up to 3 while keeping $x = 5$
-#   violates the resource-2 constraint ($5 + 6 = 11 > 10$), and $(5, 2)$ or $(4, 3)$ each
-#   need checking. Evaluating the corners tells us little, because the integer optimum sits
-#   somewhere *inside* the feasible region.
+# - **rounding the LO optimum is not enough**: rounding $y$ up to 5 while keeping $x = 6$
+#   violates the assembly-hours constraint ($6 + 10 = 16 > 15$), and $(6, 4)$ or $(5, 5)$
+#   each need checking. Evaluating the corners tells us little, because the integer optimum
+#   sits somewhere *inside* the feasible region.
 #
 # Let pulp solve the integer version:
 
 # %%
-profit = {"x": 2, "y": 3}
-use = {"resource 1": {"x": 1, "y": 0}, "resource 2": {"x": 1, "y": 2}}
-available = {"resource 1": 5, "resource 2": 10}
+profit = {"x": 3, "y": 5}
+use = {"oak panels": {"x": 1, "y": 0}, "assembly hours": {"x": 1, "y": 2}}
+available = {"oak panels": 6, "assembly hours": 15}
 products = list(profit)
 
 int_mix = pulp.LpProblem(name="integer_product_mix", sense=pulp.LpMaximize)
@@ -110,13 +110,13 @@ print("integer optimum:", {p: q[p].value() for p in products}, "profit", int_mix
 #
 # For the integer product-mix problem:
 #
-# - **Root.** LO relaxation optimum $(5, 2.5)$, value $17.5$, so UB $= 17.5$. Branch on the
-#   fractional $y = 2.5$.
-# - **Branch $y \le 2$.** Relaxation optimum $(5, 2)$, value $16$, integer, so LB $= 16$.
-# - **Branch $y \ge 3$.** Relaxation optimum $(4, 3)$, value $17$, integer, so LB $= 17$.
+# - **Root.** LO relaxation optimum $(6, 4.5)$, value $40.5$, so UB $= 40.5$. Branch on the
+#   fractional $y = 4.5$.
+# - **Branch $y \le 4$.** Relaxation optimum $(6, 4)$, value $38$, integer, so LB $= 38$.
+# - **Branch $y \ge 5$.** Relaxation optimum $(5, 5)$, value $40$, integer, so LB $= 40$.
 #
-# The best LB is $17$ from the right branch; the left branch's value $16$ is below it, so it
-# is eliminated. Every subproblem is now resolved, and $(4, 3)$ with profit $17$ is the
+# The best LB is $40$ from the right branch; the left branch's value $38$ is below it, so it
+# is eliminated. Every subproblem is now resolved, and $(5, 5)$ with profit $40$ is the
 # proven ILO optimum, matching what pulp reported above. Only three linear relaxations had
 # to be solved.
 #

@@ -13,32 +13,44 @@ project:
           title: Linear Optimization
         - file: notebooks/lecture8_integer-optimization.ipynb
           title: Integer Optimization
+        - file: notebooks/lecture8_exercises.ipynb
+          title: Exercises
     - title: Lecture 9
       children:
         - file: notebooks/lecture9_ilo-applications.ipynb
           title: Applications of (I)LO
         - file: notebooks/lecture9_advanced-modeling.ipynb
           title: Machine Scheduling
+        - file: notebooks/lecture9_exercises.ipynb
+          title: Exercises
     - title: Lecture 10
       children:
         - file: notebooks/lecture10_modeling-tools.ipynb
           title: Modeling Tools and Solvers
+        - file: notebooks/lecture10_exercises.ipynb
+          title: Exercises
     - title: Lecture 11
       children:
         - file: notebooks/lecture11_algorithms-heuristics.ipynb
           title: Algorithms and Heuristics
         - file: notebooks/lecture11_complexity.ipynb
           title: Complexity
+        - file: notebooks/lecture11_exercises.ipynb
+          title: Exercises
     - title: Lecture 12
       children:
         - file: notebooks/lecture12_variability-recap.ipynb
           title: Variability (Recap)
         - file: notebooks/lecture12_simulation.ipynb
           title: Simulation
+        - file: notebooks/lecture12_exercises.ipynb
+          title: Exercises
     - title: Lecture 13
       children:
         - file: notebooks/lecture13_simulation-optimization.ipynb
           title: Simulation Optimization
+        - file: notebooks/lecture13_exercises.ipynb
+          title: Exercises
 site:
   title: Simulation and Optimization — Lecture Notes
   template: book-theme
