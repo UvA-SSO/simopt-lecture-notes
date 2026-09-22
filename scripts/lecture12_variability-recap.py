@@ -18,7 +18,7 @@
 # %% [markdown]
 # This notebook is a recap of variability, included as preparation for [Simulation](lecture12_simulation.ipynb).
 #
-# Variability is omnipresent: without variability every moment of the day would be the same. Often there is a certain level of uncertainty about variability: we do know exactly when it is light and dark, but we do not know exactly when it will rain. Data science tries to explain, predict and control the variability we observe. The study of variability is therefore crucial for a solid understanding of data science and business analytics. This goes beyond studying the data itself: mathematical theory helps us understand the data and obtain results about the data. Mathematics and statistics impose a theoretical framework in which, under well-specified conditions, certain results are obtained. When these conditions are (approximately) verified in the data, then we can use the mathematical results, which makes us understand our data much better.
+# Variability is omnipresent: without variability every moment of the day would be the same. Often there is a certain level of uncertainty about variability: we do know exactly when it is light and dark, but we do not know exactly when it will rain. Data science tries to explain, predict and control the variability we observe. A solid understanding of data science and business analytics therefore requires studying variability. This goes beyond studying the data itself: mathematical theory helps us understand the data and obtain results about the data. Mathematics and statistics impose a theoretical framework in which, under well-specified conditions, certain results are obtained. When these conditions are (approximately) verified in the data, then we can use the mathematical results, which makes us understand our data much better.
 #
 # In this chapter we focus on univariate data and models. We first show how to summarize data. If you have data on all items you are interested in then this might be sufficient. However, often you only have data on part of the population. Or, you want to predict future values of the data based on historical values. In this case you need to be able to distinguish between noise and signal: is the summary representative of the population or is there so much noise that a new experiment would give very different results? Do we overfit our data such that our prediction has little predictive value? To answer these types of questions, we will apply basic probability theory, especially distributions and the central limit theorem. After that, we introduce some useful hypothesis tests. This closes the circle: using results from probability theory we draw conclusions from data.
 #
@@ -58,7 +58,7 @@
 #
 # **Central limit theorem (CLT).** The CLT sharpens the LLN: for large $n$, the sample average is *approximately* normally distributed, $N(EX, \sigma^2(X)/n)$, essentially regardless of the distribution of $X$ itself. See [](#clt) below.
 #
-# **Confidence intervals.** Based on $n$ samples with sample mean $\bar X$ and sample SD $S$, a 95% confidence interval (CI) for $EX$ is $[\bar X - 2S/\sqrt n, \bar X + 2S/\sqrt n]$. Its correct interpretation matters: it is *not* "there is a 95% probability that $EX$ lies in this interval" — $EX$ is fixed, not random. It means that if we repeated the sampling many times and built a CI every time, 95% of those intervals would contain $EX$. See [](#confidence-intervals) below.
+# **Confidence intervals.** Based on $n$ samples with sample mean $\bar X$ and sample SD $S$, a 95% confidence interval (CI) for $EX$ is $[\bar X - 2S/\sqrt n, \bar X + 2S/\sqrt n]$. Its correct interpretation matters: it is *not* "there is a 95% probability that $EX$ lies in this interval": $EX$ is fixed, not random. It means that if we repeated the sampling many times and built a CI every time, 95% of those intervals would contain $EX$. See [](#confidence-intervals) below.
 #
 # That is the toolkit Lecture 12 draws on. The rest of this notebook is a deeper, optional recap.
 
@@ -72,7 +72,7 @@
 #
 # Data can be summarized in numerical and graphical ways. For univariate, i.e., 1-dimensional data, numerical summaries mostly concentrate on centrality and variability. The most common measure for centrality is the mean (`numpy.mean`, also called average), equal to the sum of the values divided by the number. Other measures for centrality are the trimmed mean (`scipy.stats.trim_mean`) and the median (`numpy.median`). The trimmed mean ignores the lowest and highest values, the median is the "middle" value, for which 50% is lower and 50% is higher.
 #
-# For variability we mostly use the standard deviation (SD, `numpy.std`) or the variance (var, `numpy.var`, the square of the SD). They are defined later, but for both hold: the higher the value, the higher the variability. Note that pandas and numpy, by default, divide by $n-1$ rather than $n$ for the sample SD/variance (`ddof=1`) — the reason for this is explained later in this notebook.
+# For variability we mostly use the standard deviation (SD, `numpy.std`) or the variance (var, `numpy.var`, the square of the SD). They are defined later, but for both hold: the higher the value, the higher the variability. Note that pandas and numpy, by default, divide by $n-1$ rather than $n$ for the sample SD/variance (`ddof=1`); the reason for this is explained later in this notebook.
 #
 # For example, `notebooks/data/eurodist.csv` contains a classic dataset with the distances (in km) between 21 major European cities, one row per pair. We load it with `pandas` and compute the summary statistics:
 
@@ -94,7 +94,7 @@ print("variance:", eurodist.var(ddof=1))
 # :::{exercise}
 # :label: ex-3-1
 #
-# Reproduce this calculation. Do the same thing for a dataset consisting of all the same numbers — you can construct such a dataset with `numpy.full` or `numpy.repeat`. Now change a few of the numbers and look at the consequences.
+# Reproduce this calculation. Do the same thing for a dataset consisting of all the same numbers. You can construct such a dataset with `numpy.full` or `numpy.repeat`. Now change a few of the numbers and look at the consequences.
 # :::
 #
 # :::{note} The Use of the Mean
@@ -137,7 +137,7 @@ fig.tight_layout()
 #
 # Continuous RVs can take any value within a specified range, for example all values positive and negative (denoted by $\mathbb{R}$), only positive values ($\mathbb{R}^+$), or a range such as $[1, 5]$, the interval from 1 to 5. Examples are body heights and GDP of a country.
 #
-# In what follows, we discuss a number of often used distributions, starting with discrete ones. We start with the Bernoulli and binomial distributions. While discussing them we introduce some important concepts from probability theory. Every distribution in `scipy.stats` (`scipy.stats.binom`, `scipy.stats.norm`, ...) offers the same 4 functions, under the same names for every distribution: `.pmf`/`.pdf` (probability mass/density), `.cdf`, `.rvs` (random samples), and `.ppf` (the inverse of the cdf, i.e., percentiles) — so learning the pattern once means you already know how to use every distribution below.
+# In what follows, we discuss a number of often used distributions, starting with discrete ones. We start with the Bernoulli and binomial distributions. While discussing them we introduce some important concepts from probability theory. Every distribution in `scipy.stats` (`scipy.stats.binom`, `scipy.stats.norm`, ...) offers the same 4 functions, under the same names for every distribution: `.pmf`/`.pdf` (probability mass/density), `.cdf`, `.rvs` (random samples), and `.ppf` (the inverse of the cdf, i.e., percentiles), so learning the pattern once means you already know how to use every distribution below.
 #
 # **The Bernoulli distribution**
 #
@@ -314,7 +314,7 @@ print("90th percentile:", stats.binom.ppf(0.9, 30, 0.5))
 # The caveat is in the independence: in times of economic downturn the values of assets tend all to go down contradicting the independence.
 # :::
 #
-# Thus, in these expressions it is crucial not to replace SD by variance and vice versa! The mathematical proofs of all expressions are not very difficult but require some experience with manipulating summations and integrals.
+# Thus, in these expressions you must not replace SD by variance and vice versa! The mathematical proofs of all expressions are not very difficult but require some experience with manipulating summations and integrals.
 #
 # **Averages**
 #
@@ -440,7 +440,7 @@ plt.ylabel("$F_U(x)$")
 #
 # **The normal distribution**
 #
-# We continue our focus on distributions with the most famous of them all: the normal or Gaussian (after the German scientist) distribution. The normal distribution has two parameters: $\mu$ and $\sigma$, the expectation and the SD. Be careful: some tools require you to enter the SD, some require the variance — `scipy.stats.norm` always takes the SD, as `loc=mu, scale=sigma`. Of course, they are not the same, unless $\sigma=1$ (or 0, but then there is no variability: the degenerate distribution that has as outcome $\mu$ with probability 1).
+# We continue our focus on distributions with the most famous of them all: the normal or Gaussian (after the German scientist) distribution. The normal distribution has two parameters: $\mu$ and $\sigma$, the expectation and the SD. Be careful: some tools require you to enter the SD, some require the variance; `scipy.stats.norm` always takes the SD, as `loc=mu, scale=sigma`. Of course, they are not the same, unless $\sigma=1$ (or 0, but then there is no variability: the degenerate distribution that has as outcome $\mu$ with probability 1).
 #
 # :::{note} Probability of a Single Outcome
 # A surprising and counter-intuitive feature of continuous distributions is that every possible outcome has probability 0. This is because there are infinitely many points in an interval such as $[a,b]$. If they all had a positive probability of occurring then they would sum up to more than 1. Indeed, if we measure all people in the world up to 10 decimals then nobody would be exactly 1m80. However, we can attribute a probability to intervals, such as all people having a length between 1m80 and 1m81.
@@ -565,7 +565,7 @@ print("95% rule (z-value):", stats.norm.ppf(0.975))
 #
 # **The lognormal distribution**
 #
-# If data is positive and continuous then they often follow a lognormal distribution. Examples are durations of surgery or length of telephone calls. Lognormal RVs are of the form $e^X$ with $X$ a normally distributed RV and $e$ a mathematical constant, $e \approx 2.7$. The distribution is clearly skewed to the right, as shown below. `scipy.stats.lognorm` takes `s` for the SD of the underlying normal and `scale=np.exp(mean)` for its mean (at the log scale) — a slightly awkward parametrization worth double-checking against the documentation every time. The real mean and SD (at the original scale) are quite complicated formulas of the parameters. Probabilities and quantiles however can easily be derived from the underlying normal distribution: `stats.lognorm.cdf(x, s, scale=...)` equals `stats.norm.cdf(np.log(x), loc=..., scale=s)`.
+# If data is positive and continuous then they often follow a lognormal distribution. Examples are durations of surgery or length of telephone calls. Lognormal RVs are of the form $e^X$ with $X$ a normally distributed RV and $e$ a mathematical constant, $e \approx 2.7$. The distribution is clearly skewed to the right, as shown below. `scipy.stats.lognorm` takes `s` for the SD of the underlying normal and `scale=np.exp(mean)` for its mean (at the log scale), a slightly awkward parametrization worth double-checking against the documentation every time. The real mean and SD (at the original scale) are quite complicated formulas of the parameters. Probabilities and quantiles however can easily be derived from the underlying normal distribution: `stats.lognorm.cdf(x, s, scale=...)` equals `stats.norm.cdf(np.log(x), loc=..., scale=s)`.
 
 # %%
 mu, sigma = 3, 0.5

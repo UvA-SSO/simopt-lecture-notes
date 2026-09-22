@@ -42,6 +42,6 @@ The materials are organized by lecture, and each lecture is divided into topic-s
 
 ## Tooling
 
-The simulation and optimization part of this course uses **Python**. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (see [Modeling Tools and Solvers](notebooks/lecture10_modeling-tools.ipynb)). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.
+The simulation and optimization part of this course uses Python. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (see [Modeling Tools and Solvers](notebooks/lecture10_modeling-tools.ipynb)). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.
 
-For the actual optimization, Python calls a separate **solver** engine. The best-known solvers, Gurobi and CPLEX, are proprietary; CBC is a widely used open-source one, and it is the default that `pulp` uses.
+For the actual optimization, Python calls a separate solver engine. The best-known solvers, Gurobi and CPLEX, are proprietary; CBC is a widely used open-source one, and it is the default that `pulp` uses.

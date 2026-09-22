@@ -16,14 +16,14 @@
 # # Lecture 8: Integer Optimization
 
 # %% [markdown]
-# An **integer linear optimization (ILO)** problem is an LO problem with the extra
-# requirement that some or all decision variables take integer values,
-# $x_i \in \{0, 1, 2, \dots\}$, or are **binary**, $x_i \in \{0, 1\}$. (A binary variable
-# is just an integer one with the added constraint $x_i \le 1$.)
+# An integer linear optimization (ILO) problem is an LO problem with the extra requirement
+# that some or all decision variables take integer values, $x_i \in \{0, 1, 2, \dots\}$, or
+# are binary, $x_i \in \{0, 1\}$. (A binary variable is just an integer one with the added
+# constraint $x_i \le 1$.)
 #
 # In pulp this is a one-word change: set a variable's `cat` to `"Integer"` or `"Binary"`
 # instead of the default `"Continuous"`. Everything else about building and solving the
-# model is the same. Solving it, however, is a different matter — in general ILO is much
+# model is the same. Solving it, however, is a different matter: in general ILO is much
 # harder than LO, as this notebook and [Complexity](lecture11_complexity.ipynb) explain.
 #
 # **Learning outcomes**
@@ -43,7 +43,7 @@ import pulp
 #
 # Take the product-mix problem from [Linear Optimization](lecture8_linear-optimization.ipynb)
 # and require whole bookcases and desks. Its LO optimum was $(b, d) = (3.6, 2.8)$ with
-# profit 24.8 — not integer. Two things go wrong compared to LO:
+# profit 24.8, not integer. Two things go wrong compared to LO:
 #
 # - **the optimal corner is no longer feasible**, so the simplex reasoning ("the optimum is
 #   at a corner") does not directly help;
@@ -80,32 +80,32 @@ print("integer optimum:", {p: q[p].value() for p in products}, "profit", int_mix
 # %% [markdown]
 # ## Branch and Bound
 #
-# The method used to solve ILO problems exactly is **branch and bound**. It rests on two
-# ideas, stated here for a maximization problem:
+# The method used to solve ILO problems exactly is branch and bound. It rests on two ideas,
+# stated here for a maximization problem:
 #
-# 1. The **LO relaxation** — the same problem with the integer constraints dropped
+# 1. The LO relaxation, the same problem with the integer constraints dropped
 #    ($x_i \in \{0,1\}$ becomes $0 \le x_i \le 1$; $x_i \in \{0,1,2,\dots\}$ becomes
-#    $x_i \ge 0$) — is less restrictive, so its optimal value is an **upper bound (UB)** on
-#    the ILO optimum.
-# 2. Any feasible *integer* solution gives a **lower bound (LB)** on the ILO optimum.
+#    $x_i \ge 0$), is less restrictive, so its optimal value is an *upper bound (UB)* on the
+#    ILO optimum.
+# 2. Any feasible *integer* solution gives a *lower bound (LB)* on the ILO optimum.
 #
 # If a subproblem's UB is $\le$ the best LB found so far, that subproblem cannot contain a
-# better solution and is **eliminated** — this is what makes the method cleverer than
-# checking every integer point. When a relaxation is non-integer, we **branch**: pick a
-# fractional variable, say $x_j = 2.5$, and create two subproblems, one with $x_j \le 2$ and
-# one with $x_j \ge 3$. When a relaxation is already integer, it is a candidate LB and we
-# stop branching that subproblem.
+# better solution and is eliminated: this is what makes the method cleverer than checking
+# every integer point. When a relaxation is non-integer, we branch: pick a fractional
+# variable, say $x_j = 2.5$, and create two subproblems, one with $x_j \le 2$ and one with
+# $x_j \ge 3$. When a relaxation is already integer, it is a candidate LB and we stop
+# branching that subproblem.
 #
 # For the integer product-mix problem:
 #
-# - **Root.** LO relaxation optimum $(3.6, 2.8)$, value $24.8$ → UB $= 24.8$. Branch on the
-#   fractional $d = 2.8$.
-# - **Branch $d \le 2$.** Relaxation optimum $(4, 2)$, value $22$ — integer, so LB $= 22$.
-# - **Branch $d \ge 3$.** Relaxation optimum $(3, 3)$, value $24$ — integer, so LB $= 24$.
+# - **Root.** LO relaxation optimum $(3.6, 2.8)$, value $24.8$, so UB $= 24.8$. Branch on
+#   the fractional $d = 2.8$.
+# - **Branch $d \le 2$.** Relaxation optimum $(4, 2)$, value $22$, integer, so LB $= 22$.
+# - **Branch $d \ge 3$.** Relaxation optimum $(3, 3)$, value $24$, integer, so LB $= 24$.
 #
 # The best LB is $24$ from the right branch; the left branch's value $22$ is below it, so it
 # is eliminated. Every subproblem is now resolved, and $(3, 3)$ with profit $24$ is the
-# proven ILO optimum — matching what pulp reported above. Only three linear relaxations had
+# proven ILO optimum, matching what pulp reported above. Only three linear relaxations had
 # to be solved.
 #
 # Many LO solvers handle integer constraints this way; the best (proprietary) ones for
@@ -114,10 +114,10 @@ print("integer optimum:", {p: q[p].value() for p in products}, "profit", int_mix
 # %% [markdown]
 # ## The Knapsack Problem
 #
-# The archetypal binary ILO problem is the **knapsack problem**: from a set of items, each
-# with a *reward* and a *weight*, choose a subset of maximum total reward whose total weight
-# fits a capacity. Applications include which items to load in a truck, cutting stock in a
-# steel plant, and simple forms of portfolio selection.
+# The archetypal binary ILO problem is the knapsack problem: from a set of items, each with
+# a *reward* and a *weight*, choose a subset of maximum total reward whose total weight fits
+# a capacity. Applications include which items to load in a truck, cutting stock in a steel
+# plant, and simple forms of portfolio selection.
 #
 # Consider capacity 10 and six items:
 #
@@ -157,8 +157,8 @@ print("total reward:", knapsack.objective.value())
 # :::{exercise}
 # :label: ex-6-10
 #
-# Take the knapsack solution pulp found above. Verify by hand that no single swap — adding
-# one currently-excluded item and removing whatever is needed to stay within capacity —
+# Take the knapsack solution pulp found above. Verify by hand that no single swap (adding
+# one currently-excluded item and removing whatever is needed to stay within capacity)
 # improves the total reward.
 # :::
 #

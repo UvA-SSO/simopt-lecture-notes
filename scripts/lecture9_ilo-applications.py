@@ -17,8 +17,8 @@
 
 # %% [markdown]
 # This notebook shows the breadth of problems that fit the (integer) linear optimization
-# framework — the transportation problem, the set cover and covering problems, and shift
-# scheduling — partly for their own sake and partly as inspiration for modeling your own
+# framework: the transportation problem, the set cover and covering problems, and shift
+# scheduling, partly for their own sake and partly as inspiration for modeling your own
 # problems. We start with *why* we lean so heavily on linear (and integer-linear) models in
 # the first place.
 #
@@ -49,10 +49,10 @@ import pulp
 #   cannot be sure which is global without checking both.
 #
 # Nonlinear optimization therefore needs slower, less reliable algorithms. But there is a
-# large and useful middle ground: **integer** constraints. On the one hand, requiring
+# large and useful middle ground: integer constraints. On the one hand, requiring
 # $x_i \in \{0, 1, 2, \dots\}$ is itself a nonlinear constraint. On the other hand, many
-# *other* nonlinearities — an either/or choice, a fixed cost that applies only when an
-# activity is used, a "this constraint holds only if..." condition — can be expressed with
+# *other* nonlinearities (an either/or choice, a fixed cost that applies only when an
+# activity is used, a "this constraint holds only if..." condition) can be expressed with
 # integer (usually binary) variables and otherwise-linear constraints, and then solved with
 # branch and bound. That is why so much modeling effort goes into casting a problem as ILO.
 # [Machine Scheduling](lecture9_advanced-modeling.ipynb) is devoted to those tricks; this
@@ -61,8 +61,8 @@ import pulp
 # %% [markdown]
 # ## The Transportation Problem
 #
-# We must ship a single good from $n$ **sources** (supply $a_i$ at source $i$) to $m$
-# **destinations** (demand $b_j$ at destination $j$), at a cost $c_{ij}$ per unit shipped on
+# We must ship a single good from $n$ sources (supply $a_i$ at source $i$) to $m$
+# destinations (demand $b_j$ at destination $j$), at a cost $c_{ij}$ per unit shipped on
 # link $i \to j$. How much should we ship on each link so that every demand is met, no
 # supply is exceeded, and total cost is minimized?
 #
@@ -76,8 +76,8 @@ import pulp
 # $$
 #
 # This is an LO problem (no integrality needed). If a link $i \to j$ does not exist, use a
-# very large $c_{ij}$. Many assignment problems — staff to tasks, students to rooms — have
-# this same shape.
+# very large $c_{ij}$. Many assignment problems, such as staff to tasks or students to
+# rooms, have this same shape.
 #
 # Two warehouses supply three stores:
 
@@ -121,9 +121,9 @@ print("total cost:", transport.objective.value())
 # (transshipment-problem)=
 # ### Transshipment
 #
-# If goods can pass through **intermediate nodes** on the way from sources to destinations,
-# we have the *transshipment problem*. It is solved by adding, for every intermediate node
-# $k$, a flow-conservation constraint — what comes in must go out:
+# If goods can pass through intermediate nodes on the way from sources to destinations, we
+# have the *transshipment problem*. It is solved by adding, for every intermediate node $k$,
+# a flow-conservation constraint: what comes in must go out:
 #
 # $$
 # \sum_{i} x_{ik} = \sum_{j} x_{kj}.
@@ -136,10 +136,10 @@ print("total cost:", transport.objective.value())
 # %% [markdown]
 # ## Set Cover and Covering Problems
 #
-# In the **set cover problem** we have a universe $U = \{1, \dots, m\}$ and sets
+# In the set cover problem we have a universe $U = \{1, \dots, m\}$ and sets
 # $S_1, \dots, S_n$ with $S_i \subseteq U$, and we want the smallest selection of sets whose
-# union is all of $U$. The classic motivation is **facility location**: let $U$ be the
-# incident locations in a region and each $S_i$ the locations reachable within a target
+# union is all of $U$. The classic motivation is facility location: let $U$ be the incident
+# locations in a region and each $S_i$ the locations reachable within a target
 # response time from candidate base station $i$; then set cover asks for the fewest base
 # stations (ambulances, fire stations, ...) that cover the whole region. (IBM has used it
 # for efficient virus scanning: scan for a small covering collection of overlapping
@@ -158,13 +158,13 @@ print("total cost:", transport.objective.value())
 # > **Erratum applied (p. 98):** the summation index is $x_j$, not $x_i$ (the book prints
 # > $\sum_{j=1}^{n} a_{uj} x_i$).
 #
-# **The integrality constraint is essential here.** Take $U = \{1, 2, 3\}$ with
+# The integrality constraint is essential here. Take $U = \{1, 2, 3\}$ with
 # $S_1 = \{1, 2\}$, $S_2 = \{1, 3\}$, $S_3 = \{2, 3\}$. No single set covers $U$, so the
 # integer optimum is 2 (any two sets). But the LO relaxation can set every
 # $x_i = \tfrac12$: each element is then covered by $\tfrac12 + \tfrac12 = 1$, at total
 # "cost" $1.5$. Adding the three constraints gives $2(x_1 + x_2 + x_3) \ge 3$, so the
-# relaxation can never beat $1.5$ — and rounding $0.5$'s up gives all three sets, which is
-# worse than the true optimum of 2.
+# relaxation can never beat $1.5$, and rounding the $0.5$'s up gives all three sets, which
+# is worse than the true optimum of 2.
 #
 # A slightly larger instance, solved with pulp:
 
@@ -189,7 +189,7 @@ set_cover.solve(pulp.PULP_CBC_CMD(msg=False))
 print("stations:", [s for s in covers if pick[s].value() == 1])
 
 # %% [markdown]
-# The **covering problem** generalizes set cover: each element $u$ must be covered $b_u$
+# The covering problem generalizes set cover: each element $u$ must be covered $b_u$
 # times, a set may be chosen more than once ($x_i \in \{0, 1, 2, \dots\}$), and each set $i$
 # has a cost $c_i$:
 #
@@ -204,7 +204,7 @@ print("stations:", [s for s in covers if pick[s].value() == 1])
 # (shift-scheduling)=
 # ### Shift Scheduling
 #
-# The covering problem's main use is **shift scheduling** (studied by Dantzig in 1954 for
+# The covering problem's main use is shift scheduling (studied by Dantzig in 1954 for
 # toll-booth staffing): split the day into time intervals $U$, let each shift type $i$ be
 # the set $S_i$ of intervals it works, $b_u$ the required staffing in interval $u$, $c_i$
 # the cost of one worker on shift $i$, and $x_i$ the number of workers assigned that shift.

@@ -17,10 +17,10 @@
 
 # %% [markdown]
 # The previous notebook showed problems that are ILO fairly directly. This one is about the
-# *tricks* that turn an apparently nonlinear requirement — an either/or choice, a fixed cost
-# that only applies when something is used, a constraint that only holds under a condition —
-# into linear constraints with binary variables. We build up to **single-machine
-# scheduling**, which uses several of these tricks at once.
+# *tricks* that turn an apparently nonlinear requirement (an either/or choice, a fixed cost
+# that only applies when something is used, a constraint that only holds under a condition)
+# into linear constraints with binary variables. We build up to single-machine scheduling,
+# which uses several of these tricks at once.
 #
 # **Learning outcomes**
 #
@@ -42,7 +42,7 @@ import pulp
 # [Applications of (I)LO](lecture9_ilo-applications.ipynb) with an extra fixed cost $K$ for
 # every link that carries any flow. Introduce a binary $y_{ij}$ meaning "link $i \to j$ is
 # used", add $K \sum_{i,j} y_{ij}$ to the objective, and tie $y_{ij}$ to $x_{ij}$ with a
-# **big M** — a constant larger than any $x_{ij}$ could ever be:
+# big M: a constant larger than any $x_{ij}$ could ever be:
 #
 # $$
 # x_{ij} \le M\, y_{ij}.
@@ -52,7 +52,7 @@ import pulp
 # 1, but since $K > 0$ and we are minimizing, the optimizer sets it to 0. So effectively
 # $y_{ij} = 1 \Leftrightarrow x_{ij} > 0$.
 #
-# The same idea handles a constraint that should hold **only under a condition**. If binary
+# The same idea handles a constraint that should hold only under a condition. If binary
 # $y$ represents the condition and the constraint is $x \le b$, then
 #
 # $$
@@ -92,9 +92,9 @@ import pulp
 # (machine-scheduling)=
 # ## Single-Machine Scheduling
 #
-# A production facility processes a list of jobs one at a time. Job $i$ has a **duration**
-# $s_i$, a **release date** $r_i$ before which it cannot start, a **due date** $d_i$, and a
-# **tardiness cost** $c_i$ per time unit it finishes late. We want a schedule (a start time
+# A production facility processes a list of jobs one at a time. Job $i$ has a *duration*
+# $s_i$, a *release date* $r_i$ before which it cannot start, a *due date* $d_i$, and a
+# *tardiness cost* $c_i$ per time unit it finishes late. We want a schedule (a start time
 # per job) that minimizes total weighted tardiness. Related problems: project planning,
 # operating-room planning.
 #
@@ -168,8 +168,8 @@ print("processing order:", order, "| total weighted tardiness:", sched.objective
 #
 # The same variables support other common objectives just by changing the line we minimize:
 #
-# - **flowtime** $\sum_i (x_i + s_i - r_i)$ — total time jobs spend in the system;
-# - **makespan** $\max_i (x_i + s_i)$ — when the machine finishes everything; minimize it
+# - **flowtime** $\sum_i (x_i + s_i - r_i)$: total time jobs spend in the system;
+# - **makespan** $\max_i (x_i + s_i)$: when the machine finishes everything; minimize it
 #   with the project-planning trick, $\min z$ subject to $x_i + s_i \le z$ for all $i$;
 # - a **weighted sum** of makespan and tardiness (or: minimize tardiness first, then
 #   minimize makespan with the tardiness fixed at its optimum).

@@ -16,9 +16,9 @@
 # # Lecture 8: Linear Optimization
 
 # %% [markdown]
-# This notebook introduces **linear optimization (LO)** — also called linear programming.
-# It is the most widely used optimization framework in practice: efficient solvers exist
-# that are guaranteed to find the optimum even for problems with thousands of variables and
+# This notebook introduces linear optimization (LO), also called linear programming. It is
+# the most widely used optimization framework in practice: efficient solvers exist that are
+# guaranteed to find the optimum even for problems with thousands of variables and
 # constraints. We introduce it through an example, look at what the solver is doing both
 # graphically and algebraically, see what can go wrong, and end with the general
 # formulation. We solve everything in Python with
@@ -48,11 +48,11 @@ import pulp
 # ## A Motivating Problem: Optimal Product Mix
 #
 # Recall from [the introduction](lecture8_introduction.ipynb) that a real-life optimization
-# problem has three ingredients: a **decision**, a **system** that limits the allowed
-# decisions, and an **outcome** to be optimized.
+# problem has three ingredients: a *decision*, a *system* that limits the allowed decisions,
+# and an *outcome* to be optimized.
 #
-# A workshop makes two products, **bookcases** and **desks**, from two limited resources,
-# **oak panels** and **assembly hours**:
+# A workshop makes two products, bookcases and desks, from two limited resources, oak
+# panels and assembly hours:
 #
 # | | profit (€) | oak panels needed | assembly hours needed |
 # |---|---|---|---|
@@ -62,8 +62,8 @@ import pulp
 # There are 12 oak panels and 10 assembly hours available this week. Which product mix
 # maximizes profit?
 #
-# (Excel and other spreadsheet tools can also solve small problems like this — for example
-# via `SUMPRODUCT` plus the Solver add-in — but this course works in Python throughout.)
+# (Excel and other spreadsheet tools can also solve small problems like this, for example
+# via `SUMPRODUCT` plus the Solver add-in, but this course works in Python throughout.)
 
 # %% [markdown]
 # ### The Modeling Approach
@@ -88,10 +88,10 @@ import pulp
 # \end{aligned}
 # $$
 #
-# The objective and all constraints are **linear** functions of the decision variables
-# $(b, d)$ — hence *linear* optimization.
+# The objective and all constraints are linear functions of the decision variables
+# $(b, d)$, hence the name *linear* optimization.
 #
-# To solve it with pulp we keep the problem **data** separate from the **model**:
+# To solve it with pulp we keep the problem data separate from the model:
 
 # %%
 profit = {"bookcase": 3, "desk": 5}
@@ -133,9 +133,8 @@ print("optimal profit:", mix.objective.value())
 # With only two decision variables we can draw the problem. Each constraint is a line; the
 # feasible region is the set of points satisfying all of them at once. Because both the
 # constraints and the objective are linear, the objective-value contour lines are straight
-# and parallel, and sliding one in the direction of increasing profit, the last feasible
-# point it touches is an optimal solution — and it is always a **corner** of the feasible
-# region.
+# and parallel. Sliding one in the direction of increasing profit, the last feasible point
+# it touches is an optimal solution, and it is always a corner of the feasible region.
 
 # %%
 b = np.linspace(0, 6, 200)
@@ -166,14 +165,14 @@ plt.show()
 # %% [markdown]
 # The dotted grey line (profit 15) still has feasible points but we can do better; sliding
 # it out until it just leaves the feasible region gives the solid line, which touches the
-# region only at the corner where the two resource constraints meet — the optimum pulp
+# region only at the corner where the two resource constraints meet: the optimum pulp
 # reported above.
 
 # %% [markdown]
 # ## An Algebraic View
 #
 # The same optimum can be understood without a picture. Turn each "$\le$" constraint into
-# an equality by adding a non-negative **slack variable** — the amount of the resource left
+# an equality by adding a non-negative slack variable, the amount of the resource left
 # unused:
 #
 # $$
@@ -192,23 +191,23 @@ plt.show()
 #
 # There are now 2 equations and 4 variables. As a rule, a system of $k$ independent linear
 # equations in $k$ unknowns has exactly one solution, so if we set any 2 of the 4 variables
-# to zero the other 2 are determined. Each such choice corresponds to a **corner** of the
+# to zero the other 2 are determined. Each such choice corresponds to a corner of the
 # feasible region (some combinations give a negative value and are infeasible; those are
 # corners of the lines' intersections that lie outside the region). The corners here are:
 #
-# - $(b, d, s_1, s_2) = (0, 0, 12, 10)$ — the origin;
-# - $(0, 4, 0, 6)$ — oak panels fully used;
-# - $(5, 0, 7, 0)$ — assembly hours fully used;
-# - the point where both resource constraints are tight ($s_1 = s_2 = 0$) — the optimum.
+# - $(b, d, s_1, s_2) = (0, 0, 12, 10)$: the origin;
+# - $(0, 4, 0, 6)$: oak panels fully used;
+# - $(5, 0, 7, 0)$: assembly hours fully used;
+# - the point where both resource constraints are tight ($s_1 = s_2 = 0$): the optimum.
 #
-# The **simplex algorithm** (G.B. Dantzig, 1947), which pulp's default solver uses for LO,
-# hops from corner to neighbouring corner, each time to one with a better objective value,
-# and stops when no neighbouring corner is better. Why is that enough to guarantee the
-# *global* optimum? Because the feasible region of an LO problem is a convex polyhedron — a
-# shape with flat faces and no "hidden hills". If every neighbour of your current corner is
-# worse, there is nowhere higher to go: reaching a higher point would require the boundary
-# to curve, and linear constraints never curve. So for LO, a local optimum is automatically
-# a global optimum.
+# The simplex algorithm (G.B. Dantzig, 1947), which pulp's default solver uses for LO, hops
+# from corner to neighbouring corner, each time to one with a better objective value, and
+# stops when no neighbouring corner is better. Why is that enough to guarantee the *global*
+# optimum? Because the feasible region of an LO problem is a convex polyhedron: a shape with
+# flat faces and no hidden hills. If every neighbour of your current corner is worse, there
+# is nowhere higher to go, since reaching a higher point would require the boundary to
+# curve, and linear constraints never curve. So for LO, a local optimum is automatically a
+# global optimum.
 #
 # :::{note} History of Linear Optimization
 # Several researchers formulated linear optimization problems, but it was G.B. Dantzig
@@ -224,10 +223,10 @@ plt.show()
 # Not every LO problem has an optimal solution. There are exactly three possibilities:
 #
 # 1. **an optimal solution exists** (the case above);
-# 2. **unbounded** — solutions of arbitrarily large objective value exist. For the
-#    product-mix problem this happens if we drop the assembly-hours constraint: we could
-#    then make unlimited desks;
-# 3. **infeasible** — no point satisfies all constraints. This happens if, for example, a
+# 2. **unbounded**: solutions of arbitrarily large objective value exist. For the
+#    product-mix problem this happens if we drop the assembly-hours constraint, since we
+#    could then make unlimited desks;
+# 3. **infeasible**: no point satisfies all constraints. This happens if, for example, a
 #    customer contract forces $d \ge 12$ while the oak-panel constraint allows at most
 #    $d = 4$.
 #
@@ -286,8 +285,8 @@ print("optimal solution:", [zk.value() for zk in z])
 print("optimal objective:", larger_lo.objective.value())
 
 # %% [markdown]
-# The model-building code is identical in structure to the two-variable case — only the
-# data changed.
+# The model-building code is identical in structure to the two-variable case; only the data
+# changed.
 #
 # :::{exercise}
 # :label: ex-6-4
@@ -350,26 +349,26 @@ print("optimal objective:", larger_lo.objective.value())
 # ## Another Application: Project Planning
 #
 # (graphs-intro)=
-# A **graph** is a network of *nodes* (also called vertices) connected by *edges*; a
-# directed edge is called an *arc*. Many problems are naturally expressed on graphs. One is project planning: a
-# project has activities (nodes), each with a duration, and precedence relations (arcs) —
-# an activity can only start once its predecessors are finished (you cannot roof a house
-# before the walls are up).
+# A graph is a network of *nodes* (also called vertices) connected by *edges*; a directed
+# edge is called an *arc*. Many problems are naturally expressed on graphs. One is project
+# planning: a project has activities (nodes), each with a duration, and precedence
+# relations (arcs). An activity can only start once its predecessors are finished (you
+# cannot roof a house before the walls are up).
 #
 # | activity | duration | must follow |
 # |---|---|---|
-# | A | 3 | — |
-# | B | 4 | — |
+# | A | 3 | none |
+# | B | 4 | none |
 # | C | 2 | A |
 # | D | 5 | A, B |
 # | E | 1 | C, D |
 # | F | 3 | D |
 #
-# Let $x_i$ be the **finish time** of activity $i$. If $i$ precedes $j$ then
+# Let $x_i$ be the finish time of activity $i$. If $i$ precedes $j$ then
 # $x_i + d_j \le x_j$, where $d_j$ is the duration of $j$; also $x_i \ge d_i$. We want the
 # time when *all* activities are finished, $\max_i x_i$. That maximum is not linear, but we
-# can introduce a variable $z \ge x_i$ for all $i$ and **minimize** $z$ — the optimization
-# will push $z$ down to exactly the largest finish time. This "min-max" trick reappears
+# can introduce a variable $z \ge x_i$ for all $i$ and minimize $z$: the optimization will
+# push $z$ down to exactly the largest finish time. This "min-max" trick reappears
 # throughout the course.
 #
 # $$
@@ -406,8 +405,9 @@ print("project finish time (makespan):", makespan.value())
 # %% [markdown]
 # The project-planning model above (activities `A`–`F`, the `duration` dict and
 # `precedences` list) is referred to from later notebooks. The finish time can also be
-# found by a direct algorithm without LO, and that algorithm extends to *random* durations
-# — relevant because durations are often hard to predict, one reason IT projects overrun.
+# found by a direct algorithm without LO, and that algorithm extends to *random* durations,
+# which matters because durations are often hard to predict, one reason IT projects
+# overrun.
 #
 # :::{exercise}
 # :label: ex-6-7
@@ -443,11 +443,11 @@ print("project finish time (makespan):", makespan.value())
 # What *cannot* be relaxed is linearity. If the objective is nonlinear, the optimum need
 # not lie at a corner (think of $\max -x^2$ on $[-1, 1]$, optimal at the interior point 0).
 # If a constraint is nonlinear, the feasible region is no longer a convex polyhedron, so it
-# can have several local optima and the simplex reasoning above breaks down — you are not
-# sure you have found the best solution until you have checked every local optimum, which is
-# usually intractable. Nonlinear optimization therefore needs different, less efficient
+# can have several local optima and the simplex reasoning above breaks down: you are not
+# sure you have found the best solution until you have checked every local optimum, which
+# is usually intractable. Nonlinear optimization therefore needs different, less efficient
 # algorithms. One important structured case that we *can* handle well is when variables are
-# required to be integer — **integer linear optimization**, the subject of
+# required to be integer: integer linear optimization, the subject of
 # [the next notebook](lecture8_integer-optimization.ipynb).
 
 # %% [markdown]

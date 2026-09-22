@@ -125,6 +125,33 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   in a later cell (e.g. as a dict string key after it was an `int` range index
   earlier) is a real type error — use distinct variable names per cell instead.
 
+## Writing style
+
+Lecture note prose (including new sections added to existing notebooks) should read as
+plainly written, not AI-generated:
+
+- No em dashes in running text; use a comma, colon, parentheses, or a new sentence
+  instead. (List labels like `**Term.**` at the start of a bullet are fine; this is about
+  the `—` character in sentences.)
+- No bold in running prose. Bold is reserved for the one-time introduction of a defined
+  term (as the existing notebooks already do, e.g. `**decision variables**`) and for
+  bullet-point labels — not for emphasis within a sentence.
+- Avoid stock AI vocabulary: *delve, underscore(s), pivotal, crucial, vital, intricate,
+  tapestry, testament (to), landscape, realm, vibrant, enduring, harness, leverage, foster,
+  unlock, elevate, illuminate, shed light on, facilitate, bolster, streamline, navigate,
+  robust, seamless, holistic, revolutionize, cutting-edge, game-changing, transformative,
+  boasts*, and "X stands as / serves as / represents Y" in place of a plain "X is Y".
+- Avoid stock AI transitions and hedges: *moreover, furthermore, additionally, that being
+  said, at its core, to put it simply, broadly/generally speaking, arguably, to some
+  extent, it's important/worth noting that, in today's ... world/era, in conclusion/summary*,
+  and "not only X but also Y" constructions.
+- Avoid AI writing tics: excessive rule-of-three lists, a bolded-label bullet list where a
+  paragraph would read better, present-participle phrases tacked onto a sentence instead of
+  a direct statement (e.g. "..., highlighting its importance"), a stock summary sentence
+  restating what a section just said, and section-ending "in conclusion"-style wrap-ups.
+- Prefer concrete, specific phrasing over generic filler. Say what something does; don't
+  first announce that you're about to describe it.
+
 ## Architecture: book structure via `myst.yml`
 
 `myst.yml` is the single source of truth for the book's structure and site config:

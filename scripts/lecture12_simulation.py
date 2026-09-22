@@ -32,12 +32,12 @@
 #
 # The general recipe behind everything in this lecture has four steps:
 #
-# 1. **Fit a probability distribution** to historical data for each random input parameter (Canvas has separate material on fitting distributions in Python — we take the fitted distribution as given here).
+# 1. **Fit a probability distribution** to historical data for each random input parameter (Canvas has separate material on fitting distributions in Python; we take the fitted distribution as given here).
 # 2. **Sample** realizations $x_1, x_2, \dots, x_n$ from that distribution, "in line with real-life data".
 # 3. **Process** each sample through the model, giving output samples $r(x_1), r(x_2), \dots, r(x_n)$.
 # 4. **Statistically analyze** the output samples, e.g. average them to approximate $E[r(X)]$.
 #
-# Fitting a distribution, rather than resampling historical data directly (bootstrapping), gives an unlimited stream of realistic-looking samples and avoids overfitting the simulation to one fixed, finite history — a solution that works great on the past data used to build it but not necessarily on the future it is meant to predict.
+# Fitting a distribution, rather than resampling historical data directly (bootstrapping), gives an unlimited stream of realistic-looking samples and avoids overfitting the simulation to one fixed, finite history: a solution that works great on the past data used to build it but not necessarily on the future it is meant to predict.
 #
 # :::{note} Simulating Without a Programming Language
 # Spreadsheets such as Excel are less appropriate for simulation. Recalculating the sheet resamples all random variables, but does not directly give a CI: that requires putting the whole simulation on one row and copying that row many times, or a dedicated add-in. This is one of several reasons this course simulates in Python instead: `numpy` samples thousands of realizations at once, as we do below, and a CI is just two more lines of code away.
@@ -54,7 +54,7 @@
 #
 # an error common enough to have its own name, the *flaw of averages* (Savage, 2012).
 #
-# A simple case makes the direction of the error tangible: let $X$ and $Y$ be independent fair coin tosses (0 or 1), and $r(X,Y) = \max(X,Y)$. Then $EX = EY = 0.5$, so $r(EX,EY) = \max(0.5, 0.5) = 0.5$. But $r(X,Y)$ is 1 unless both tosses are 0, so $E[r(X,Y)] = P(X=1 \text{ or } Y=1) = 0.75$. Whenever $r$ involves a maximum, a minimum, or another nonlinear operation, the two quantities can differ substantially — and the gap tends to grow with the number of random inputs involved, since it becomes more likely that *at least one* of them is unusually high (or low). This is exactly the situation in, e.g., project planning: the finish time of a project is the maximum over many possible critical paths, so a few unlucky activities are enough to delay the whole project, and averaging over that risk is not the same as plugging in average durations.
+# A simple case makes the direction of the error tangible: let $X$ and $Y$ be independent fair coin tosses (0 or 1), and $r(X,Y) = \max(X,Y)$. Then $EX = EY = 0.5$, so $r(EX,EY) = \max(0.5, 0.5) = 0.5$. But $r(X,Y)$ is 1 unless both tosses are 0, so $E[r(X,Y)] = P(X=1 \text{ or } Y=1) = 0.75$. Whenever $r$ involves a maximum, a minimum, or another nonlinear operation, the two quantities can differ substantially, and the gap tends to grow with the number of random inputs involved, since it becomes more likely that *at least one* of them is unusually high (or low). This is exactly the situation in, e.g., project planning: the finish time of a project is the maximum over many possible critical paths, so a few unlucky activities are enough to delay the whole project, and averaging over that risk is not the same as plugging in average durations.
 #
 # The rest of this lecture builds the two main tools for computing $E[r(X)]$ correctly: sampling realizations of $X$, and averaging $r$ over many of them.
 
@@ -71,7 +71,7 @@
 #
 # using that $F$ is non-decreasing and $U$ is uniform on $[0,1]$ (so $P(U \le u) = u$). Since $F^{-1}(U)$ and $X$ have the same cdf, they have the same distribution.
 #
-# **Intuition.** The steeper $F$ increases on some interval, the wider that interval is when we "un-invert" it back from the $u$-axis to the $x$-axis — so a uniformly spread-out set of $u$-values lands, after applying $F^{-1}$, disproportionately often in the steep regions of $F$. Since $F$ is steep exactly where the density $f = F'$ is high, this reproduces the shape of the pdf: more samples land where the density says they should.
+# **Intuition.** The steeper $F$ increases on some interval, the wider that interval is when we "un-invert" it back from the $u$-axis to the $x$-axis, so a uniformly spread-out set of $u$-values lands, after applying $F^{-1}$, disproportionately often in the steep regions of $F$. Since $F$ is steep exactly where the density $f = F'$ is high, this reproduces the shape of the pdf: more samples land where the density says they should.
 #
 # **Worked example 1: a continuous distribution.** Suppose a component's lifetime $X$ (in years) is exponentially distributed with rate $\lambda = 0.5$ (mean $1/\lambda = 2$ years), with cdf $F(x) = 1 - e^{-\lambda x}$ for $x \ge 0$. Solving $F(x) = u$ for $x$:
 #
@@ -98,7 +98,7 @@ plt.xlabel("lifetime (years)")
 plt.legend()
 
 # %% [markdown]
-# (`np.random.default_rng(...).exponential(scale=1 / rate)` would do the same sampling directly — most libraries implement common distributions this way internally — but the formula above shows exactly what is happening underneath.)
+# (`np.random.default_rng(...).exponential(scale=1 / rate)` would do the same sampling directly, since most libraries implement common distributions this way internally, but the formula above shows exactly what is happening underneath.)
 #
 # **Worked example 2: a discrete distribution.** Suppose a delivery arrives 1, 2, or 3 days late with probabilities $P(X=1) = 0.2$, $P(X=2) = 0.5$, $P(X=3) = 0.3$. The cdf is a step function, $F(1) = 0.2$, $F(2) = 0.7$, $F(3) = 1$, so
 #
@@ -124,7 +124,7 @@ for value, prob in zip(outcomes, np.diff(np.concatenate(([0.0], cumulative_probs
 
 # %% [markdown]
 # :::{note} Random Number Generators and Seeds
-# Behind `rng.uniform` sits a pseudo-random number generator (PRNG): a deterministic formula that produces a sequence of numbers which *looks* random (passes statistical tests for randomness) but is entirely determined by a starting value, the seed. This is a feature, not a bug: `np.random.default_rng(0)` always produces the same stream, which makes simulation results reproducible — essential for debugging and for comparing two designs under identical randomness (we return to that idea in the next lecture). True hardware randomness (e.g., based on atmospheric noise) exists but is slower and rarely necessary in practice.
+# Behind `rng.uniform` sits a pseudo-random number generator (PRNG): a deterministic formula that produces a sequence of numbers which *looks* random (passes statistical tests for randomness) but is entirely determined by a starting value, the seed. This is a feature, not a bug: `np.random.default_rng(0)` always produces the same stream, which makes simulation results reproducible. That matters for debugging and for comparing two designs under identical randomness (we return to that idea in the next lecture). True hardware randomness (e.g., based on atmospheric noise) exists but is slower and rarely necessary in practice.
 # :::
 
 # %% [markdown]
@@ -143,7 +143,7 @@ for value, prob in zip(outcomes, np.diff(np.concatenate(([0.0], cumulative_probs
 # \sigma^2\left[\frac{Y_1 + \dots + Y_n}{n}\right] = \frac{\sum_i \sigma^2(Y_i)}{n^2} = \frac{\sigma^2(Y)}{n}.
 # $$
 #
-# The sample average is centered exactly on $EY$, and its variance shrinks to 0 as $n \to \infty$ — this is the [law of large numbers](lecture12_variability-recap.ipynb#lln): the sample average of a simulation converges to the true expected performance.
+# The sample average is centered exactly on $EY$, and its variance shrinks to 0 as $n \to \infty$: this is the [law of large numbers](lecture12_variability-recap.ipynb#lln), the sample average of a simulation converges to the true expected performance.
 #
 # :::{note} Example: Call-Center Overtime
 # :label: eg-5-1
@@ -169,7 +169,7 @@ print("sample SD:", s)
 print("95% CI:", (m - 2 * s / np.sqrt(n), m + 2 * s / np.sqrt(n)))
 
 # %% [markdown]
-# The width of this CI shrinks with $1/\sqrt n$, not $1/n$: to halve it we need *four times* as many simulation runs, not twice as many. This is the price of randomness — beyond a certain point, more precision gets expensive fast.
+# The width of this CI shrinks with $1/\sqrt n$, not $1/n$: to halve it we need *four times* as many simulation runs, not twice as many. This is the price of randomness: beyond a certain point, more precision gets expensive fast.
 #
 # :::{exercise}
 # :label: ex-5-1
@@ -188,7 +188,7 @@ print("95% CI:", (m - 2 * s / np.sqrt(n), m + 2 * s / np.sqrt(n)))
 # P(r(X) \ge \alpha) = \sum_{r(x) \ge \alpha} P(X=x) = \sum I\{r(x) \ge \alpha\} P(X=x) = E[I(r(X) \ge \alpha)],
 # $$
 #
-# with $I$ the indicator function, 1 when its argument is true and 0 otherwise. Thus we end up estimating the expectation of the 0/1 random variable $I(r(X) \ge \alpha)$ — a Monte Carlo simulation like any other.
+# with $I$ the indicator function, 1 when its argument is true and 0 otherwise. Thus we end up estimating the expectation of the 0/1 random variable $I(r(X) \ge \alpha)$, a Monte Carlo simulation like any other.
 # :::
 #
 # For example, in the call-center example we might ask for the fraction of hours with more than €300 of overtime cost:
@@ -224,7 +224,7 @@ print("fraction above €300:", m, "95% CI:", (m - 2 * s / np.sqrt(n), m + 2 * s
 # %% [markdown]
 # ## Discrete-Event Simulation
 #
-# Monte Carlo simulation needs $r$ to be a known function of a fixed, small set of inputs. Many real processes are too complex for that: their behavior unfolds through a sequence of random events over time, and what happens next depends on the current state, not on a fixed formula. Discrete-event simulation (DES) handles this by explicitly keeping track of a **state** (e.g., the stock in a warehouse, the number of customers in a queue), which changes only at discrete points in time — the events. Between events, nothing happens, so we can jump straight from one event to the next instead of simulating time continuously.
+# Monte Carlo simulation needs $r$ to be a known function of a fixed, small set of inputs. Many real processes are too complex for that: their behavior unfolds through a sequence of random events over time, and what happens next depends on the current state, not on a fixed formula. Discrete-event simulation (DES) handles this by explicitly keeping track of a **state** (e.g., the stock in a warehouse, the number of customers in a queue), which changes only at discrete points in time: the events. Between events, nothing happens, so we can jump straight from one event to the next instead of simulating time continuously.
 #
 # :::{note} Example: Service Centers and Warehouses
 # :label: eg-5-2
@@ -234,7 +234,7 @@ print("fraction above €300:", m, "95% CI:", (m - 2 * s / np.sqrt(n), m + 2 * s
 #
 # The generic simulation loop repeats five steps until a stopping condition is met:
 #
-# 1. **Determine the next event** — the one with the smallest scheduled time among all pending events.
+# 1. **Determine the next event**, the one with the smallest scheduled time among all pending events.
 # 2. **Update the time** to that event's time.
 # 3. **Update the state** according to what the event does (e.g., stock decreases on a demand, increases on a delivery).
 # 4. **Schedule follow-up events** the current event triggers (e.g., a demand event schedules the next demand arrival).
@@ -298,7 +298,7 @@ print(f"stockouts: {stockouts} out of {demands} demands ({stockouts / demands:.1
 #
 # **Dedicated DES software** trades some of that flexibility for faster modeling and a graphical interface:
 #
-# - **SimQuick** ([simquick.net](http://simquick.net/)) implements DES logic inside Excel — a lightweight option requiring no separate installation, at the cost of Excel's usual simulation limitations.
+# - **SimQuick** ([simquick.net](http://simquick.net/)) implements DES logic inside Excel: a lightweight option requiring no separate installation, at the cost of Excel's usual simulation limitations.
 # - **Arena** offers a full drag-and-drop graphical modeler; see [](#fig-arena-des) for an impression. You drag components from a palette on the left to build a model in the middle, then configure each by clicking on it.
 # - **JaamSim** (Java Animation Modelling & Simulation) is an actively maintained, open-source (Apache 2.0) alternative with a drag-and-drop GUI and optional 3D animation, cross-platform (Windows/Linux/macOS), and extensible in Java for custom components. Kristiansen et al. (2022) compare it against other open-source DES tools.
 #
@@ -333,14 +333,14 @@ print(f"stockouts: {stockouts} out of {demands} demands ({stockouts / demands:.1
 # %% [markdown]
 # ## Long-Run Performance
 #
-# Sometimes there is no natural termination moment for the simulation. In the inventory example a year might be the right time frame, but in a network simulation there might not be such a moment. We are then interested in the long-run stationary performance for constant parameters. Under certain conditions it can be shown (using the LLN) mathematically that the long-run average performance approaches the long-run expected performance. Because we cannot simulate for an infinitely long period, and because a single run does not give us information on the variability, it is customary to take the average over a number of runs — exactly as for the Monte Carlo CI above. To avoid different "start-up" behavior (e.g., our inventory example starting completely full), the first part of each simulation is often excluded from the performance measure, a period known as the warm-up.
+# Sometimes there is no natural termination moment for the simulation. In the inventory example a year might be the right time frame, but in a network simulation there might not be such a moment. We are then interested in the long-run stationary performance for constant parameters. Under certain conditions it can be shown (using the LLN) mathematically that the long-run average performance approaches the long-run expected performance. Because we cannot simulate for an infinitely long period, and because a single run does not give us information on the variability, it is customary to take the average over a number of runs, exactly as for the Monte Carlo CI above. To avoid different "start-up" behavior (e.g., our inventory example starting completely full), the first part of each simulation is often excluded from the performance measure, a period known as the warm-up.
 #
-# The figure below illustrates this for a service center with 10 counters. We clearly see the average over 100 runs increasing from the empty initial situation to around 15, and two individual runs constantly fluctuating around it — and only slowly settling down, because the state at one moment is highly correlated with the state shortly after (if the system is full now, it tends to still be full a bit later), which is why long-run simulations typically need much longer horizons than a Monte Carlo simulation needs samples to get an equally tight CI.
+# The figure below illustrates this for a service center with 10 counters. We clearly see the average over 100 runs increasing from the empty initial situation to around 15, and two individual runs constantly fluctuating around it, only slowly settling down, because the state at one moment is highly correlated with the state shortly after (if the system is full now, it tends to still be full a bit later), which is why long-run simulations typically need much longer horizons than a Monte Carlo simulation needs samples to get an equally tight CI.
 #
 # :::{figure} images/lecture12_box5.5.png
 # :label: fig-long-run-performance
 #
-# Number of customers over time for a service center with 10 counters — the average over 100 runs rises from empty to around 15, while two individual runs fluctuate constantly.
+# Number of customers over time for a service center with 10 counters: the average over 100 runs rises from empty to around 15, while two individual runs fluctuate constantly.
 # :::
 
 # %% [markdown]

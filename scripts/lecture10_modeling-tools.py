@@ -17,9 +17,9 @@
 
 # %% [markdown]
 # This notebook has two halves. First, two more applications that need a modeling trick:
-# **multi-period inventory planning** and **robust regression**. Then the tooling: the
-# **solvers** that actually do the optimizing, and the **modeling tools** (algebraic
-# modeling languages, and pulp) that sit between your problem and a solver.
+# multi-period inventory planning and robust regression. Then the tooling: the solvers that
+# actually do the optimizing, and the modeling tools (algebraic modeling languages, and
+# pulp) that sit between your problem and a solver.
 #
 # **Learning outcomes**
 #
@@ -38,7 +38,7 @@ import pulp
 # (production-inventory-model)=
 # ## Multi-Period Inventory Planning
 #
-# A system whose **state is tracked over time** is a multi-period model. The classic case
+# A system whose state is tracked over time is a multi-period model. The classic case
 # is inventory: we hold a single product, start with stock $s_0$, and for each period
 # $t = 1, \dots, T$ we know the demand $d_t$, the holding cost $h_t$ per unit left at the
 # end of the period, and the order cost $c_t$ per unit ordered. The decision is how much to
@@ -86,7 +86,7 @@ print("total cost:", inventory.objective.value())
 # :::{exercise}
 # :label: ex-6-19
 #
-# Extend the multi-period model with **fixed order costs**: a cost $K$ is incurred in period
+# Extend the multi-period model with fixed order costs: a cost $K$ is incurred in period
 # $t$ whenever $x_t > 0$, regardless of the amount. Keep all constraints linear (hint: a
 # binary "did we order in period $t$" variable and a big $M$, as in
 # [Machine Scheduling](lecture9_advanced-modeling.ipynb)). Solve with pulp.
@@ -97,7 +97,7 @@ print("total cost:", inventory.objective.value())
 #
 # Ordinary least-squares regression minimizes the sum of *squared* errors and is sensitive
 # to outliers, just as the mean is. Minimizing the sum of *absolute* errors instead gives a
-# **robust** fit, the line analogue of the median. Given points $(x_i, y_i)$, we want $a, b$
+# robust fit, the line analogue of the median. Given points $(x_i, y_i)$, we want $a, b$
 # solving
 #
 # $$
@@ -117,7 +117,7 @@ print("total cost:", inventory.objective.value())
 # The same $x = x^+ - x^-$ split linearizes any $|x|$ that appears (with a non-negative
 # coefficient) in an objective. Weighting the two parts differently,
 # $p \sum e_i^+ + (1 - p) \sum e_i^-$ with $0 < p < 1$, tilts the line toward the upper or
-# lower points — this is **quantile regression** ([](#fig-quantile-regression)).
+# lower points: this is quantile regression ([](#fig-quantile-regression)).
 
 # %% [markdown]
 # :::{figure} images/lecture9_fig6.11.png
@@ -179,7 +179,7 @@ plt.show()
 # %% [markdown]
 # ## Solvers
 #
-# The **solver** is the engine that does the optimizing. Very roughly:
+# The solver is the engine that does the optimizing. Very roughly:
 #
 # | | examples | notes |
 # |---|---|---|
@@ -187,15 +187,15 @@ plt.show()
 # | commercial | Gurobi, CPLEX, FICO Xpress | fastest on hard/large ILO; free academic licenses |
 # | spreadsheet | Excel Solver, OpenSolver | Excel Solver is weak; OpenSolver embeds CBC |
 #
-# For LO, the classic method is the **simplex** algorithm (corner to corner). Since the
-# 1980s, **interior-point** methods move through the interior of the feasible region
-# instead and solve LO in provably polynomial time; modern solvers offer both. For ILO,
-# **branch and bound** (see [Integer Optimization](lecture8_integer-optimization.ipynb))
-# wraps around an LO solver. ILO solver performance has improved by a factor of roughly
-# 1000 between 2000 and 2020 through better algorithms alone — comparable to the hardware
-# speed-up over the same period.
+# For LO, the classic method is the simplex algorithm (corner to corner). Since the 1980s,
+# interior-point methods move through the interior of the feasible region instead and solve
+# LO in provably polynomial time; modern solvers offer both. For ILO, branch and bound (see
+# [Integer Optimization](lecture8_integer-optimization.ipynb)) wraps around an LO solver.
+# ILO solver performance has improved by a factor of roughly 1000 between 2000 and 2020
+# through better algorithms alone, comparable to the hardware speed-up over the same
+# period.
 #
-# pulp can call any installed solver without changing the model — only the `.solve(...)`
+# pulp can call any installed solver without changing the model; only the `.solve(...)`
 # line changes. To see what is available here:
 
 # %%
@@ -210,21 +210,21 @@ print(pulp.listSolvers(onlyAvailable=True))
 # %% [markdown]
 # ## Modeling Tools
 #
-# Most of an optimization specialist's time goes into **modeling**, not solving. An
-# **algebraic modeling language (AML)** — AMPL, AIMMS, GAMS — is a language for writing a
-# model in near-mathematical notation, kept separate from the data, and handed to whichever
+# Most of an optimization specialist's time goes into modeling, not solving. An algebraic
+# modeling language (AML), such as AMPL, AIMMS, or GAMS, is a language for writing a model
+# in near-mathematical notation, kept separate from the data, and handed to whichever
 # solver you choose. AMLs are quick to write, easy to communicate, and let you re-solve new
 # instances by swapping only the data; the downsides are cost, closed source, and awkward
-# embedding in other software. A **decision support system (DSS)** goes the other way: a
-# solver built into software for one specific task (vehicle routing, room pricing), used by
-# domain planners rather than modelers.
+# embedding in other software. A decision support system (DSS) goes the other way: a solver
+# built into software for one specific task (vehicle routing, room pricing), used by domain
+# planners rather than modelers.
 #
 # [pulp](https://coin-or.github.io/pulp/) gives the AML benefits inside Python
 # (`pip install pulp[cbc]` bundles CBC), plus everything Python brings for preparing data
 # and analyzing solutions. The key discipline is the same as an AML's model/data split:
-# keep the instance **data** in plain Python structures, and build the **model**
-# (`LpProblem`, variables, objective, constraints) from that data so the model code is
-# reused unchanged for a new instance.
+# keep the instance data in plain Python structures, and build the model (`LpProblem`,
+# variables, objective, constraints) from that data so the model code is reused unchanged
+# for a new instance.
 
 # %%
 jobs = ["A", "B", "C"]
@@ -243,7 +243,7 @@ print(start["B"], "/", after[("A", "B")])
 
 # %% [markdown]
 # Adding an expression *without* a comparison registers the objective; *with* a comparison,
-# a constraint. The optional trailing string names it — helpful when you `print` the
+# a constraint. The optional trailing string names it, helpful when you `print` the
 # problem or read the solver log.
 
 # %%
@@ -254,11 +254,11 @@ for job in jobs:
 print(demo)
 
 # %% [markdown]
-# `print(problem)` shows every variable, the objective, and every named constraint — the
+# `print(problem)` shows every variable, the objective, and every named constraint: the
 # first thing to do when a model misbehaves, especially on a small instance. Passing
 # `msg=True` to the solver shows its log; for CBC on an ILO the log reports each improved
-# integer solution and the remaining optimality **gap** (the guaranteed distance to the
-# best possible value). A run ending `Optimal` with gap 0% has *proven* optimality; a run
+# integer solution and the remaining optimality gap (the guaranteed distance to the best
+# possible value). A run ending `Optimal` with gap 0% has *proven* optimality; a run
 # stopped early reports the best solution so far and the still-open gap.
 
 # %%
@@ -268,10 +268,10 @@ print("status:", pulp.LpStatus[demo.status])
 # %% [markdown]
 # ## Beyond the Lecture: Warm Starting
 #
-# When you re-solve a problem that is *almost* the same as one already solved — the same
-# knapsack with one more item, the same schedule with one duration changed — you can hand
-# the solver the old solution to **warm start** from: `.setInitialValue(...)` on each
-# variable, then solve with `warmStart=True`.
+# When you re-solve a problem that is *almost* the same as one already solved (the same
+# knapsack with one more item, the same schedule with one duration changed), you can hand
+# the solver the old solution to warm start from: `.setInitialValue(...)` on each variable,
+# then solve with `warmStart=True`.
 
 # %%
 reward = [10, 13, 18, 31, 7, 15]
@@ -324,8 +324,8 @@ print("capacity 11, warm started:", [v.value() for v in items11], knap11.objecti
 # A GenAI assistant (Claude, ChatGPT, ...) can be a useful pulp pair-programmer if used
 # carefully:
 #
-# - paste the **actual code** and the **actual error or solver log**, not a paraphrase;
-# - always re-check a suggested model against your original formulation — it can flip a
+# - paste the actual code and the actual error or solver log, not a paraphrase;
+# - always re-check a suggested model against your original formulation: it can flip a
 #   constraint's direction, quietly redefine a variable, or shift an index range, and pulp
 #   will build and solve the wrong model without complaint;
 # - `print(problem)` before and after any suggested change shows exactly what moved;
