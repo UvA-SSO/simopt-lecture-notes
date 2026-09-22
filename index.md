@@ -1,6 +1,6 @@
 # Lecture Notes on Simulation and Optimization
 
-These lecture notes are part of the broader course on Statistics, Simulation and Optimization (SSO) at the University of Amsterdam (UvA). They support the lectures, slides, tutorials, and assignments of the simulation and optimization component of the course. Large parts of these lecture notes are based on the book *An Introduction to Business Analytics* by Ger Koole written in 2019.
+These lecture notes are part of the broader course on Statistics, Simulation and Optimization (SSO) at the University of Amsterdam (UvA). They support the lectures, slides, tutorials, and assignments of the simulation and optimization component of the course. Large parts of these lecture notes are based on the book [*An Introduction to Business Analytics*](https://www.amazon.nl/-/en/Introduction-Business-Analytics-Ger-Koole/dp/9082017938) by Ger Koole written in 2019.
 
 ## About the simulation and optimization course part
 
@@ -48,15 +48,17 @@ The simulation and optimization part of this course uses Python. Python's built-
 
 Every notebook has an "Open in Colab" button at the top, which opens it directly in [Google Colab](https://colab.research.google.com/): a free, browser-based Jupyter environment that needs no local installation. Any packages a notebook needs beyond what Colab already provides (mainly `pulp`) are installed automatically the first time you run it there.
 
-To run the notebooks on your own machine instead, clone the [GitHub repository](https://github.com/UvA-SSO/simopt-lecture-notes) and install the dependencies into an isolated Python environment. Any environment manager works (conda, venv, ...); these notes use [uv](https://docs.astral.sh/uv/):
+To run the notebooks on your own machine instead, clone the [GitHub repository](https://github.com/UvA-SSO/simopt-lecture-notes) and install the dependencies into an isolated Python environment. Any environment manager works (conda, venv, ...); these notes use [uv](https://docs.astral.sh/uv/). The course materials themselves are the project, while JupyterLab is only needed as a local editor for working with notebooks:
 
 ```sh
 git clone https://github.com/UvA-SSO/simopt-lecture-notes.git
 cd simopt-lecture-notes
-uv sync              # installs Python and all dependencies into .venv
-uv run jupyter lab    # opens Jupyter Lab; open a notebook under notebooks/
+uv sync --group dev  # installs the project dependencies and the local notebook editor
+uv run jupyter lab  # Windows / macOS / Linux
 ```
+
+These commands open Jupyter Lab so you can open a notebook under `notebooks/`.
 
 ## Acknowledgements
 
-These lecture notes are based on the lectures by Joost Berkhout and on Ger Koole's book *An Introduction to Business Analytics* (2019), and were compiled with the help of Claude (Anthropic). Joost Berkhout takes full responsibility for the materials.
+These lecture notes are based on Ger Koole's book *An Introduction to Business Analytics* (2019) and the lectures by Joost Berkhout. The notes were compiled with the help of Claude (Anthropic). Joost Berkhout takes full responsibility for the materials.

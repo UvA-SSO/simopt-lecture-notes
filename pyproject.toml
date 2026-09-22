@@ -16,6 +16,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "jupyterlab>=4.3",
     "pre-commit>=3.7",
     "isort>=5.13",
     "ruff>=0.6",
