@@ -20,7 +20,7 @@
 
 # %% [markdown]
 # This notebook introduces linear optimization (LO), also called linear programming. It is
-# the most widely used optimization framework in practice: efficient solvers exist that are
+# a widely used optimization framework in practice: efficient solvers exist that are
 # guaranteed to find the optimum even for problems with thousands of variables and
 # constraints. We introduce it through an example, model it, solve it in Python with
 # [pulp](https://coin-or.github.io/pulp/), look at what the solver is doing both graphically
@@ -34,6 +34,7 @@
 #   constraints);
 # - implement an LO model in pulp, both directly and with the data kept separate from the
 #   model;
+# - understand the intuition behind the simplex method;
 # - interpret an LO solution both graphically and algebraically;
 # - recognize infeasibility and unboundedness in pulp's solve status.
 
