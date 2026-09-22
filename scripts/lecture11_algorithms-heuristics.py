@@ -16,6 +16,9 @@
 # # Lecture 11: Algorithms and Heuristics
 
 # %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture11_algorithms-heuristics.ipynb)
+
+# %% [markdown]
 # Combinatorics is the mathematical study of finite structures. Counting problems (e.g.,
 # how many ways are there to select $k$ items out of $n$?) are a good example of a
 # combinatorial problem. Combinatorial optimization (CO) considers optimization problems
@@ -127,7 +130,14 @@
 # path (see the box below), using the same graph data:
 
 # %%
-import pulp
+try:
+    import pulp
+except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
+    import pulp
 
 distance = {
     ("A", "B"): 3,

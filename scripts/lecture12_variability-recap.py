@@ -16,6 +16,9 @@
 # # Lecture 12: Variability (Recap)
 
 # %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_variability-recap.ipynb)
+
+# %% [markdown]
 # This notebook is a recap of variability, included as preparation for [Simulation](lecture12_simulation.ipynb).
 #
 # Variability is omnipresent: without variability every moment of the day would be the same. Often there is a certain level of uncertainty about variability: we do know exactly when it is light and dark, but we do not know exactly when it will rain. Data science tries to explain, predict and control the variability we observe. A solid understanding of data science and business analytics therefore requires studying variability. This goes beyond studying the data itself: mathematical theory helps us understand the data and obtain results about the data. Mathematics and statistics impose a theoretical framework in which, under well-specified conditions, certain results are obtained. When these conditions are (approximately) verified in the data, then we can use the mathematical results, which makes us understand our data much better.
@@ -77,10 +80,20 @@
 # For example, `notebooks/data/eurodist.csv` contains a classic dataset with the distances (in km) between 21 major European cities, one row per pair. We load it with `pandas` and compute the summary statistics:
 
 # %%
+import sys
+from pathlib import Path
+from urllib.request import urlretrieve
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy import stats
+
+if "google.colab" in sys.modules:  # fetch the data files this notebook reads from disk
+    Path("data").mkdir(exist_ok=True)
+    base_url = "https://raw.githubusercontent.com/UvA-SSO/simopt-lecture-notes/main/notebooks/data"
+    for csv_name in ["eurodist.csv", "AirPassengers.csv", "beaver1.csv", "beaver2.csv", "Nile.csv"]:
+        urlretrieve(f"{base_url}/{csv_name}", f"data/{csv_name}")
 
 eurodist = pd.read_csv("data/eurodist.csv")["x"]
 

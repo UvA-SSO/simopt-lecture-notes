@@ -16,6 +16,9 @@
 # # Lecture 8: Integer Optimization
 
 # %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_integer-optimization.ipynb)
+
+# %% [markdown]
 # An integer linear optimization (ILO) problem is an LO problem with the extra requirement
 # that some or all decision variables take integer values, $x_i \in \{0, 1, 2, \dots\}$, or
 # are binary, $x_i \in \{0, 1\}$. (A binary variable is just an integer one with the added
@@ -36,7 +39,14 @@
 # - explain how branch and bound finds the optimum of an ILO problem.
 
 # %%
-import pulp
+try:
+    import pulp
+except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
+    import pulp
 
 # %% [markdown]
 # ## Why Integer Problems Are Harder

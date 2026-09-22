@@ -16,6 +16,9 @@
 # # Lecture 8: Linear Optimization
 
 # %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_linear-optimization.ipynb)
+
+# %% [markdown]
 # This notebook introduces linear optimization (LO), also called linear programming. It is
 # the most widely used optimization framework in practice: efficient solvers exist that are
 # guaranteed to find the optimum even for problems with thousands of variables and
@@ -41,7 +44,15 @@
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
-import pulp
+
+try:
+    import pulp
+except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
+    import pulp
 
 # %% [markdown]
 # (product-mix)=

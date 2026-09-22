@@ -44,4 +44,19 @@ The materials are organized by lecture, and each lecture is divided into topic-s
 
 The simulation and optimization part of this course uses Python. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (see [Modeling Tools and Solvers](notebooks/lecture10_modeling-tools.ipynb)). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.
 
-For the actual optimization, Python calls a separate solver engine. The best-known solvers, Gurobi and CPLEX, are proprietary; CBC is a widely used open-source one, and it is the default that `pulp` uses.
+### Running the notebooks
+
+Every notebook has an "Open in Colab" button at the top, which opens it directly in [Google Colab](https://colab.research.google.com/): a free, browser-based Jupyter environment that needs no local installation. Any packages a notebook needs beyond what Colab already provides (mainly `pulp`) are installed automatically the first time you run it there.
+
+To run the notebooks on your own machine instead, clone the [GitHub repository](https://github.com/UvA-SSO/simopt-lecture-notes) and install the dependencies into an isolated Python environment. Any environment manager works (conda, venv, ...); these notes use [uv](https://docs.astral.sh/uv/):
+
+```sh
+git clone https://github.com/UvA-SSO/simopt-lecture-notes.git
+cd simopt-lecture-notes
+uv sync              # installs Python and all dependencies into .venv
+uv run jupyter lab    # opens Jupyter Lab; open a notebook under notebooks/
+```
+
+## Acknowledgements
+
+These lecture notes are based on the lectures by Joost Berkhout and on Ger Koole's book *An Introduction to Business Analytics* (2019), and were compiled with the help of Claude (Anthropic). Joost Berkhout takes full responsibility for the materials.

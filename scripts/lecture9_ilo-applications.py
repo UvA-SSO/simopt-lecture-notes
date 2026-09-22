@@ -16,6 +16,9 @@
 # # Lecture 9: Applications of (Integer) Linear Optimization
 
 # %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture9_ilo-applications.ipynb)
+
+# %% [markdown]
 # This notebook shows the breadth of problems that fit the (integer) linear optimization
 # framework: the transportation problem, the set cover and covering problems, and shift
 # scheduling, partly for their own sake and partly as inspiration for modeling your own
@@ -31,7 +34,14 @@
 # - formulate set cover, set covering, and shift-scheduling problems as ILO models.
 
 # %%
-import pulp
+try:
+    import pulp
+except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
+    import pulp
 
 # %% [markdown]
 # ## Why Linearity Matters, and What Integrality Buys Back

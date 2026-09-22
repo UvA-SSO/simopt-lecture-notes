@@ -16,6 +16,9 @@
 # # Lecture 9: Machine Scheduling and Modeling Tricks
 
 # %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture9_advanced-modeling.ipynb)
+
+# %% [markdown]
 # The previous notebook showed problems that are ILO fairly directly. This one is about the
 # *tricks* that turn an apparently nonlinear requirement (an either/or choice, a fixed cost
 # that only applies when something is used, a constraint that only holds under a condition)
@@ -32,7 +35,14 @@
 # - formulate a single-machine scheduling problem as an ILO model.
 
 # %%
-import pulp
+try:
+    import pulp
+except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
+    import pulp
 
 # %% [markdown]
 # ## Big M and Indicator Variables

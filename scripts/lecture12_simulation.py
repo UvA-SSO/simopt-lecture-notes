@@ -16,6 +16,9 @@
 # # Lecture 12: Simulation
 
 # %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_simulation.ipynb)
+
+# %% [markdown]
 # Simulation lets us evaluate a model whose output depends on random inputs, when no closed-form formula for the expected output exists. Today we cover two flavors: Monte Carlo simulation, where a known function directly maps a batch of random inputs to an output, and discrete-event simulation (DES), for more complex processes whose state evolves randomly over time.
 #
 # **Learning outcomes**

@@ -15,6 +15,9 @@
 # %% [markdown]
 # # Lecture 13: Simulation Optimization
 
+# %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_simulation-optimization.ipynb)
+
 # %%
 import numpy as np
 

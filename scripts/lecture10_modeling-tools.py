@@ -16,6 +16,9 @@
 # # Lecture 10: Modeling Tools and Solvers
 
 # %% [markdown]
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture10_modeling-tools.ipynb)
+
+# %% [markdown]
 # This notebook has two halves. First, two more applications that need a modeling trick:
 # multi-period inventory planning and robust regression. Then the tooling: the solvers that
 # actually do the optimizing, and the modeling tools (algebraic modeling languages, and
@@ -32,7 +35,15 @@
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
-import pulp
+
+try:
+    import pulp
+except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
+    import pulp
 
 # %% [markdown]
 # (production-inventory-model)=
