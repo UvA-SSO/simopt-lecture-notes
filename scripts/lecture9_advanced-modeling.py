@@ -21,6 +21,15 @@
 # that only applies when something is used, a constraint that only holds under a condition —
 # into linear constraints with binary variables. We build up to **single-machine
 # scheduling**, which uses several of these tricks at once.
+#
+# **Learning outcomes**
+#
+# On completion of this notebook, you will be able to:
+#
+# - model fixed costs and either/or conditions with big-M constraints and binary indicator
+#   variables;
+# - formulate disjunctive constraints as linear constraints;
+# - formulate a single-machine scheduling problem as an ILO model.
 
 # %%
 import pulp

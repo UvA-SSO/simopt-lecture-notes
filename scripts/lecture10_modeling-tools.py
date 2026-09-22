@@ -20,6 +20,14 @@
 # **multi-period inventory planning** and **robust regression**. Then the tooling: the
 # **solvers** that actually do the optimizing, and the **modeling tools** (algebraic
 # modeling languages, and pulp) that sit between your problem and a solver.
+#
+# **Learning outcomes**
+#
+# On completion of this notebook, you will be able to:
+#
+# - model multi-period problems with state variables, such as inventory planning;
+# - formulate a robust regression problem as an LO model;
+# - describe the roles of solvers versus modeling tools, and choose between them.
 
 # %%
 import matplotlib.pyplot as plt

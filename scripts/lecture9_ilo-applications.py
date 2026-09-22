@@ -21,6 +21,14 @@
 # scheduling — partly for their own sake and partly as inspiration for modeling your own
 # problems. We start with *why* we lean so heavily on linear (and integer-linear) models in
 # the first place.
+#
+# **Learning outcomes**
+#
+# On completion of this notebook, you will be able to:
+#
+# - explain why linearity and integrality matter for a problem's solvability;
+# - recognize and formulate the transportation problem;
+# - formulate set cover, set covering, and shift-scheduling problems as ILO models.
 
 # %%
 import pulp

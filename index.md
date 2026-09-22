@@ -39,3 +39,9 @@ This course assumes a basic understanding of quantitative methods, including alg
 These notes are intended to support the lectures and other course materials rather than replace them. They are best read sequentially, with attention to the examples, exercises, and computational tasks. Students are encouraged to work through the examples actively and to connect the mathematical concepts to practical decision problems. Try the exercises first before looking at the solutions.
 
 The materials are organized by lecture, and each lecture is divided into topic-specific notebooks. The table of contents in the left-hand menu follows this structure: lectures are grouped together, and the individual topics are listed underneath each lecture.
+
+## Tooling
+
+The simulation and optimization part of this course uses **Python**. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (see [Modeling Tools and Solvers](notebooks/lecture10_modeling-tools.ipynb)). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.
+
+For the actual optimization, Python calls a separate **solver** engine. The best-known solvers, Gurobi and CPLEX, are proprietary; CBC is a widely used open-source one, and it is the default that `pulp` uses.

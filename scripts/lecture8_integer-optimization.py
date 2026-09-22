@@ -25,6 +25,15 @@
 # instead of the default `"Continuous"`. Everything else about building and solving the
 # model is the same. Solving it, however, is a different matter — in general ILO is much
 # harder than LO, as this notebook and [Complexity](lecture11_complexity.ipynb) explain.
+#
+# **Learning outcomes**
+#
+# On completion of this notebook, you will be able to:
+#
+# - recognize when a problem needs integer or binary decision variables, and formulate and
+#   solve it in pulp;
+# - explain why ILO is generally harder to solve than LO;
+# - explain how branch and bound finds the optimum of an ILO problem.
 
 # %%
 import pulp

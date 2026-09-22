@@ -16,6 +16,22 @@
 # # Lecture 11: Complexity
 
 # %% [markdown]
+# This notebook asks *why* some optimization problems (shortest path, max flow, LO) can
+# always be solved quickly, while others (TSP, ILO in general) apparently cannot, and what
+# that means in practice for how we approach a hard problem.
+#
+# **Learning outcomes**
+#
+# On completion of this notebook, you will be able to:
+#
+# - explain the difference between polynomial and non-polynomial running-time growth, and
+#   why it matters in practice;
+# - classify a problem as (belonging to) P or NP-complete, and explain the practical
+#   implication of that classification;
+# - explain why LO is efficiently solvable in practice despite the simplex method not being
+#   proven polynomial.
+
+# %% [markdown]
 # In the previous notebook we studied 3 archetypical CO problems: shortest path, max flow, and TSP (see [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb)), including an ILO formulation of the TSP with an exponential number of subtour elimination constraints. We saw a crucial difference between these problems: shortest path and max flow have run times polynomial in the size of the problem, but TSP grows as a factorial in $n$ (which is faster than exponential). This really makes a difference. [](#tbl-complexity-growth) illustrates that.
 #
 # :::{table} Growth rates of typical algorithm complexity classes.

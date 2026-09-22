@@ -18,9 +18,22 @@
 # %% [markdown]
 # This part of the course is about **optimization** and **simulation**: turning data and
 # predictions into good decisions. This first notebook places that in context — what kind
-# of analytics it is, why it is valuable, what we will cover, and how a real-life problem
-# becomes a mathematical model. The technical material starts in
+# of analytics it is, how it relates to data science, and how a real-life problem becomes a
+# mathematical model. The technical material starts in
 # [Linear Optimization](lecture8_linear-optimization.ipynb).
+#
+# **Learning outcomes**
+#
+# On completion of this notebook, you will be able to:
+#
+# - place prescriptive analytics among the descriptive/diagnostic/predictive/prescriptive
+#   sequence, and explain what distinguishes it;
+# - relate business analytics to data science and to its roots in statistics, AI, and
+#   operations research;
+# - describe the steps of a BA project, from data collection to implementation, and which
+#   field of study each step draws on;
+# - translate a real-life decision problem into the decision/constraints/objective
+#   ingredients of a mathematical model.
 
 # %% [markdown]
 # ## Prescriptive Analytics and Optimization
@@ -73,33 +86,95 @@
 # :::
 
 # %% [markdown]
-# ## What This Course Covers
+# ## What Is Business Analytics and Data Science?
 #
-# The goals of this part of the course are to:
+# According to Wikipedia, "business analytics refers to the skills, technologies, and
+# practices for continuous iterative exploration and investigation of past business
+# performance to gain insight and drive business planning." In short, **business
+# analytics (BA)** is a rational, fact-based approach to decision making: it is the science
+# and the skills needed to turn data into decisions. BA is not itself a science — it is the
+# total set of knowledge, drawn from several fields, required to solve business problems
+# this way. It grew out of three older fields: **statistics** (drawing conclusions from data
+# under uncertainty), **operations research** (mathematical optimization of decisions, born
+# out of military and industrial logistics), and **artificial intelligence** (algorithms that
+# learn patterns from data). **Data science** overlaps heavily with business analytics but is
+# usually the broader term — it also covers domains outside business (science, government,
+# healthcare) and puts relatively more weight on handling large-scale, **unstructured data**
+# (text, images, sensor streams) alongside the **structured data** (rows and columns in a
+# database) that classical statistics and optimization assume; BA's deliverable is, more
+# specifically, improved business performance, which requires optimization and soft skills on
+# top of what data science delivers.
 #
-# - introduce the **process of optimization**: how a business problem becomes a model that
-#   can be solved;
-# - cover optimization techniques for **deterministic** problems (no uncertainty) and for
-#   **stochastic** problems (with uncertainty), and the role of **simulation** in
-#   evaluating stochastic models;
-# - introduce optimization and simulation **software**;
-# - make you able to model, solve, and **interpret the results** of relatively simple
-#   problems, and to recognize optimization opportunities in practice.
+# Working effectively in this field takes both depth in one specialism (statistics,
+# optimization, or software engineering) and enough breadth to talk to the other
+# specialisms and to the business — often called being a **"T-shaped"** analyst (one deep
+# skill, broad awareness) or, with two deep skills, **"Π-shaped"**. Organizations differ
+# widely in how much they have adopted analytics — from purely descriptive reporting to
+# systematic prescriptive decision-making — and that **analytics maturity** is itself
+# something organizations assess and try to grow. Finally, working with data responsibly
+# raises legal and ethical questions (privacy, bias, fairness) that sit alongside the
+# technical material throughout.
+
+# %% [markdown]
+# ## The Steps of a BA Project
 #
-# The lectures are:
+# A BA project runs through six steps: **data collection**, **data pre-processing**,
+# **descriptive analytics**, **predictive analytics**, **prescriptive analytics**, and
+# **implementation**. The middle four are the *data science steps*; the full sequence, from
+# raw data to a change in how the organization operates, is the *full BA project*.
 #
-# | Lecture | Topic | |
-# |---|---|---|
-# | 8  | Linear optimization | *deterministic models* |
-# | 9  | Applications and advanced modeling | |
-# | 10 | Modeling tools and solvers | |
-# | 11 | Algorithms and complexity | |
-# | 12 | Simulation | *stochastic models* |
-# | 13 | Simulation optimization | |
+# :::{figure} images/lecture8_fig-steps.png
+# :label: fig-ba-steps
 #
-# These notes are the deeper, self-paced companion to the lectures: the lecture moves
-# quickly over the details, and you can work through the reasoning here at your own pace,
-# before or after class.
+# The steps of a BA project.
+# :::
+#
+# [](#fig-ba-steps) suggests a straight line, but in practice a project loops back
+# constantly — disappointing predictions, for example, may send you back to collect more
+# data. Briefly, per step:
+#
+# - **Data collection.** Analytics can only start once there is data. Some organizations
+#   keep a centralized *data warehouse* for this, as part of their *business intelligence*
+#   (BI) strategy; where that is missing or incomplete, data must be collected and combined
+#   from elsewhere — often the most time-consuming part of a project.
+# - **Data pre-processing.** Raw data is cleaned (missing or impossible values handled) and,
+#   through *feature engineering*, combined into more informative attributes — e.g. turning
+#   "day of week" and "time" into "business hours".
+# - **Descriptive analytics.** The data is explored and summarized — visualization,
+#   clustering, hypothesis testing (see [Variability](lecture12_variability-recap.ipynb)) —
+#   to build understanding before modeling. There is no target value here, so this is also
+#   called **unsupervised learning**.
+# - **Predictive analytics.** A target value (e.g. sales, or whether a customer pays) is
+#   predicted from the data; the model is *trained* on historical data for which that target
+#   is already known — also called **supervised learning**, in the flavors *regression*
+#   (numerical target) and *classification* (categorical target).
+# - **Prescriptive analytics.** Given the predictions, the decision that maximizes (or
+#   minimizes) an objective is found — the subject of this course, using (mathematical)
+#   **optimization**, possibly combined with prediction in **reinforcement learning**.
+# - **Implementation.** The decision has to be put into practice, which needs skills well
+#   beyond data science: change management, communication, and project management.
+#
+# Each step leans on a different field of study:
+#
+# :::{figure} images/lecture8_fig-fields.png
+# :label: fig-ba-fields
+#
+# The scientific fields behind each step of a BA project.
+# :::
+#
+# [](#fig-ba-techniques) lists, per data-science step, some of the specific techniques used
+# — several of which reappear later in this course: clustering and hypothesis testing in
+# [Variability](lecture12_variability-recap.ipynb), simulation in
+# [Simulation](lecture12_simulation.ipynb), and linear optimization, our main prescriptive
+# technique, starting in [Linear Optimization](lecture8_linear-optimization.ipynb). Dynamic
+# programming and reinforcement learning are prescriptive techniques as well, but are not
+# covered in this course.
+#
+# :::{figure} images/lecture8_fig1.1.png
+# :label: fig-ba-techniques
+#
+# An overview of the most-often used data science techniques.
+# :::
 
 # %% [markdown]
 # ## From Real-Life Problem to Model
@@ -135,35 +210,20 @@
 # define the objective, define the constraints.
 
 # %% [markdown]
-# ## Tooling
-#
-# This course uses **Python**. Python's built-in functions are deliberately minimal; the
-# data-analysis functionality comes from libraries, most importantly `numpy` (arrays and
-# numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy`
-# (statistics and scientific computing). For optimization we will add `pulp`
-# (see [Modeling Tools and Solvers](lecture10_modeling-tools.ipynb)). These notes are
-# themselves Jupyter notebooks, combining code, its output, and explanation.
-#
-# For the actual optimization, Python calls a separate **solver** engine. The best-known
-# solvers, Gurobi and CPLEX, are proprietary; CBC is a widely used open-source one, and it
-# is the default that `pulp` uses.
-
-# %% [markdown]
 # ## Further Reading
 #
-# This notebook only sets the scene. Koole (2019), Chapter 1, goes further into the
-# non-technical background of business analytics: the historical roots in statistics,
-# artificial intelligence, and operations research; the difference between business
-# analytics, data science, and "big data"; structured versus unstructured data; supervised
-# versus unsupervised learning; the "T-shaped" and "Π-shaped" analyst; organizational
-# analytics-maturity models; and the legal and ethical aspects of working with data. None
-# of that is needed for the optimization and simulation material that follows, but it is
-# worth reading once.
+# This notebook only sketches the non-technical background. Koole (2019), Chapter 1, goes
+# deeper into all of it — including "big data", organizational analytics-maturity models in
+# more detail, and the legal and ethical aspects of working with data. None of that is
+# needed for the optimization and simulation material that follows, but it is worth reading
+# once. Practical setup (Python, libraries, solvers) is covered on the
+# [course home page](../index.md#tooling), not repeated here.
 
 # %% [markdown]
 # ## References
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 1, "Introduction."
+# - Wikipedia contributors. "Business analytics." *Wikipedia, The Free Encyclopedia.*
 # - Davenport, T.H., & Harris, J.G. (2007). *Competing on Analytics: The New Science of
 #   Winning*. Harvard Business School.
 # - Einstein, A., & Infeld, L. (1938). *The Evolution of Physics*. Cambridge University

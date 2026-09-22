@@ -23,6 +23,17 @@
 # graphically and algebraically, see what can go wrong, and end with the general
 # formulation. We solve everything in Python with
 # [pulp](https://coin-or.github.io/pulp/).
+#
+# **Learning outcomes**
+#
+# On completion of this notebook, you will be able to:
+#
+# - formulate a real-life decision problem as an LO model (decision variables, objective,
+#   constraints);
+# - solve an LO model in Python with pulp and interpret the solution both graphically and
+#   algebraically;
+# - recognize infeasibility, unboundedness, and multiple optima, and explain why linearity
+#   makes LO efficiently solvable.
 
 # %% [markdown]
 #

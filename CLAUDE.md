@@ -67,6 +67,10 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
 - Notebooks read as coherent, standalone material — no book chapter/section
   numbering, page numbers, or "Compiled source text" / "Source map" wrapper.
   Concretely:
+  - Every notebook opens with a short intro paragraph (what the notebook covers, in
+    context of neighboring notebooks) followed by a concise **Learning outcomes** bullet
+    list ("On completion of this notebook, you will be able to: ..."), mirroring the
+    short-intro-plus-outcomes setup used in Koole (2019)'s chapters.
   - Headings are plain topic names (`## Problem Formulation`, not `#### 6.1
     Problem formulation`); drop a subsection heading entirely if it would just
     restate the page's own H1 title.
