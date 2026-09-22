@@ -19,9 +19,10 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_introduction.ipynb)
 
 # %% [markdown]
-# This part of the course is about optimization and simulation: turning data into good decisions using Business Analytics (BA). This first notebook places that in context: what kind of
-# analytics it is, how it relates to data science, and how a real-life problem becomes a
-# mathematical model.
+# This part of the course is about optimization and simulation: turning data into good
+# decisions with business analytics (BA). This first notebook places that in context: what
+# kind of analytics it is, how it relates to data science, and how a real-life problem
+# becomes a mathematical model.
 #
 # **Learning outcomes**
 #
@@ -64,10 +65,10 @@
 # :label: eg-1-1
 #
 # A hotel chain analyzes its reservations to look for patterns: which are the busiest days
-# of the week? What is the impact of events in the city? Is there a seasonal pattern? Etc.
-# The outcomes are used to make a prediction for the revenue in the upcoming months. By
-# changing the pricing of the rooms in certain situations (such as sports events), the
-# expected revenue can be maximized.
+# of the week? What is the impact of events in the city? Is there a seasonal pattern?
+# (*descriptive*). The outcomes are used to make a prediction for the revenue in the
+# upcoming months (*predictive*). By changing the pricing of the rooms in certain situations
+# (such as sports events), the expected revenue can be maximized (*prescriptive*).
 # :::
 
 # %% [markdown]
@@ -77,8 +78,8 @@
 # centralized *data warehouse* in which relevant current and historical data is stored for
 # the purpose of reporting and analytics. Setting up such a data warehouse and maintaining
 # it is part of the *business intelligence* (BI) strategy of a company. However, not all
-# companies have such a centralized database, and even when it exists it rarely contains all
-# the information required for a certain analysis. Therefore, data often needs to be
+# companies have such a centralized database, and even when it exists, it rarely contains
+# all the information required for a certain analysis. Therefore, data often needs to be
 # collected, cleansed and combined with other sources. Data collection, cleansing and
 # further pre-processing is usually a very time-consuming task, often taking more time than
 # the actual analysis.
@@ -90,16 +91,16 @@
 # reservations but also data on historical and future events in the surroundings of the
 # hotel. There are many reasons why this data can be hard to get: reservation data may only
 # be stored at an aggregated level, there may have been changes in IT systems which
-# overrode previously collected data, there may be no centrally available list with events,
-# etc. Many organizations assume they already have all the data required, but as soon as
-# the data scientist asks for reservation data combined with the date the booking was made
-# or the event list from the surrounding area, the hotel might find out that they lack data.
+# overrode previously collected data, or there may be no centrally available list of events.
+# Many organizations assume they already have all the data required. Only once the data
+# scientist actually asks for it, say reservation data combined with the booking date, or
+# the event list for the surrounding area, does the hotel find out that it is missing.
 # :::
 #
 # Data collection and pre-processing are therefore always the first steps of a BA project.
 # The data science steps proper begin after them, with descriptive analytics. A BA project
 # does not end with prescriptive analytics either, that is, with generating an (optimal)
-# decision: the decision still has to be implemented, which requires skills such as change
+# decision. The decision still has to be implemented, which requires skills such as change
 # management.
 #
 # To summarize, we distinguish the following steps in a BA project:
@@ -134,32 +135,32 @@
 # %% [markdown]
 # ## Predictive and Prescriptive Analytics
 #
-# Following the descriptive analytics step, a BA project continues with predictive analytics. A
-# target value is specified which we want to predict. Based on the data available, the
-# parameters of the selected predictive method are determined. We say that the model is
-# *trained* on the data. The methods originate from inferential statistics and machine
-# learning, which have their respective roots in mathematics and computer science. Although
-# the approach and the background of these fields are quite different, the techniques
-# largely overlap.
-#
-# :::{note} Example: Debt Collection
-# :label: eg-1-3
-#
-# A debt collection agency wants to use its resources, mainly calls to debtors, in a better
-# way. It collects data on payments which is enriched by external data on household
-# composition and neighborhood characteristics. After the data analysis and visualization a
-# method is selected that predicts, given the characteristics of the debt and the actions
-# taken by the agency, the probability that the debtor will pay off their debt. In the
-# prescriptive step, which is discussed next, the best action for each debtor is determined.
-# :::
+# Following the descriptive analytics step, a BA project continues with predictive
+# analytics. A target value that we want to predict is specified, and the parameters of the
+# selected predictive method are determined based on the data available. We say that the
+# model is *trained* on the data. The methods originate from inferential statistics and
+# machine learning, which have their respective roots in mathematics and computer science.
+# Although the approach and the background of these fields are quite different, the
+# techniques largely overlap.
 #
 # Finally, during the prescriptive analytics phase, options are found to maximize a certain
 # objective. Because the future is always unpredictable to a certain extent, optimization
 # techniques often have to account for this randomness. The field that specializes in this
 # is (mathematical) *optimization*. It overlaps partially with *reinforcement learning*,
 # which has its roots in computer science. A special feature of reinforcement learning is
-# that prediction and optimization are integrated: it combines in one method the predictive
-# and prescriptive phases.
+# that prediction and optimization are integrated: it combines the predictive and
+# prescriptive phases in one method.
+#
+# :::{note} Example: Hospital Ward Planning
+# :label: eg-1-3
+#
+# A hospital wants to improve how patients flow through its wards. It collects data on
+# admissions and bed occupancy, enriched by data on staff schedules and patient diagnoses.
+# After the data analysis and visualization (descriptive analytics), a method is selected
+# that predicts, given a patient's characteristics and treatment plan, the probability that
+# they will need intensive care or a longer stay (predictive analytics). In the prescriptive
+# step, the best assignment of beds, nurses, and operating-room slots is determined.
+# :::
 #
 # :::{note} Example: Hotel Revenue Management, Continued
 # :label: eg-1-4
@@ -181,10 +182,11 @@
 # Harvard Business Review calling a data scientist role "the sexiest job of 21st century", a
 # label that correctly anticipated the huge demand for data scientists that followed. The
 # knowledge base of data scientists and business analysts largely overlaps. However, the
-# deliverable of BA is
-# improved business performance, whereas data scientists focus more on methods and insights
-# from data. Improved business performance requires optimization to generate decisions and
-# *soft skills* to implement them.
+# deliverable of BA is improved business performance, whereas data scientists focus more on
+# methods and insights from data. Improved business performance requires optimization to
+# generate decisions and *soft skills* to implement them. Data science is more often
+# associated with techniques from computer science such as machine learning; BA, in
+# contrast, is more associated with mathematics and industrial engineering.
 #
 # Big data is a related term. It differentiates itself from regular data sets by the
 # so-called *3 V's*: *volume*, *variety*, and *velocity*. A data set is considered to be
@@ -193,12 +195,12 @@
 # when it is only available real-time. Big data requires adapted storage systems and
 # analysis techniques in order to exploit it.
 #
-# Big data now receives a lot of attention due to the speed at which data is collected these
-# days. As more and more devices and sensors automatically generating data are connected to
-# the internet (the *internet of things*) again, the amount of stored data doubles
-# approximately every 3 years. However, most BA projects do not involve big data, but use
-# relatively small and structured data sets. It might have been the case that such a dataset
-# had its origin in big data from which relevant information has been extracted.
+# Big data receives a lot of attention today because of the speed at which it is collected.
+# As more and more devices and sensors that automatically generate data connect to the
+# internet (the *internet of things*), the amount of stored data doubles approximately
+# every 3 years. However, most BA projects do not involve big data, but use relatively
+# small and structured data sets. Such a data set may have originated as big data, with the
+# relevant information later extracted from it.
 #
 # :::{note} Example: Passenger Counting from Camera Images
 # :label: eg-1-5
