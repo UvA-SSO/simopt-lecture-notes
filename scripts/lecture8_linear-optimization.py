@@ -24,6 +24,9 @@
 # formulation. We solve everything in Python with
 # [pulp](https://coin-or.github.io/pulp/).
 
+# %% [markdown]
+#
+
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
