@@ -205,7 +205,7 @@ plt.show()
 # | reward | 10 | 13 | 18 | 31 | 7 | 15 |
 # | weight | 2 | 3 | 4 | 7 | 1 | 3 |
 #
-# With binary $x_i$ is 1 if we take item $i$ and 0 else:
+# With binary $x_i$, which is 1 if we take item $i$ and 0 otherwise:
 #
 # $$
 # \begin{aligned}

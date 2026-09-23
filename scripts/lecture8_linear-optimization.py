@@ -48,7 +48,7 @@
 # | bookcase | 3 | 1 | 2 |
 # | desk    | 5 | 3 | 1 |
 #
-# For example, creating 2 bookcaes creates a profit of 6 and requires 2 oak panels and 4 assembly hours. There are 12 oak panels and 10 assembly hours available this week. The optimization problem is to find the product mix
+# For example, creating 2 bookcases creates a profit of 6 and requires 2 oak panels and 4 assembly hours. There are 12 oak panels and 10 assembly hours available this week. The optimization problem is to find the product mix
 # that maximizes profit this week. For simplicity, we assume continuous amounts of bookcases and desks can
 # be made; [Integer Optimization](lecture8_integer-optimization.ipynb) revisits this example
 # with the added requirement that only whole numbers are allowed.
@@ -356,7 +356,7 @@ plt.show()
 # from corner to neighboring corner, each time to one with a better objective value, and
 # stops when no neighboring corner is better. Why is that enough to guarantee the *global*
 # optimum? Because the feasible region of an LO problem is a convex polyhedron: a shape with
-# flat faces and no hidden ``hills''. If every neighbor of your current corner is worse, there
+# flat faces and no hidden "hills". If every neighbor of your current corner is worse, there
 # is nowhere higher to go, since reaching a higher point would require the boundary to
 # curve, and linear constraints never curve. So for LO, a local optimum is automatically a
 # global optimum.
@@ -395,7 +395,7 @@ plt.show()
 # :::
 
 # %% [markdown]
-# In the following we illustrate the unbounded and infeasible errors in pulp for the product-mix problem. For unboundedness, we add a third variable $s$ that uses no resources at all; for infeasibility, we add a customer contract that requires $y \ge 5$.:
+# In the following we illustrate the unbounded and infeasible errors in pulp for the product-mix problem. For unboundedness, we add a third variable $s$ that uses no resources at all; for infeasibility, we add a customer contract that requires $y \ge 5$:
 
 # %%
 unbounded_lp = pulp.LpProblem(name="unbounded_example", sense=pulp.LpMaximize)
@@ -430,7 +430,7 @@ print("status:", pulp.LpStatus[infeasible_lp.status])
 # :::{exercise}
 # :label: ex-6-3
 #
-# For what values of $a$ is adding the constraint $x >= a$ in the original problem feasible? Confirm it with `pulp`.
+# For what values of $a$ is adding the constraint $x \ge a$ in the original problem feasible? Confirm it with `pulp`.
 # :::
 
 # %% [markdown]
