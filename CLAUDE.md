@@ -165,6 +165,29 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   version. Motivate the separation explicitly (reuse across instances, no magic
   numbers, mirrors what an algebraic modeling language gives you for free) in
   its own short section rather than jumping straight to the separated form.
+- Naming in pulp code: long-lived names are descriptive (key data and variable
+  dicts by real names such as `"bookcase"`, not `"x"`; call the variable dict
+  `dec_vars` or a domain name like `ship`/`pick`; name the problem after the
+  problem, e.g. `product_mix`). Short-scope loop/comprehension variables may
+  abbreviate the iterable right next to them (`for p in products`,
+  `for res, cap in available.items()`). Single-letter decision variables
+  (`x`, `y`) belong only in the direct, hardcoded version that mirrors the math.
+- Never let a line break fall inside a nested expression (e.g. an `lpSum`
+  wrapped inside a constraint tuple). Pull the inner part into a named
+  intermediate instead:
+  ```python
+  for res, cap in available.items():
+      usage = pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
+      product_mix += usage <= cap, res.replace(" ", "_")
+  ```
+  When a second instance of a data-separated model is solved, reuse the exact
+  same model code (same names) rather than renaming variables to fit; save any
+  earlier solution a later cell needs (e.g. `mix_solution`) before re-solving.
+- Code lines are at most 79 characters (PEP 8; `line-length`/`line_length = 79`
+  for ruff and isort in `pyproject.toml`). `ruff format` does not wrap comments
+  or strings: put a long comment on its own line above the code and split a
+  long string into adjacent literals. Markdown prose in `# ` comment lines is
+  not bound by this limit.
 - A code cell that only produces a supporting figure, where writing that
   plotting code is not itself something students need to learn, should be
   collapsed by default so it doesn't compete for attention with modeling code:
@@ -247,3 +270,11 @@ then `jupytext --sync` last. `fail_fast: true` is set, so hooks stop at the firs
 failure — fix and re-run rather than expecting later hooks to also report.
 
 Run `uv run pre-commit run --all-files` before committing lecture note changes.
+It can fail on the first run with jupytext's `SynchronousModificationError`
+(two hook batches syncing the same pair at once); just re-run it.
+
+`jupytext --sync` treats whichever file of a pair was modified most recently as
+the source. So never `git checkout` a notebook (e.g. to drop editor-saved
+`execution_count`/timestamp noise) and then sync: the stale notebook would
+overwrite the script. If you reset a notebook, `touch` or re-edit its script
+before syncing.
