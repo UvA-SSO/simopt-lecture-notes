@@ -158,27 +158,28 @@ print("optimal profit:", product_mix.objective.value())
 # separate from the *model*-building code, and build the model from that data:
 
 # %%
-profit = {"x": 3, "y": 5}
-resource_use = {  # resource_use[r][p]: units of resource r per unit of product p
-    "oak panels": {"x": 1, "y": 3},
-    "assembly hours": {"x": 2, "y": 1},
+profit = {"bookcase": 3, "desk": 5}
+resource_use = {  # resource_use[resource][product]: units of resource per unit of product
+    "oak panels": {"bookcase": 1, "desk": 3},
+    "assembly hours": {"bookcase": 2, "desk": 1},
 }
 available = {"oak panels": 12, "assembly hours": 10}
 products = list(profit)
 
 product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
-q = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
+dec_vars = {product: pulp.LpVariable(name=product, lowBound=0) for product in products}
 
-product_mix += pulp.lpSum(profit[p] * q[p] for p in products), "profit"
-for r, cap in available.items():
+product_mix += pulp.lpSum(profit[product] * dec_vars[product] for product in products), "profit"
+for resource, capacity in available.items():
     product_mix += (
-        pulp.lpSum(resource_use[r][p] * q[p] for p in products) <= cap,
-        r.replace(" ", "_"),
+        pulp.lpSum(resource_use[resource][product] * dec_vars[product] for product in products)
+        <= capacity,
+        resource.replace(" ", "_"),
     )
 
 product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[product_mix.status])
-print("optimal mix:", {p: q[p].value() for p in products})
+print("optimal mix:", {product: dec_vars[product].value() for product in products})
 print("optimal profit:", product_mix.objective.value())
 
 # %% [markdown]
@@ -194,39 +195,45 @@ print("optimal profit:", product_mix.objective.value())
 # ## A Larger Example in pulp
 #
 # The same three ingredients, and the same data/model split, scale to any size. Suppose the
-# workshop adds a third product, chairs ($z$), that uses 2 oak panels and 1 assembly hour
+# workshop adds a third product, chairs, that uses 2 oak panels and 1 assembly hour
 # per unit and earns a profit of 4 per unit, and that both resources become a bit more
 # plentiful: 15 oak panels and 18 assembly hours. Only the *data* changes; the
 # model-building code stays exactly the same as in the previous section:
 
 # %%
-profit = {"x": 3, "y": 5, "z": 4}
-resource_use = {  # resource_use[r][p]: units of resource r per unit of product p
-    "oak panels": {"x": 1, "y": 3, "z": 2},
-    "assembly hours": {"x": 2, "y": 1, "z": 1},
+profit = {"bookcase": 3, "desk": 5, "chair": 4}
+resource_use = {  # resource_use[resource][product]: units of resource per unit of product
+    "oak panels": {"bookcase": 1, "desk": 3, "chair": 2},
+    "assembly hours": {"bookcase": 2, "desk": 1, "chair": 1},
 }
 available = {"oak panels": 15, "assembly hours": 18}
 products = list(profit)
 
 larger_lo = pulp.LpProblem(name="larger_lo", sense=pulp.LpMaximize)
-w = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
+larger_dec_vars = {product: pulp.LpVariable(name=product, lowBound=0) for product in products}
 
-larger_lo += pulp.lpSum(profit[p] * w[p] for p in products), "profit"
-for r, cap in available.items():
+larger_lo += (
+    pulp.lpSum(profit[product] * larger_dec_vars[product] for product in products),
+    "profit",
+)
+for resource, capacity in available.items():
     larger_lo += (
-        pulp.lpSum(resource_use[r][p] * w[p] for p in products) <= cap,
-        r.replace(" ", "_"),
+        pulp.lpSum(
+            resource_use[resource][product] * larger_dec_vars[product] for product in products
+        )
+        <= capacity,
+        resource.replace(" ", "_"),
     )
 
 larger_lo.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[larger_lo.status])
-print("optimal mix:", {p: w[p].value() for p in products})
+print("optimal mix:", {product: larger_dec_vars[product].value() for product in products})
 print("optimal profit:", larger_lo.objective.value())
 
 # %% [markdown]
 # The model-building code has the same structure as the two-product case (only the
-# variable dict's name changed, from `q` to `w`, to keep the two models' solutions apart
-# below); only the data changed.
+# variable dict's name changed, from `dec_vars` to `larger_dec_vars`, to keep the two models'
+# solutions apart below); only the data changed.
 
 # %% [markdown]
 # ## A Graphical View
@@ -256,7 +263,7 @@ plt.plot(x_grid, 10 - 2 * x_grid, color="C1", label=r"$2x + y \leq 10$ (assembly
 y_upper = np.minimum((12 - x_grid) / 3, 10 - 2 * x_grid)
 plt.fill_between(x_grid, 0, y_upper, where=(y_upper >= 0), alpha=0.2, label="feasible region")
 
-x_opt, y_opt = q["x"].value(), q["y"].value()
+x_opt, y_opt = dec_vars["bookcase"].value(), dec_vars["desk"].value()
 for level, style in [(15, ":"), (product_mix.objective.value(), "-")]:
     plt.plot(x_grid, (level - 3 * x_grid) / 5, style, color="grey")
 plt.plot(x_opt, y_opt, "ko")

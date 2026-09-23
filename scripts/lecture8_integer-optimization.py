@@ -64,18 +64,27 @@ import pulp
 # Let pulp solve the integer version:
 
 # %%
-profit = {"x": 3, "y": 5}
-use = {"oak panels": {"x": 1, "y": 3}, "assembly hours": {"x": 2, "y": 1}}
+profit = {"bookcase": 3, "desk": 5}
+resource_use = {  # resource_use[resource][product]: units of resource per unit of product
+    "oak panels": {"bookcase": 1, "desk": 3},
+    "assembly hours": {"bookcase": 2, "desk": 1},
+}
 available = {"oak panels": 12, "assembly hours": 10}
 products = list(profit)
 
 int_mix = pulp.LpProblem(name="integer_product_mix", sense=pulp.LpMaximize)
-q = {p: pulp.LpVariable(name=p, lowBound=0, cat="Integer") for p in products}
-int_mix += pulp.lpSum(profit[p] * q[p] for p in products)
-for r, cap in available.items():
-    int_mix += pulp.lpSum(use[r][p] * q[p] for p in products) <= cap
+dec_vars = {
+    product: pulp.LpVariable(name=product, lowBound=0, cat="Integer") for product in products
+}
+int_mix += pulp.lpSum(profit[product] * dec_vars[product] for product in products)
+for resource, capacity in available.items():
+    int_mix += (
+        pulp.lpSum(resource_use[resource][product] * dec_vars[product] for product in products)
+        <= capacity
+    )
 int_mix.solve(pulp.PULP_CBC_CMD(msg=False))
-print("integer optimum:", {p: q[p].value() for p in products}, "profit", int_mix.objective.value())
+print("integer optimum:", {product: dec_vars[product].value() for product in products})
+print("optimal profit:", int_mix.objective.value())
 
 # %% [markdown]
 # The picture below shows why rounding is unreliable: the LP-relaxation optimum (the star)
@@ -99,7 +108,7 @@ plt.scatter(
 )
 
 plt.plot(3.6, 2.8, "C3*", markersize=14, zorder=4, label="LP relaxation optimum")
-x_int, y_int = q["x"].value(), q["y"].value()
+x_int, y_int = dec_vars["bookcase"].value(), dec_vars["desk"].value()
 plt.plot(x_int, y_int, "ko", markersize=8, zorder=4, label="ILO optimum")
 
 plt.xlim(0, 6)
