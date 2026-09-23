@@ -97,7 +97,7 @@
 # :::
 #
 # Data collection and pre-processing are therefore always the first steps of a BA project.
-# The data science steps proper begin after them, with descriptive analytics. A BA project
+# The data science steps begin after them, with descriptive analytics. A BA project
 # does not end with prescriptive analytics either, that is, with generating an (optimal)
 # decision. The decision still has to be implemented, which requires skills such as change
 # management.

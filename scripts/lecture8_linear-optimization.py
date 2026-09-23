@@ -40,16 +40,16 @@
 # %% [markdown]
 # ## A Motivating Problem: Optimal Product Mix
 #
-# A workshop makes two products, **bookcases** and **desks**, from two limited resources,
-# **oak panels** and **assembly hours**:
+# A good way to introduce LO is through a concrete example. Consider a workshop that makes two products, **bookcases** and **desks**, from two limited resources,
+# **oak panels** and **assembly hours**. The following information is known per unit of product:
 #
-# | | profit (€) | oak panels needed | assembly hours needed |
-# |---|---|---|---|
+# | product | profit (€) | oak panels needed | assembly hours needed |
+# |---------|---|---|---|
 # | bookcase | 3 | 1 | 2 |
-# | desk     | 5 | 3 | 1 |
+# | desk    | 5 | 3 | 1 |
 #
-# There are 12 oak panels and 10 assembly hours available this week. Which product mix
-# maximizes profit? For simplicity, we assume continuous amounts of bookcases and desks can
+# For example, creating 2 bookcaes creates a profit of 6 and requires 2 oak panels and 4 assembly hours. There are 12 oak panels and 10 assembly hours available this week. The optimization problem is to find the product mix
+# that maximizes profit this week. For simplicity, we assume continuous amounts of bookcases and desks can
 # be made; [Integer Optimization](lecture8_integer-optimization.ipynb) revisits this example
 # with the added requirement that only whole numbers are allowed.
 
@@ -61,7 +61,7 @@
 #
 # 1. **study the problem** in detail (done above);
 # 2. **define the decision variables**: let $x$ and $y$ be the number of bookcases and
-#    desks produced;
+#    desks produced, respectively;
 # 3. **define the objective**: maximize profit, $3x + 5y$;
 # 4. **define the constraints**: the oak-panel usage, $x + 3y$, cannot exceed 12; the
 #    assembly-hour usage, $2x + y$, cannot exceed 10; and $x, y \ge 0$.
@@ -92,7 +92,7 @@
 # ### Import pulp
 #
 # [pulp](https://coin-or.github.io/pulp/) is the Python package we use to build and solve
-# LO (and, later, ILO) models.
+# LO (and, later, ILO) models. Let's import it.
 
 # %%
 import matplotlib.pyplot as plt
@@ -102,8 +102,8 @@ import pulp
 # %% [markdown]
 # ### Introduce the LP Problem
 #
-# An `LpProblem` is pulp's container for a model: give it a name and a `sense`
-# (`LpMaximize` or `LpMinimize`).
+# Python class `LpProblem` is pulp's container for a model: give it a name and a `sense`
+# (`LpMaximize` or `LpMinimize`) upon initialization.
 
 # %%
 product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
@@ -111,7 +111,7 @@ product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
 # %% [markdown]
 # ### Specify the Decision Variables (step 2)
 #
-# Each decision variable becomes an `LpVariable`; `lowBound=0` encodes $x, y \ge 0$.
+# Each decision variable becomes an `LpVariable` object; `lowBound=0` encodes $x, y \ge 0$. Optionally, we can set `cat` by giving a string that specifies the variable type, for example `"Continuous"`, `"Integer"`, or `"Binary"` (resulting in `LpContinuous`, `LpInteger`, or `LpBinary`, respectively). By default, `LpVariable` is continuous; we will see integer variables in [Integer Optimization](lecture8_integer-optimization.ipynb). Optionally, an `upBound` can be specified.
 
 # %%
 x = pulp.LpVariable(name="x", lowBound=0)
@@ -129,20 +129,28 @@ product_mix += 3 * x + 5 * y, "profit"
 # %% [markdown]
 # ### Specify the Constraints (step 4)
 #
-# Constraints are added the same way, one `+=` call per constraint.
+# Constraints are added the same way, one `+=` call per constraint. The comparison operators `<=`, `>=`, and `==` signify that a constraint is added (and not an objective).
 
 # %%
 product_mix += x + 3 * y <= 12, "oak_panels"
 product_mix += 2 * x + y <= 10, "assembly_hours"
 
 # %% [markdown]
-# ### Solve and Check the Results
+# ### Printing the Model
 #
-# `.solve()` runs the solver; `LpStatus` reports whether it found an optimum, and
-# `.value()` reads off the variables and the objective.
+# For small models, it is often useful to print the model to check that it was built correctly. pulp's `print()` method produces a human-readable version of the model.
 
 # %%
-product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+print(product_mix)
+
+# %% [markdown]
+# ### Solve and Check the Results
+#
+# We are ready to solve the LO problem. We first load a solver and then use it in `.solve()`; `LpStatus` reports whether it found an optimum, and `.value()` reads off the variables and the objective.
+
+# %%
+solver = pulp.PULP_CBC_CMD(msg=False)
+product_mix.solve(solver)
 print("status:", pulp.LpStatus[product_mix.status])
 print(f"x = {x.value()}, y = {y.value()}")
 print("optimal profit:", product_mix.objective.value())
@@ -151,13 +159,14 @@ print("optimal profit:", product_mix.objective.value())
 # ## Separating Data from the Model
 #
 # The direct version above hardcodes every number into the model itself, which is fine for
-# a problem you solve once. It breaks down as soon as you want to re-solve for different
+# a (small) problem you solve once. It breaks down as soon as you want to re-solve for different
 # data (more products, different resource limits) or reuse the same model code elsewhere:
 # every number would have to be found and edited inside the model-building code, which is
 # slow and error-prone. The fix is to keep the instance *data* in plain Python structures,
 # separate from the *model*-building code, and build the model from that data:
 
 # %%
+# data
 profit = {"bookcase": 3, "desk": 5}
 # resource_use[res][p]: units of resource res per unit of product p
 resource_use = {
@@ -167,6 +176,7 @@ resource_use = {
 available = {"oak panels": 12, "assembly hours": 10}
 products = list(profit)
 
+# modeling
 product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
 dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
@@ -175,6 +185,7 @@ for res, cap in available.items():
     usage = pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
     product_mix += usage <= cap, res.replace(" ", "_")
 
+# solving the model and printing the results
 product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
 mix_solution = {p: dec_vars[p].value() for p in products}
 optimal_profit = product_mix.objective.value()
@@ -201,6 +212,7 @@ print("optimal profit:", optimal_profit)
 # model-building code stays exactly the same as in the previous section:
 
 # %%
+# data
 profit = {"bookcase": 3, "desk": 5, "chair": 4}
 # resource_use[res][p]: units of resource res per unit of product p
 resource_use = {
@@ -210,6 +222,7 @@ resource_use = {
 available = {"oak panels": 15, "assembly hours": 18}
 products = list(profit)
 
+# modeling
 product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
 dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
@@ -218,6 +231,7 @@ for res, cap in available.items():
     usage = pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
     product_mix += usage <= cap, res.replace(" ", "_")
 
+# solving the model and printing the results
 product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[product_mix.status])
 print("optimal mix:", {p: dec_vars[p].value() for p in products})
@@ -234,8 +248,7 @@ print("optimal profit:", product_mix.objective.value())
 # a line; the feasible region is the set of points satisfying all of them at once. Because
 # both the constraints and the objective are linear, the objective-value contour lines are
 # straight and parallel. Sliding one in the direction of increasing profit, the last
-# feasible point it touches is an optimal solution, and it is always a corner of the
-# feasible region.
+# feasible point it touches is an optimal solution. Indeed, this may be a line segment if the objective function is parallel to a constraint. However, there is always a corner point of the feasible region that is optimal.
 #
 # :::{exercise}
 # :label: ex-6-1
@@ -244,8 +257,7 @@ print("optimal profit:", product_mix.objective.value())
 # evaluate the objective at each, and check which one pulp found.
 # :::
 #
-# The code below only produces the figure; reproducing it is not itself something you need
-# to learn, so feel free to skip straight to the plot.
+# The code below only generates the figure. You do not need to learn this plotting code, so you can skip to the plot and use it to check your hand drawing, which you do need to master.
 
 # %% tags=["hide-input"]
 x_grid = np.linspace(0, 12, 200)
@@ -328,11 +340,12 @@ plt.show()
 # \end{aligned}
 # $$
 #
+# $s_1$ is the number of oak panels left unused, and $s_2$ is the number of assembly hours left unused.
 # There are now 2 equations and 4 variables. As a rule, a system of $k$ independent linear
-# equations in $k$ unknowns has exactly one solution, so if we set any 2 of the 4 variables
-# to zero the other 2 are determined. Each such choice corresponds to a corner of the
+# equations in $k$ unknowns has generally one solution, so if we set any 2 of the 4 variables
+# to zero the other 2 are determined (where the two lines corresponding to the equations cross). Each such choice corresponds to a corner of the
 # feasible region (some combinations give a negative value and are infeasible; those are
-# corners of the lines' intersections that lie outside the region). The corners here are:
+# corners of the lines' intersections that lie outside the feasible region). The corners here are:
 #
 # - $(x, y, s_1, s_2) = (0, 0, 12, 10)$: the origin;
 # - $(5, 0, 7, 0)$: assembly hours fully used;
@@ -340,10 +353,10 @@ plt.show()
 # - $(3.6, 2.8, 0, 0)$: both resource constraints tight, the optimum.
 #
 # The simplex algorithm (G.B. Dantzig, 1947), which pulp's default solver uses for LO, hops
-# from corner to neighbouring corner, each time to one with a better objective value, and
-# stops when no neighbouring corner is better. Why is that enough to guarantee the *global*
+# from corner to neighboring corner, each time to one with a better objective value, and
+# stops when no neighboring corner is better. Why is that enough to guarantee the *global*
 # optimum? Because the feasible region of an LO problem is a convex polyhedron: a shape with
-# flat faces and no hidden hills. If every neighbour of your current corner is worse, there
+# flat faces and no hidden ``hills''. If every neighbor of your current corner is worse, there
 # is nowhere higher to go, since reaching a higher point would require the boundary to
 # curve, and linear constraints never curve. So for LO, a local optimum is automatically a
 # global optimum.
@@ -382,7 +395,7 @@ plt.show()
 # :::
 
 # %% [markdown]
-# The same two problems, this time solved with pulp:
+# In the following we illustrate the unbounded and infeasible errors in pulp for the product-mix problem. For unboundedness, we add a third variable $s$ that uses no resources at all; for infeasibility, we add a customer contract that requires $y \ge 5$.:
 
 # %%
 unbounded_lp = pulp.LpProblem(name="unbounded_example", sense=pulp.LpMaximize)
@@ -417,9 +430,7 @@ print("status:", pulp.LpStatus[infeasible_lp.status])
 # :::{exercise}
 # :label: ex-6-3
 #
-# Change the customer contract above to require $x \ge 11$ instead (impossible since the
-# assembly-hours constraint alone caps $x$ at 5), and confirm pulp still reports
-# `"Infeasible"`.
+# For what values of $a$ is adding the constraint $x >= a$ in the original problem feasible? Confirm it with `pulp`.
 # :::
 
 # %% [markdown]
@@ -444,7 +455,7 @@ print("status:", pulp.LpStatus[infeasible_lp.status])
 #
 # Let $x_i$ be the finish time of activity $i$. If $i$ precedes $j$ then
 # $x_i + d_j \le x_j$, where $d_j$ is the duration of $j$; also $x_i \ge d_i$. We want the
-# time when *all* activities are finished, $\max_i x_i$. That maximum is not linear, but we
+# time when *all* activities are finished, $\max_i x_i$. That maximum is not linear (question to yourself: why not?), but we
 # can introduce a variable $z \ge x_i$ for all $i$ and minimize $z$: the optimization will
 # push $z$ down to exactly the largest finish time. This "min-max" trick reappears
 # throughout the course.
@@ -494,8 +505,7 @@ print(
 print("project finish time (makespan):", makespan.value())
 
 # %% [markdown]
-# The project-planning model above (activities `A`–`F`, the `duration` dict and
-# `precedences` list) is referred to from later notebooks. The finish time can also be
+# The finish time can also be
 # found by a direct algorithm without LO, and that algorithm extends to *random* durations,
 # which matters because durations are often hard to predict, one reason IT projects
 # overrun.
@@ -506,6 +516,12 @@ print("project finish time (makespan):", makespan.value())
 # Find the project finish time by hand: repeatedly take the activity whose predecessors are
 # all finished and give it the earliest possible finish time. Check you get the same
 # makespan as pulp.
+# :::
+#
+# :::{exercise}
+# :label: ex-rewrite-proj-planning
+#
+# Rewrite the project planning model above in case $x_i$ is the *start* time of activity $i$ instead of the finish time. Check that pulp gives the same makespan.
 # :::
 
 # %% [markdown]

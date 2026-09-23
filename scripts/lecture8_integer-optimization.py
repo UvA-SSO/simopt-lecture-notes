@@ -40,11 +40,6 @@
 # - explain why linearity (but not integrality) is essential for efficient solvability, and
 #   how integer variables let you model many other nonlinearities without giving that up.
 
-# %%
-import matplotlib.pyplot as plt
-import numpy as np
-import pulp
-
 # %% [markdown]
 # ## Why Integer Problems Are Harder
 #
@@ -64,6 +59,10 @@ import pulp
 # Let pulp solve the integer version:
 
 # %%
+import matplotlib.pyplot as plt
+import numpy as np
+import pulp
+
 profit = {"bookcase": 3, "desk": 5}
 # resource_use[res][p]: units of resource res per unit of product p
 resource_use = {
@@ -199,14 +198,14 @@ plt.show()
 # a capacity. Applications include which items to load in a truck, cutting stock in a steel
 # plant, and simple forms of portfolio selection.
 #
-# Consider capacity 10 and six items:
+# Consider capacity 10 and six numbered items:
 #
-# | | 1 | 2 | 3 | 4 | 5 | 6 |
-# |---|---|---|---|---|---|---|
+# | item  | 1 | 2 | 3 | 4 | 5 | 6 |
+# |-------|---|---|---|---|---|---|
 # | reward | 10 | 13 | 18 | 31 | 7 | 15 |
 # | weight | 2 | 3 | 4 | 7 | 1 | 3 |
 #
-# With binary $x_i$ (1 = take item $i$):
+# With binary $x_i$ is 1 if we take item $i$ and 0 else:
 #
 # $$
 # \begin{aligned}
@@ -233,9 +232,6 @@ print("take items:", [i + 1 for i in range(n_items) if take[i].value() == 1])
 print("total reward:", knapsack.objective.value())
 
 # %% [markdown]
-# The `build_knapsack` pattern and this data reappear in
-# [Modeling Tools and Solvers](lecture10_modeling-tools.ipynb) when we look at warm starting.
-#
 # :::{exercise}
 # :label: ex-6-10
 #
@@ -284,7 +280,7 @@ print("total reward:", knapsack.objective.value())
 #
 # Linearity is what makes LO efficiently solvable: written in the
 # [general form above](#general-formulation), the feasible region is a convex polyhedron,
-# the optimum sits at a corner, and a local optimum is automatically global. As soon as the
+# an optimum sits at a corner, and a local optimum is automatically global. As soon as the
 # objective or a constraint is nonlinear, both of those break:
 #
 # - **Nonlinear objective.** Maximize $x_1 x_2$ subject to $x_1 + x_2 \le 1$,
@@ -309,8 +305,7 @@ print("total reward:", knapsack.objective.value())
 # variables and otherwise-linear constraints, and then solved with branch and bound. That is
 # why so much modeling effort goes into casting a problem as ILO, and why it is worth
 # treating as its own class rather than lumping it in with general nonlinear optimization.
-# [Transportation and Transshipment](lecture9_transportation.ipynb),
-# [Set Covering and Shift Scheduling](lecture9_covering.ipynb), and
+# [Set Covering and Shift Scheduling](lecture9_covering.ipynb) and
 # [Machine Scheduling](lecture9_machine-scheduling.ipynb) show many of those tricks in
 # practice.
 
