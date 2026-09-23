@@ -32,6 +32,30 @@ There are no automated tests in this repo; a clean `--execute` build (or, if the
 network policy blocks `api.mystmd.org`'s template fetch, extracting and running each
 script's code cells directly with `uv run python`) is the closest thing to one.
 
+**Always clean up background build processes after checking a build.** `jupyter book
+build --execute --html` starts a Jupyter server and then a local site server that keep
+running in the background even after the build itself has finished (they don't exit on
+their own, and a `timeout` wrapper only kills the outer `timeout`/`uv run` process, not
+the `node`/`jupyter_server` children it spawned). Left alone across several builds in one
+session, these pile up and visibly slow down every subsequent build. After each build
+you run for verification:
+
+```sh
+# launch so the whole process tree shares one process group you can kill together
+setsid timeout 200 uv run jupyter book build --execute --html > /tmp/build.log 2>&1 &
+disown
+# ... wait for the build to finish, check the log/output ...
+# then kill the entire process group (note the leading "-")
+kill -9 -$(ps -o pgid= -p <pid-of-the-uv-run-process> | tr -d ' ')
+# verify nothing is left
+ps aux | grep -iE "jupyter|myst|node" | grep -v grep
+```
+
+If you didn't launch with `setsid`/track the PGID, at minimum run the verification `ps`
+command above after every build and kill any leftover `jupyter_server` / `node .../
+jupyter-book.cjs` processes by PID before moving on. Do not assume `pkill -f "jupyter
+book"` caught everything.
+
 ## Architecture: notebooks are paired with scripts via Jupytext
 
 Every notebook in `notebooks/*.ipynb` has a paired plain-Python script in
