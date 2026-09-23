@@ -31,14 +31,7 @@
 # - formulate shift-scheduling problems as covering problems and solve them with pulp.
 
 # %%
-try:
-    import pulp
-except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
-    import subprocess
-    import sys
-
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
-    import pulp
+import pulp
 
 # %% [markdown]
 # ## Set Cover and Covering Problems

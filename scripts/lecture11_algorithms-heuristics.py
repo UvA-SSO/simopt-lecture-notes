@@ -129,14 +129,7 @@
 # path (see the box below), using the same graph data:
 
 # %%
-try:
-    import pulp
-except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
-    import subprocess
-    import sys
-
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
-    import pulp
+import pulp
 
 distance = {
     ("A", "B"): 3,

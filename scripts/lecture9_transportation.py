@@ -31,14 +31,7 @@
 # - extend a transportation model to transshipment with flow-conservation constraints.
 
 # %%
-try:
-    import pulp
-except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
-    import subprocess
-    import sys
-
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
-    import pulp
+import pulp
 
 # %% [markdown]
 # ## The Transportation Problem

@@ -97,15 +97,7 @@
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
-
-try:
-    import pulp
-except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
-    import subprocess
-    import sys
-
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pulp"], check=True)
-    import pulp
+import pulp
 
 # %% [markdown]
 # ### Introduce the LP Problem
