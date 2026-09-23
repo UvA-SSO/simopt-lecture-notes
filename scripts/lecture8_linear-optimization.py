@@ -159,7 +159,7 @@ print("optimal profit:", product_mix.objective.value())
 
 # %%
 profit = {"bookcase": 3, "desk": 5}
-resource_use = {  # resource_use[resource][product]: units of resource per unit of product
+resource_use = {  # resource_use[res][p]: units of resource res per unit of product p
     "oak panels": {"bookcase": 1, "desk": 3},
     "assembly hours": {"bookcase": 2, "desk": 1},
 }
@@ -167,19 +167,18 @@ available = {"oak panels": 12, "assembly hours": 10}
 products = list(profit)
 
 product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
-dec_vars = {product: pulp.LpVariable(name=product, lowBound=0) for product in products}
+dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
-product_mix += pulp.lpSum(profit[product] * dec_vars[product] for product in products), "profit"
-for resource, capacity in available.items():
+product_mix += pulp.lpSum(profit[p] * dec_vars[p] for p in products), "profit"
+for res, cap in available.items():
     product_mix += (
-        pulp.lpSum(resource_use[resource][product] * dec_vars[product] for product in products)
-        <= capacity,
-        resource.replace(" ", "_"),
+        pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products) <= cap,
+        res.replace(" ", "_"),
     )
 
 product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[product_mix.status])
-print("optimal mix:", {product: dec_vars[product].value() for product in products})
+print("optimal mix:", {p: dec_vars[p].value() for p in products})
 print("optimal profit:", product_mix.objective.value())
 
 # %% [markdown]
@@ -202,7 +201,7 @@ print("optimal profit:", product_mix.objective.value())
 
 # %%
 profit = {"bookcase": 3, "desk": 5, "chair": 4}
-resource_use = {  # resource_use[resource][product]: units of resource per unit of product
+resource_use = {  # resource_use[res][p]: units of resource res per unit of product p
     "oak panels": {"bookcase": 1, "desk": 3, "chair": 2},
     "assembly hours": {"bookcase": 2, "desk": 1, "chair": 1},
 }
@@ -210,24 +209,18 @@ available = {"oak panels": 15, "assembly hours": 18}
 products = list(profit)
 
 larger_lo = pulp.LpProblem(name="larger_lo", sense=pulp.LpMaximize)
-larger_dec_vars = {product: pulp.LpVariable(name=product, lowBound=0) for product in products}
+larger_dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
-larger_lo += (
-    pulp.lpSum(profit[product] * larger_dec_vars[product] for product in products),
-    "profit",
-)
-for resource, capacity in available.items():
+larger_lo += pulp.lpSum(profit[p] * larger_dec_vars[p] for p in products), "profit"
+for res, cap in available.items():
     larger_lo += (
-        pulp.lpSum(
-            resource_use[resource][product] * larger_dec_vars[product] for product in products
-        )
-        <= capacity,
-        resource.replace(" ", "_"),
+        pulp.lpSum(resource_use[res][p] * larger_dec_vars[p] for p in products) <= cap,
+        res.replace(" ", "_"),
     )
 
 larger_lo.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[larger_lo.status])
-print("optimal mix:", {product: larger_dec_vars[product].value() for product in products})
+print("optimal mix:", {p: larger_dec_vars[p].value() for p in products})
 print("optimal profit:", larger_lo.objective.value())
 
 # %% [markdown]

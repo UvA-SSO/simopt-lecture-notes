@@ -65,7 +65,7 @@ import pulp
 
 # %%
 profit = {"bookcase": 3, "desk": 5}
-resource_use = {  # resource_use[resource][product]: units of resource per unit of product
+resource_use = {  # resource_use[res][p]: units of resource res per unit of product p
     "oak panels": {"bookcase": 1, "desk": 3},
     "assembly hours": {"bookcase": 2, "desk": 1},
 }
@@ -73,17 +73,12 @@ available = {"oak panels": 12, "assembly hours": 10}
 products = list(profit)
 
 int_mix = pulp.LpProblem(name="integer_product_mix", sense=pulp.LpMaximize)
-dec_vars = {
-    product: pulp.LpVariable(name=product, lowBound=0, cat="Integer") for product in products
-}
-int_mix += pulp.lpSum(profit[product] * dec_vars[product] for product in products)
-for resource, capacity in available.items():
-    int_mix += (
-        pulp.lpSum(resource_use[resource][product] * dec_vars[product] for product in products)
-        <= capacity
-    )
+dec_vars = {p: pulp.LpVariable(name=p, lowBound=0, cat="Integer") for p in products}
+int_mix += pulp.lpSum(profit[p] * dec_vars[p] for p in products)
+for res, cap in available.items():
+    int_mix += pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products) <= cap
 int_mix.solve(pulp.PULP_CBC_CMD(msg=False))
-print("integer optimum:", {product: dec_vars[product].value() for product in products})
+print("integer optimum:", {p: dec_vars[p].value() for p in products})
 print("optimal profit:", int_mix.objective.value())
 
 # %% [markdown]
