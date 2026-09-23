@@ -79,9 +79,8 @@ dec_vars = {
 }
 int_mix += pulp.lpSum(profit[p] * dec_vars[p] for p in products)
 for res, cap in available.items():
-    int_mix += (
-        pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products) <= cap
-    )
+    usage = pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
+    int_mix += usage <= cap, res.replace(" ", "_")
 int_mix.solve(pulp.PULP_CBC_CMD(msg=False))
 print("integer optimum:", {p: dec_vars[p].value() for p in products})
 print("optimal profit:", int_mix.objective.value())

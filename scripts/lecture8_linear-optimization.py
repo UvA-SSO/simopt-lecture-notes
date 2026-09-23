@@ -172,16 +172,15 @@ dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
 product_mix += pulp.lpSum(profit[p] * dec_vars[p] for p in products), "profit"
 for res, cap in available.items():
-    product_mix += (
-        pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
-        <= cap,
-        res.replace(" ", "_"),
-    )
+    usage = pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
+    product_mix += usage <= cap, res.replace(" ", "_")
 
 product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+mix_solution = {p: dec_vars[p].value() for p in products}
+optimal_profit = product_mix.objective.value()
 print("status:", pulp.LpStatus[product_mix.status])
-print("optimal mix:", {p: dec_vars[p].value() for p in products})
-print("optimal profit:", product_mix.objective.value())
+print("optimal mix:", mix_solution)
+print("optimal profit:", optimal_profit)
 
 # %% [markdown]
 # The model-building code (the `for` loop and the `pulp.lpSum` calls) no longer mentions 3,
@@ -211,29 +210,22 @@ resource_use = {
 available = {"oak panels": 15, "assembly hours": 18}
 products = list(profit)
 
-larger_lo = pulp.LpProblem(name="larger_lo", sense=pulp.LpMaximize)
-larger_dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
+product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
+dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
-larger_lo += (
-    pulp.lpSum(profit[p] * larger_dec_vars[p] for p in products),
-    "profit",
-)
+product_mix += pulp.lpSum(profit[p] * dec_vars[p] for p in products), "profit"
 for res, cap in available.items():
-    larger_lo += (
-        pulp.lpSum(resource_use[res][p] * larger_dec_vars[p] for p in products)
-        <= cap,
-        res.replace(" ", "_"),
-    )
+    usage = pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
+    product_mix += usage <= cap, res.replace(" ", "_")
 
-larger_lo.solve(pulp.PULP_CBC_CMD(msg=False))
-print("status:", pulp.LpStatus[larger_lo.status])
-print("optimal mix:", {p: larger_dec_vars[p].value() for p in products})
-print("optimal profit:", larger_lo.objective.value())
+product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[product_mix.status])
+print("optimal mix:", {p: dec_vars[p].value() for p in products})
+print("optimal profit:", product_mix.objective.value())
 
 # %% [markdown]
-# The model-building code has the same structure as the two-product case (only the
-# variable dict's name changed, from `dec_vars` to `larger_dec_vars`, to keep the two models'
-# solutions apart below); only the data changed.
+# The model-building code is a line-for-line copy of the two-product version; only the
+# data changed.
 
 # %% [markdown]
 # ## A Graphical View
@@ -280,8 +272,8 @@ plt.fill_between(
     label="feasible region",
 )
 
-x_opt, y_opt = dec_vars["bookcase"].value(), dec_vars["desk"].value()
-for level, style in [(15, ":"), (product_mix.objective.value(), "-")]:
+x_opt, y_opt = mix_solution["bookcase"], mix_solution["desk"]
+for level, style in [(15, ":"), (optimal_profit, "-")]:
     plt.plot(x_grid, (level - 3 * x_grid) / 5, style, color="grey")
 plt.plot(x_opt, y_opt, "ko")
 plt.annotate(
