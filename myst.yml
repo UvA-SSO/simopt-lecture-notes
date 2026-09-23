@@ -2,7 +2,8 @@
 version: 1
 project:
   id: 22c4be78-d77f-4ff1-9b75-29e3a5742831
-  title: Simulation and Optimization — Lecture Notes
+  title: 'Simulation and Optimization: Lecture Notes'
+  github: https://github.com/UvA-SSO/simopt-lecture-notes
   toc:
     - file: index.md
     - title: Lecture 8
@@ -17,9 +18,13 @@ project:
           title: Exercises
     - title: Lecture 9
       children:
-        - file: notebooks/lecture9_ilo-applications.ipynb
-          title: Applications of (I)LO
-        - file: notebooks/lecture9_advanced-modeling.ipynb
+        - file: notebooks/lecture9_introduction.ipynb
+          title: Applications of (Integer) Linear Optimization
+        - file: notebooks/lecture9_transportation.ipynb
+          title: Transportation and Transshipment
+        - file: notebooks/lecture9_covering.ipynb
+          title: Set Covering and Shift Scheduling
+        - file: notebooks/lecture9_machine-scheduling.ipynb
           title: Machine Scheduling
         - file: notebooks/lecture9_exercises.ipynb
           title: Exercises
@@ -52,7 +57,7 @@ project:
         - file: notebooks/lecture13_exercises.ipynb
           title: Exercises
 site:
-  title: Simulation and Optimization — Lecture Notes
+  title: 'Simulation and Optimization: Lecture Notes'
   template: book-theme
   options:
     logo: images/logo.png

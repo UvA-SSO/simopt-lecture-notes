@@ -14,8 +14,7 @@
 
 # %% [markdown]
 # # Lecture 13: Simulation Optimization
-
-# %% [markdown]
+#
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_simulation-optimization.ipynb)
 
 # %%
@@ -226,7 +225,7 @@ print(f"Var(diff), independent sampling:  {diff_indep.var():.2f}")
 # :::{note} Example: Shift Scheduling with Interactions
 # :label: eg-8-4
 #
-# [Shift scheduling](lecture9_ilo-applications.ipynb#shift-scheduling) was discussed earlier. There, the required capacity per interval was given. Often, the capacity in one interval has consequences on another, and simulation is the only tool to evaluate these effects. In such a situation, simopt can be used.
+# [Shift scheduling](lecture9_covering.ipynb#shift-scheduling) was discussed earlier. There, the required capacity per interval was given. Often, the capacity in one interval has consequences on another, and simulation is the only tool to evaluate these effects. In such a situation, simopt can be used.
 # :::
 #
 # :::{exercise}

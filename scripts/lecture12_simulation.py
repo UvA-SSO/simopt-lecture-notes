@@ -14,8 +14,7 @@
 
 # %% [markdown]
 # # Lecture 12: Simulation
-
-# %% [markdown]
+#
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_simulation.ipynb)
 
 # %% [markdown]

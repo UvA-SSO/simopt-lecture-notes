@@ -14,8 +14,7 @@
 
 # %% [markdown]
 # # Lecture 8: Integer Optimization
-
-# %% [markdown]
+#
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_integer-optimization.ipynb)
 
 # %% [markdown]
@@ -37,10 +36,14 @@
 #   solve it in pulp;
 # - explain why ILO is generally harder to solve than LO;
 # - explain how branch and bound finds the optimum of an ILO problem;
-# - write any LO problem in the general matrix form, and explain why linearity (but not
-#   integrality) is essential for efficient solvability.
+# - write any LO problem in the general matrix form;
+# - explain why linearity (but not integrality) is essential for efficient solvability, and
+#   how integer variables let you model many other nonlinearities without giving that up.
 
 # %%
+import matplotlib.pyplot as plt
+import numpy as np
+
 try:
     import pulp
 except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
@@ -53,23 +56,25 @@ except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
 # %% [markdown]
 # ## Why Integer Problems Are Harder
 #
-# Take the product-mix problem from [Linear Optimization](lecture8_linear-optimization.ipynb)
-# and require whole units of $x$ and $y$. Its LO optimum was $(x, y) = (6, 4.5)$ with profit
-# 40.5, not integer. Two things go wrong compared to LO:
+# Take the bookcase/desk product-mix problem from
+# [Linear Optimization](lecture8_linear-optimization.ipynb) and require whole units of $x$
+# and $y$. Its LO optimum was $(x, y) = (3.6, 2.8)$ with profit 24.8, not integer. Two
+# things go wrong compared to LO:
 #
 # - **the optimal corner is no longer feasible**, so the simplex reasoning ("the optimum is
 #   at a corner") does not directly help;
-# - **rounding the LO optimum is not enough**: rounding $y$ up to 5 while keeping $x = 6$
-#   violates the assembly-hours constraint ($6 + 10 = 16 > 15$), and $(6, 4)$ or $(5, 5)$
-#   each need checking. Evaluating the corners tells us little, because the integer optimum
-#   sits somewhere *inside* the feasible region.
+# - **rounding the LO optimum is not enough**: rounding both up to $(4, 3)$ violates the
+#   oak-panel constraint ($4 + 9 = 13 > 12$), and rounding both down to $(3, 2)$ is feasible
+#   but only reaches a profit of 19, well below the true integer optimum. Evaluating nearby
+#   integer points tells us little, because finding the true optimum in general needs a
+#   systematic search.
 #
 # Let pulp solve the integer version:
 
 # %%
 profit = {"x": 3, "y": 5}
-use = {"oak panels": {"x": 1, "y": 0}, "assembly hours": {"x": 1, "y": 2}}
-available = {"oak panels": 6, "assembly hours": 15}
+use = {"oak panels": {"x": 1, "y": 3}, "assembly hours": {"x": 2, "y": 1}}
+available = {"oak panels": 12, "assembly hours": 10}
 products = list(profit)
 
 int_mix = pulp.LpProblem(name="integer_product_mix", sense=pulp.LpMaximize)
@@ -81,12 +86,46 @@ int_mix.solve(pulp.PULP_CBC_CMD(msg=False))
 print("integer optimum:", {p: q[p].value() for p in products}, "profit", int_mix.objective.value())
 
 # %% [markdown]
+# The picture below shows why rounding is unreliable: the LP-relaxation optimum (the star)
+# does not sit on the integer grid, and the nearest lattice points are not necessarily
+# feasible or optimal. The ILO optimum (the black dot) is the best *feasible* grid point,
+# which can be several steps away from the naive rounding of the relaxation.
+
+# %% tags=["hide-input"]
+x_grid = np.linspace(0, 6, 200)
+plt.figure(figsize=(5, 5))
+plt.plot(x_grid, (12 - x_grid) / 3, color="C0", label=r"$x + 3y \leq 12$ (oak panels)")
+plt.plot(x_grid, 10 - 2 * x_grid, color="C1", label=r"$2x + y \leq 10$ (assembly hours)")
+y_upper = np.minimum((12 - x_grid) / 3, 10 - 2 * x_grid)
+plt.fill_between(x_grid, 0, y_upper, where=(y_upper >= 0), alpha=0.15, label="feasible region")
+
+xs, ys = np.meshgrid(range(7), range(5))
+feasible = (xs + 3 * ys <= 12) & (2 * xs + ys <= 10)
+plt.scatter(xs[feasible], ys[feasible], color="C2", zorder=3, label="integer feasible points")
+plt.scatter(
+    xs[~feasible], ys[~feasible], color="lightgrey", zorder=2, label="integer infeasible points"
+)
+
+plt.plot(3.6, 2.8, "C3*", markersize=14, zorder=4, label="LP relaxation optimum")
+x_int, y_int = q["x"].value(), q["y"].value()
+plt.plot(x_int, y_int, "ko", markersize=8, zorder=4, label="ILO optimum")
+
+plt.xlim(0, 6)
+plt.ylim(0, 4.5)
+plt.xlabel("bookcases $x$")
+plt.ylabel("desks $y$")
+plt.legend(loc="upper right", fontsize=7)
+plt.title("Feasible region with integer lattice points")
+plt.show()
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-6-9
 #
-# Solve the larger LO problem from [Linear Optimization](lecture8_linear-optimization.ipynb)
-# again, once requiring all variables integer and once requiring them binary. Compare the
-# optimal objective values with the continuous one.
+# Solve the larger LO problem from
+# [Linear Optimization](lecture8_linear-optimization.ipynb#larger-lo-example) again, once
+# requiring all variables integer and once requiring them binary. Compare the optimal
+# objective values with the continuous one.
 # :::
 
 # %% [markdown]
@@ -110,13 +149,13 @@ print("integer optimum:", {p: q[p].value() for p in products}, "profit", int_mix
 #
 # For the integer product-mix problem:
 #
-# - **Root.** LO relaxation optimum $(6, 4.5)$, value $40.5$, so UB $= 40.5$. Branch on the
-#   fractional $y = 4.5$.
-# - **Branch $y \le 4$.** Relaxation optimum $(6, 4)$, value $38$, integer, so LB $= 38$.
-# - **Branch $y \ge 5$.** Relaxation optimum $(5, 5)$, value $40$, integer, so LB $= 40$.
+# - **Root.** LO relaxation optimum $(3.6, 2.8)$, value $24.8$, so UB $= 24.8$. Branch on
+#   the fractional $y = 2.8$.
+# - **Branch $y \le 2$.** Relaxation optimum $(4, 2)$, value $22$, integer, so LB $= 22$.
+# - **Branch $y \ge 3$.** Relaxation optimum $(3, 3)$, value $24$, integer, so LB $= 24$.
 #
-# The best LB is $40$ from the right branch; the left branch's value $38$ is below it, so it
-# is eliminated. Every subproblem is now resolved, and $(5, 5)$ with profit $40$ is the
+# The best LB is $24$ from the right branch; the left branch's value $22$ is below it, so it
+# is eliminated. Every subproblem is now resolved, and $(3, 3)$ with profit $24$ is the
 # proven ILO optimum, matching what pulp reported above. Only three linear relaxations had
 # to be solved.
 #
@@ -184,7 +223,8 @@ print("total reward:", knapsack.objective.value())
 # :::
 
 # %% [markdown]
-# ## The General Formulation and Linearity
+# (general-formulation)=
+# ## General Formulation
 #
 # Having now seen both LO and ILO in action, we can step back and write down the general
 # form both fit into. An LO problem with $n$ decision variables and $m$ constraints is
@@ -206,20 +246,42 @@ print("total reward:", knapsack.objective.value())
 # - **"$\ge$" constraints**: $Ax \ge b \Leftrightarrow -Ax \le -b$;
 # - **"$=$" constraints**: $Ax = b \Leftrightarrow Ax \le b$ and $Ax \ge b$;
 # - **free (unrestricted) variables**: replace $x$ by $x^+ - x^-$ with $x^+, x^- \ge 0$.
+
+# %% [markdown]
+# (why-linearity-matters)=
+# ## Why Linearity Matters, and What Integrality Buys Back
 #
-# What *cannot* be relaxed is linearity. If the objective is nonlinear, the optimum need
-# not lie at a corner (think of $\max -x^2$ on $[-1, 1]$, optimal at the interior point 0).
-# If a constraint is nonlinear, the feasible region is no longer a convex polyhedron, so it
-# can have several local optima and the simplex reasoning from
-# [Linear Optimization](lecture8_linear-optimization.ipynb) breaks down: you are not sure
-# you have found the best solution until you have checked every local optimum, which is
-# usually intractable. Nonlinear optimization therefore needs different, less efficient
-# algorithms.
+# Linearity is what makes LO efficiently solvable: written in the
+# [general form above](#general-formulation), the feasible region is a convex polyhedron,
+# the optimum sits at a corner, and a local optimum is automatically global. As soon as the
+# objective or a constraint is nonlinear, both of those break:
 #
-# Integrality, the one structured deviation from pure linearity that this notebook has been
-# about, sits in between: it does make a problem harder to solve (as branch and bound's
-# extra work above shows), but not intractably so, which is exactly why ILO is worth
+# - **Nonlinear objective.** Maximize $x_1 x_2$ subject to $x_1 + x_2 \le 1$,
+#   $x_1, x_2 \ge 0$. The optimum is $(0.5, 0.5)$, in the *interior* of an edge, not at a
+#   corner.
+# - **Nonlinear constraint.** Maximize $x_1 + x_2$ subject to $\min(x_1, x_2) = 0$,
+#   $x_1 \le 2$, $x_2 \le 1$. The feasible set is two line segments meeting at the origin
+#   (either $x_1 = 0$ or $x_2 = 0$). It has two *local* optima, $(2, 0)$ and $(0, 1)$; you
+#   cannot be sure which is global without checking both. More generally, the simplex
+#   reasoning from [Linear Optimization](lecture8_linear-optimization.ipynb) breaks down
+#   whenever the feasible region is not a convex polyhedron: you are not sure you have
+#   found the best solution until you have checked every local optimum, which is usually
+#   intractable.
+#
+# Nonlinear optimization therefore needs slower, less reliable algorithms. But there is a
+# large and useful middle ground: integer constraints. On the one hand, requiring
+# $x_i \in \{0, 1, 2, \dots\}$ is itself a nonlinear constraint, and it does make a problem
+# harder to solve, as branch and bound's extra work above shows. On the other hand, unlike
+# general nonlinearities, it is not *intractably* so, and many other nonlinearities (an
+# either/or choice, a fixed cost that applies only when an activity is used, a "this
+# constraint holds only if..." condition) can be expressed with integer (usually binary)
+# variables and otherwise-linear constraints, and then solved with branch and bound. That is
+# why so much modeling effort goes into casting a problem as ILO, and why it is worth
 # treating as its own class rather than lumping it in with general nonlinear optimization.
+# [Transportation and Transshipment](lecture9_transportation.ipynb),
+# [Set Covering and Shift Scheduling](lecture9_covering.ipynb), and
+# [Machine Scheduling](lecture9_machine-scheduling.ipynb) show many of those tricks in
+# practice.
 
 # %% [markdown]
 # ## References

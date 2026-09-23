@@ -38,26 +38,21 @@ This course assumes a basic understanding of quantitative methods, including alg
 
 These notes are intended to support the lectures and other course materials rather than replace them. They are best read sequentially, with attention to the examples, exercises, and computational tasks. Students are encouraged to work through the examples actively and to connect the mathematical concepts to practical decision problems. Try the exercises first before looking at the solutions.
 
-The materials are organized by lecture, and each lecture is divided into topic-specific notebooks. The table of contents in the left-hand menu follows this structure: lectures are grouped together, and the individual topics are listed underneath each lecture.
+The materials are organized by lecture, and each lecture is divided into topic-specific Jupyter notebooks. The table of contents in the left-hand menu follows this structure: lectures are grouped together, and the individual topics are listed underneath each lecture.
+
+### Running the notebooks
+
+Every notebook has an "Open in Colab" button at the top, which opens it directly in [Google Colab](https://colab.research.google.com/): a free, browser-based Jupyter environment that needs no local installation. Any packages a notebook needs beyond what Colab already provides (mainly `pulp`) are installed automatically the first time you run it there. This allows you to run the notebooks without installing anything on your own machine. Use it to actively learn about the concepts: change parameters, add constraints, etc.
+
+You can also download the notebooks and run them locally, which is recommended if you want to work with larger datasets or more computationally intensive models.
 
 ## Tooling
 
 The simulation and optimization part of this course uses Python. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (see [Modeling Tools and Solvers](notebooks/lecture10_modeling-tools.ipynb)). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.
 
-### Running the notebooks
+## Contributing
 
-Every notebook has an "Open in Colab" button at the top, which opens it directly in [Google Colab](https://colab.research.google.com/): a free, browser-based Jupyter environment that needs no local installation. Any packages a notebook needs beyond what Colab already provides (mainly `pulp`) are installed automatically the first time you run it there.
-
-To run the notebooks on your own machine instead, clone the [GitHub repository](https://github.com/UvA-SSO/simopt-lecture-notes) and install the dependencies into an isolated Python environment. Any environment manager works (conda, venv, ...); these notes use [uv](https://docs.astral.sh/uv/). The course materials themselves are the project, while JupyterLab is only needed as a local editor for working with notebooks:
-
-```sh
-git clone https://github.com/UvA-SSO/simopt-lecture-notes.git
-cd simopt-lecture-notes
-uv sync --group dev  # installs the project dependencies and the local notebook editor
-uv run jupyter lab  # Windows / macOS / Linux
-```
-
-These commands open Jupyter Lab so you can open a notebook under `notebooks/`.
+Spotted an error, unclear explanation, or broken example in the notes? The notebook is organized on [Github](https://github.com/UvA-SSO/simopt-lecture-notes). Please feel free to report issues or suggest improvements.
 
 ## Acknowledgements
 

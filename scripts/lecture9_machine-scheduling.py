@@ -14,16 +14,15 @@
 
 # %% [markdown]
 # # Lecture 9: Machine Scheduling and Modeling Tricks
+#
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture9_machine-scheduling.ipynb)
 
 # %% [markdown]
-# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture9_advanced-modeling.ipynb)
-
-# %% [markdown]
-# The previous notebook showed problems that are ILO fairly directly. This one is about the
-# *tricks* that turn an apparently nonlinear requirement (an either/or choice, a fixed cost
-# that only applies when something is used, a constraint that only holds under a condition)
-# into linear constraints with binary variables. We build up to single-machine scheduling,
-# which uses several of these tricks at once.
+# The previous notebooks showed problems that are ILO fairly directly. This one is about
+# the *tricks* that turn an apparently nonlinear requirement (an either/or choice, a fixed
+# cost that only applies when something is used, a constraint that only holds under a
+# condition) into linear constraints with binary variables. We build up to single-machine
+# scheduling, which uses several of these tricks at once.
 #
 # **Learning outcomes**
 #
@@ -49,10 +48,10 @@ except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
 #
 # Suppose a cost is incurred only when an activity is *used* at all, regardless of how much.
 # Take the transportation problem from
-# [Applications of (I)LO](lecture9_ilo-applications.ipynb) with an extra fixed cost $K$ for
-# every link that carries any flow. Introduce a binary $y_{ij}$ meaning "link $i \to j$ is
-# used", add $K \sum_{i,j} y_{ij}$ to the objective, and tie $y_{ij}$ to $x_{ij}$ with a
-# big M: a constant larger than any $x_{ij}$ could ever be:
+# [Transportation and Transshipment](lecture9_transportation.ipynb) with an extra fixed
+# cost $K$ for every link that carries any flow. Introduce a binary $y_{ij}$ meaning "link
+# $i \to j$ is used", add $K \sum_{i,j} y_{ij}$ to the objective, and tie $y_{ij}$ to
+# $x_{ij}$ with a big M: a constant larger than any $x_{ij}$ could ever be:
 #
 # $$
 # x_{ij} \le M\, y_{ij}.
@@ -71,13 +70,6 @@ except ModuleNotFoundError:  # pulp is not preinstalled on Google Colab
 #
 # is the original constraint when $y = 1$, and no constraint at all (right-hand side huge)
 # when $y = 0$.
-#
-# :::{exercise}
-# :label: ex-6-18
-#
-# Take [the transportation exercise](lecture9_ilo-applications.ipynb#ex-6-8) and add a fixed
-# cost of 10 for every link that is used. Solve the resulting ILO with pulp.
-# :::
 
 # %% [markdown]
 # ## Either/Or (Disjunctive) Constraints
@@ -183,40 +175,6 @@ print("processing order:", order, "| total weighted tardiness:", sched.objective
 #   with the project-planning trick, $\min z$ subject to $x_i + s_i \le z$ for all $i$;
 # - a **weighted sum** of makespan and tardiness (or: minimize tardiness first, then
 #   minimize makespan with the tardiness fixed at its optimum).
-#
-# :::{exercise}
-# :label: ex-6-20
-#
-# Assume activities B and C of the
-# [project-planning problem](lecture8_linear-optimization.ipynb#project-planning) use the
-# same resource and so cannot run at the same time. Formulate this as an ILO and solve it
-# with pulp.
-# :::
-#
-# :::{exercise}
-# :label: ex-6-21
-#
-# Implement single-machine scheduling with the total-tardiness objective in pulp and solve
-# it for:
-#
-# | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
-# |---|---|---|---|---|---|---|---|---|---|---|
-# | duration | 4 | 5 | 3 | 5 | 7 | 1 | 0 | 3 | 2 | 10 |
-# | release time | 3 | 4 | 7 | 11 | 10 | 0 | 0 | 10 | 0 | 15 |
-# | due date | 11 | 12 | 20 | 25 | 20 | 10 | 30 | 30 | 10 | 20 |
-#
-# For a constraint over all $i \ne j$, loop both indices and `continue` when `i == j`.
-# Nested binary variables:
-# `y = [[pulp.LpVariable(name=f"y_{i}_{j}", cat="Binary") for j in range(n)] for i in range(n)]`.
-# :::
-#
-# :::{exercise}
-# :label: ex-6-22
-#
-# Change the objective of
-# [the class-scheduling exercise](lecture9_ilo-applications.ipynb#ex-6-14) to: minimize the
-# time the last class finishes.
-# :::
 
 # %% [markdown]
 # ## References

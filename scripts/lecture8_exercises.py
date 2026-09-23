@@ -14,8 +14,7 @@
 
 # %% [markdown]
 # # Lecture 8: Exercises
-
-# %% [markdown]
+#
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_exercises.ipynb)
 
 # %% [markdown]
@@ -81,7 +80,7 @@
 # [Linear Optimization](lecture8_linear-optimization.ipynb#larger-lo-example). It helps to
 # ask what the additional *decision* is.
 #
-# a. Next to the 9 oak panels, you can buy extra ones for a price of 1 per panel. What is
+# a. Next to the 15 oak panels, you can buy extra ones for a price of 1 per panel. What is
 #    the optimal solution now?
 #
 # b. The same, but the price per extra panel is 3.

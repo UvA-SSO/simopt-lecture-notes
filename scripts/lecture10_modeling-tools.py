@@ -14,8 +14,7 @@
 
 # %% [markdown]
 # # Lecture 10: Modeling Tools and Solvers
-
-# %% [markdown]
+#
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture10_modeling-tools.ipynb)
 
 # %% [markdown]
@@ -100,7 +99,7 @@ print("total cost:", inventory.objective.value())
 # Extend the multi-period model with fixed order costs: a cost $K$ is incurred in period
 # $t$ whenever $x_t > 0$, regardless of the amount. Keep all constraints linear (hint: a
 # binary "did we order in period $t$" variable and a big $M$, as in
-# [Machine Scheduling](lecture9_advanced-modeling.ipynb)). Solve with pulp.
+# [Machine Scheduling](lecture9_machine-scheduling.ipynb)). Solve with pulp.
 # :::
 
 # %% [markdown]
@@ -176,7 +175,7 @@ plt.show()
 # :::{exercise}
 # :label: ex-6-17
 #
-# Take [the call-center staffing exercise](lecture9_ilo-applications.ipynb#ex-6-13) with
+# Take [the call-center staffing exercise](lecture9_exercises.ipynb#ex-6-13) with
 # only 8-hour shifts. Instead of requiring the staffing level to be met in every interval,
 # minimize the sum of absolute differences between staffing and demand. Formulate as an LO
 # and solve with pulp.
@@ -324,7 +323,7 @@ print("capacity 11, warm started:", [v.value() for v in items11], knap11.objecti
 # :::{exercise}
 # :label: ex-10-2
 #
-# Warm start [the shift-scheduling exercise](lecture9_ilo-applications.ipynb#ex-6-13) from
+# Warm start [the shift-scheduling exercise](lecture9_exercises.ipynb#ex-6-13) from
 # the previous day's optimal schedule when one interval's demand changes slightly. Compare
 # the number of explored nodes (from the `msg=True` log) with and without the warm start.
 # :::

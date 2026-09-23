@@ -14,8 +14,7 @@
 
 # %% [markdown]
 # # Lecture 8: Linear Optimization
-
-# %% [markdown]
+#
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_linear-optimization.ipynb)
 
 # %% [markdown]
@@ -41,18 +40,18 @@
 # %% [markdown]
 # ## A Motivating Problem: Optimal Product Mix
 #
-# A workshop makes two products, $x$ and $y$, from two limited resources: oak panels and
-# assembly hours. Producing one unit of $x$ uses 1 oak panel and 1 assembly hour; one unit
-# of $y$ uses no oak panels and 2 assembly hours. Product $x$ earns a profit of 3 per unit,
-# product $y$ a profit of 5 per unit.
+# A workshop makes two products, **bookcases** and **desks**, from two limited resources,
+# **oak panels** and **assembly hours**:
 #
-# | | profit | oak panels needed | assembly hours needed |
+# | | profit (€) | oak panels needed | assembly hours needed |
 # |---|---|---|---|
-# | $x$ | 3 | 1 | 1 |
-# | $y$ | 5 | 0 | 2 |
+# | bookcase | 3 | 1 | 2 |
+# | desk     | 5 | 3 | 1 |
 #
-# There are 6 oak panels and 15 assembly hours available this week. Which product mix
-# maximizes profit?
+# There are 12 oak panels and 10 assembly hours available this week. Which product mix
+# maximizes profit? For simplicity, we assume continuous amounts of bookcases and desks can
+# be made; [Integer Optimization](lecture8_integer-optimization.ipynb) revisits this example
+# with the added requirement that only whole numbers are allowed.
 
 # %% [markdown]
 # (modeling-approach)=
@@ -61,19 +60,19 @@
 # We follow the same four steps for every problem in this course:
 #
 # 1. **study the problem** in detail (done above);
-# 2. **define the decision variables**: let $x$ and $y$ be the quantities of the two
-#    products produced;
+# 2. **define the decision variables**: let $x$ and $y$ be the number of bookcases and
+#    desks produced;
 # 3. **define the objective**: maximize profit, $3x + 5y$;
-# 4. **define the constraints**: the oak-panel usage, $x$, cannot exceed 6; the
-#    assembly-hour usage, $x + 2y$, cannot exceed 15; and $x, y \ge 0$.
+# 4. **define the constraints**: the oak-panel usage, $x + 3y$, cannot exceed 12; the
+#    assembly-hour usage, $2x + y$, cannot exceed 10; and $x, y \ge 0$.
 #
 # In mathematical form:
 #
 # $$
 # \begin{aligned}
 # \text{maximize} \quad & 3x + 5y & \text{(objective)} \\
-# \text{subject to} \quad & x \le 6 & \text{(oak panels)} \\
-# & x + 2y \le 15 & \text{(assembly hours)} \\
+# \text{subject to} \quad & x + 3y \le 12 & \text{(oak panels)} \\
+# & 2x + y \le 10 & \text{(assembly hours)} \\
 # & x, y \ge 0.
 # \end{aligned}
 # $$
@@ -141,8 +140,8 @@ product_mix += 3 * x + 5 * y, "profit"
 # Constraints are added the same way, one `+=` call per constraint.
 
 # %%
-product_mix += x <= 6, "oak_panels"
-product_mix += x + 2 * y <= 15, "assembly_hours"
+product_mix += x + 3 * y <= 12, "oak_panels"
+product_mix += 2 * x + y <= 10, "assembly_hours"
 
 # %% [markdown]
 # ### Solve and Check the Results
@@ -169,10 +168,10 @@ print("optimal profit:", product_mix.objective.value())
 # %%
 profit = {"x": 3, "y": 5}
 resource_use = {  # resource_use[r][p]: units of resource r per unit of product p
-    "oak panels": {"x": 1, "y": 0},
-    "assembly hours": {"x": 1, "y": 2},
+    "oak panels": {"x": 1, "y": 3},
+    "assembly hours": {"x": 2, "y": 1},
 }
-available = {"oak panels": 6, "assembly hours": 15}
+available = {"oak panels": 12, "assembly hours": 10}
 products = list(profit)
 
 product_mix = pulp.LpProblem(name="product_mix", sense=pulp.LpMaximize)
@@ -192,7 +191,7 @@ print("optimal profit:", product_mix.objective.value())
 
 # %% [markdown]
 # The model-building code (the `for` loop and the `pulp.lpSum` calls) no longer mentions 3,
-# 5, 6, or 15 anywhere: it works unchanged for any number of products and resources, as
+# 5, 12, or 10 anywhere: it works unchanged for any number of products and resources, as
 # long as `profit`, `resource_use`, and `available` describe them. This is the pattern we
 # use for every larger model from here on, and it is also the discipline behind the
 # algebraic modeling languages (AMLs) introduced in
@@ -203,37 +202,39 @@ print("optimal profit:", product_mix.objective.value())
 # ## A Larger Example in pulp
 #
 # The same three ingredients, and the same data/model split, scale to any size. Suppose the
-# workshop adds a third product, $z$, that uses 2 oak panels and 1 assembly hour per unit
-# and earns a profit of 4 per unit, and that both resources become a bit more plentiful: 9
-# oak panels and 20 assembly hours. Only the *data* changes; the model-building code stays
-# exactly the same as in the previous section:
+# workshop adds a third product, chairs ($z$), that uses 2 oak panels and 1 assembly hour
+# per unit and earns a profit of 4 per unit, and that both resources become a bit more
+# plentiful: 15 oak panels and 18 assembly hours. Only the *data* changes; the
+# model-building code stays exactly the same as in the previous section:
 
 # %%
 profit = {"x": 3, "y": 5, "z": 4}
 resource_use = {  # resource_use[r][p]: units of resource r per unit of product p
-    "oak panels": {"x": 1, "y": 0, "z": 2},
-    "assembly hours": {"x": 1, "y": 2, "z": 1},
+    "oak panels": {"x": 1, "y": 3, "z": 2},
+    "assembly hours": {"x": 2, "y": 1, "z": 1},
 }
-available = {"oak panels": 9, "assembly hours": 20}
+available = {"oak panels": 15, "assembly hours": 18}
 products = list(profit)
 
 larger_lo = pulp.LpProblem(name="larger_lo", sense=pulp.LpMaximize)
-q = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
+w = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
-larger_lo += pulp.lpSum(profit[p] * q[p] for p in products), "profit"
+larger_lo += pulp.lpSum(profit[p] * w[p] for p in products), "profit"
 for r, cap in available.items():
     larger_lo += (
-        pulp.lpSum(resource_use[r][p] * q[p] for p in products) <= cap,
+        pulp.lpSum(resource_use[r][p] * w[p] for p in products) <= cap,
         r.replace(" ", "_"),
     )
 
 larger_lo.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[larger_lo.status])
-print("optimal mix:", {p: q[p].value() for p in products})
+print("optimal mix:", {p: w[p].value() for p in products})
 print("optimal profit:", larger_lo.objective.value())
 
 # %% [markdown]
-# The model-building code is identical to the two-product case; only the data changed.
+# The model-building code has the same structure as the two-product case (only the
+# variable dict's name changed, from `q` to `w`, to keep the two models' solutions apart
+# below); only the data changed.
 
 # %% [markdown]
 # ## A Graphical View
@@ -256,32 +257,31 @@ print("optimal profit:", larger_lo.objective.value())
 # to learn, so feel free to skip straight to the plot.
 
 # %% tags=["hide-input"]
-x_grid = np.linspace(0, 8, 200)
+x_grid = np.linspace(0, 12, 200)
 plt.figure(figsize=(5, 5))
-plt.axvline(6, color="C0", label=r"$x \leq 6$ (oak panels)")
-plt.plot(x_grid, (15 - x_grid) / 2, color="C1", label=r"$x + 2y \leq 15$ (assembly hours)")
-plt.fill_between(
-    x_grid, 0, (15 - x_grid) / 2, where=(x_grid <= 6), alpha=0.2, label="feasible region"
-)
+plt.plot(x_grid, (12 - x_grid) / 3, color="C0", label=r"$x + 3y \leq 12$ (oak panels)")
+plt.plot(x_grid, 10 - 2 * x_grid, color="C1", label=r"$2x + y \leq 10$ (assembly hours)")
+y_upper = np.minimum((12 - x_grid) / 3, 10 - 2 * x_grid)
+plt.fill_between(x_grid, 0, y_upper, where=(y_upper >= 0), alpha=0.2, label="feasible region")
 
 x_opt, y_opt = q["x"].value(), q["y"].value()
-for level, style in [(25, ":"), (product_mix.objective.value(), "-")]:
+for level, style in [(15, ":"), (product_mix.objective.value(), "-")]:
     plt.plot(x_grid, (level - 3 * x_grid) / 5, style, color="grey")
 plt.plot(x_opt, y_opt, "ko")
 plt.annotate(
     f"optimum ({x_opt:.1f}, {y_opt:.1f})", (x_opt, y_opt), textcoords="offset points", xytext=(8, 8)
 )
 
-plt.xlim(0, 8)
-plt.ylim(0, 8)
-plt.xlabel("$x$")
-plt.ylabel("$y$")
+plt.xlim(0, 7)
+plt.ylim(0, 5)
+plt.xlabel("bookcases $x$")
+plt.ylabel("desks $y$")
 plt.legend(loc="upper right", fontsize=8)
 plt.title("The two grey lines are objective contours; the solid one is optimal")
 plt.show()
 
 # %% [markdown]
-# The dotted grey line (profit 25) still has feasible points but we can do better; sliding
+# The dotted grey line (profit 15) still has feasible points but we can do better; sliding
 # it out until it just leaves the feasible region gives the solid line, which touches the
 # region only at the corner where the two resource constraints meet: the optimum pulp
 # reported above.
@@ -289,7 +289,7 @@ plt.show()
 # :::{exercise}
 # :label: ex-lo-what-if
 #
-# Suppose the assembly-hours availability increased from 15 to 20. Which line in the plot
+# Suppose the assembly-hours availability increased from 10 to 14. Which line in the plot
 # moves, and in which direction would you expect the optimum to shift? Check your answer by
 # re-solving with pulp.
 # :::
@@ -303,14 +303,14 @@ plt.show()
 #
 # $$
 # \begin{aligned}
-# x \le 6 \\
-# x + 2y \le 15 \\
+# x + 3y \le 12 \\
+# 2x + y \le 10 \\
 # x, y \ge 0
 # \end{aligned}
 # \quad\Leftrightarrow\quad
 # \begin{aligned}
-# x + s_1 &= 6 \\
-# x + 2y + s_2 &= 15 \\
+# x + 3y + s_1 &= 12 \\
+# 2x + y + s_2 &= 10 \\
 # x, y, s_1, s_2 &\ge 0
 # \end{aligned}
 # $$
@@ -321,10 +321,10 @@ plt.show()
 # feasible region (some combinations give a negative value and are infeasible; those are
 # corners of the lines' intersections that lie outside the region). The corners here are:
 #
-# - $(x, y, s_1, s_2) = (0, 0, 6, 15)$: the origin;
-# - $(6, 0, 0, 9)$: oak panels fully used;
-# - $(0, 7.5, 6, 0)$: assembly hours fully used;
-# - $(6, 4.5, 0, 0)$: both resource constraints tight, the optimum.
+# - $(x, y, s_1, s_2) = (0, 0, 12, 10)$: the origin;
+# - $(5, 0, 7, 0)$: assembly hours fully used;
+# - $(0, 4, 0, 6)$: oak panels fully used;
+# - $(3.6, 2.8, 0, 0)$: both resource constraints tight, the optimum.
 #
 # The simplex algorithm (G.B. Dantzig, 1947), which pulp's default solver uses for LO, hops
 # from corner to neighbouring corner, each time to one with a better objective value, and
@@ -349,12 +349,14 @@ plt.show()
 # Not every LO problem has an optimal solution. There are exactly three possibilities:
 #
 # 1. **an optimal solution exists** (the case above);
-# 2. **unbounded**: solutions of arbitrarily large objective value exist. For the
-#    product-mix problem this happens if we drop the assembly-hours constraint, since
-#    nothing else limits $y$, and we could then make unlimited units of it;
+# 2. **unbounded**: solutions of arbitrarily large objective value exist. This cannot
+#    happen for the product-mix problem above, since every product uses some of both
+#    resources, but it can happen in general whenever some variable is left unconstrained,
+#    for example if the workshop also sold a service that used neither oak panels nor
+#    assembly hours;
 # 3. **infeasible**: no point satisfies all constraints. This happens if, for example, a
-#    customer contract forces $y \ge 9$ while the assembly-hours constraint allows at most
-#    $y = 7.5$.
+#    customer contract forces $y \ge 5$ while the oak-panel constraint allows at most
+#    $y = 4$.
 #
 # pulp reports these as the `LpStatus` values `"Unbounded"` and `"Infeasible"` instead of
 # `"Optimal"`. [](#fig-lo-degenerate) shows both situations schematically.
@@ -373,8 +375,11 @@ plt.show()
 unbounded_lp = pulp.LpProblem(name="unbounded_example", sense=pulp.LpMaximize)
 x = pulp.LpVariable(name="x", lowBound=0)
 y = pulp.LpVariable(name="y", lowBound=0)
-unbounded_lp += 3 * x + 5 * y
-unbounded_lp += x <= 6  # the assembly-hours constraint is dropped
+s = pulp.LpVariable(name="s", lowBound=0)  # a hypothetical service, no resources needed
+unbounded_lp += 3 * x + 5 * y + 1 * s
+unbounded_lp += x + 3 * y <= 12
+unbounded_lp += 2 * x + y <= 10
+# no constraint at all limits s
 
 unbounded_lp.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[unbounded_lp.status])
@@ -384,9 +389,9 @@ infeasible_lp = pulp.LpProblem(name="infeasible_example", sense=pulp.LpMaximize)
 x = pulp.LpVariable(name="x", lowBound=0)
 y = pulp.LpVariable(name="y", lowBound=0)
 infeasible_lp += 3 * x + 5 * y
-infeasible_lp += x <= 6
-infeasible_lp += x + 2 * y <= 15
-infeasible_lp += y >= 9  # the customer contract
+infeasible_lp += x + 3 * y <= 12
+infeasible_lp += 2 * x + y <= 10
+infeasible_lp += y >= 5  # the customer contract
 
 infeasible_lp.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[infeasible_lp.status])
@@ -395,8 +400,9 @@ print("status:", pulp.LpStatus[infeasible_lp.status])
 # :::{exercise}
 # :label: ex-6-3
 #
-# Change the customer contract above to require $x \ge 7$ instead (impossible since the
-# oak-panel constraint caps $x$ at 6), and confirm pulp still reports `"Infeasible"`.
+# Change the customer contract above to require $x \ge 11$ instead (impossible since the
+# assembly-hours constraint alone caps $x$ at 5), and confirm pulp still reports
+# `"Infeasible"`.
 # :::
 
 # %% [markdown]
