@@ -121,7 +121,7 @@
 
 # %% [markdown]
 #
-# :::{solution} hw-11-2
+# ::::{solution} hw-11-2
 # :label: sol-hw-11-2
 # :class: dropdown
 #
@@ -159,7 +159,7 @@
 # e. The extra capacity is best used on one of the min-cut edges $(A, D)$, $(B, C)$, or
 #    $(B, E)$: augmenting any one of these raises the flow to 8 (augmenting any other arc
 #    leaves the same bottleneck cut unchanged, so the flow stays at 7).
-# :::
+# ::::
 
 # %% [markdown]
 # :::{exercise}
@@ -283,7 +283,7 @@
 
 # %% [markdown]
 #
-# :::{solution} hw-11-5
+# ::::{solution} hw-11-5
 # :label: sol-hw-11-5
 # :class: dropdown
 #
@@ -320,7 +320,7 @@
 #
 # e. Let binary $y_{ij} = 1$ if arc $(i, j)$ carries nonzero flow, and let $M$ be a big
 #    constant. Add $x_{ij} \le M y_{ij}$ for every arc, and $\sum_{i,j} y_{ij} \le 5$.
-# :::
+# ::::
 
 # %% [markdown]
 # ## References

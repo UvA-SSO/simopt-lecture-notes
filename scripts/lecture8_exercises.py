@@ -64,7 +64,7 @@
 
 # %% [markdown]
 #
-# :::{solution} hw-8-1
+# ::::{solution} hw-8-1
 # :label: sol-hw-8-1
 # :class: dropdown
 #
@@ -103,7 +103,7 @@
 #    becomes $x + 2y \le 15$, and the corner of the feasible region moves to where
 #    $x = 5$ meets $y = 3.5$, giving objective $5 + 3.5 - 0.25 = 8.25$. Since
 #    $8.25 > 7.5$, it is optimal to use the exchange.
-# :::
+# ::::
 
 # %% [markdown]
 # :::{exercise}
@@ -135,7 +135,7 @@
 
 # %% [markdown]
 #
-# :::{solution} hw-8-2
+# ::::{solution} hw-8-2
 # :label: sol-hw-8-2
 # :class: dropdown
 #
@@ -184,7 +184,7 @@
 #    The optimizer always fills the more profitable $x$ before $z$; working out both the
 #    $z = 0$ and $z > 0$ cases leads to the same optimum $(x, y, z) = (2, 3, 0)$, objective
 #    $1.5 \times 2 + 3 = 6$.
-# :::
+# ::::
 
 # %% [markdown]
 # :::{exercise}
@@ -209,7 +209,7 @@
 
 # %% [markdown]
 #
-# :::{solution} hw-8-3
+# ::::{solution} hw-8-3
 # :label: sol-hw-8-3
 # :class: dropdown
 #
@@ -243,7 +243,7 @@
 # d. Adding $4x_1 + 8x_2 + 2x_3 + 10x_4 \le 12$: the solution from part c,
 #    $(0, 0, 1, 1)$, uses volume $2 + 10 = 12 \le 12$, so it remains feasible and
 #    therefore still optimal: reward 13.
-# :::
+# ::::
 
 # %% [markdown]
 # :::{exercise}
@@ -269,7 +269,7 @@
 
 # %% [markdown]
 #
-# :::{solution} hw-8-4
+# ::::{solution} hw-8-4
 # :label: sol-hw-8-4
 # :class: dropdown
 #
@@ -297,7 +297,7 @@
 #    where $4x + y = 12$ meets $2x + 4y = 20$: $x = 2$, $y = 4$, objective value 6. Since
 #    this solution is already integer, it is also optimal for the integer case. The
 #    additional revenue compared to part c is $6 - 5 = 1$ euro.
-# :::
+# ::::
 
 # %% [markdown]
 # ## Further Exercises
