@@ -74,7 +74,9 @@ inventory = pulp.LpProblem(name="inventory", sense=pulp.LpMinimize)
 order = [pulp.LpVariable(name=f"x_{t + 1}", lowBound=0) for t in periods]
 stock = [pulp.LpVariable(name=f"s_{t + 1}", lowBound=0) for t in periods]
 
-inventory += pulp.lpSum(order_cost[t] * order[t] + holding[t] * stock[t] for t in periods)
+inventory += pulp.lpSum(
+    order_cost[t] * order[t] + holding[t] * stock[t] for t in periods
+)
 for t in periods:
     prev = s0 if t == 0 else stock[t - 1]
     inventory += stock[t] == prev + order[t] - demand[t], f"balance_{t + 1}"
@@ -239,7 +241,9 @@ duration = {"A": 6, "B": 4, "C": 5}
 # %%
 start = pulp.LpVariable.dicts(name="start", indices=jobs, lowBound=0)
 after = pulp.LpVariable.dicts(
-    name="after", indices=[(p, q) for p in jobs for q in jobs if p != q], cat="Binary"
+    name="after",
+    indices=[(p, q) for p in jobs for q in jobs if p != q],
+    cat="Binary",
 )
 print(start["B"], "/", after[("A", "B")])
 
@@ -250,7 +254,10 @@ print(start["B"], "/", after[("A", "B")])
 
 # %%
 demo = pulp.LpProblem(name="demo", sense=pulp.LpMinimize)
-demo += pulp.lpSum(start[job] + duration[job] for job in jobs), "sum_of_finish_times"
+demo += (
+    pulp.lpSum(start[job] + duration[job] for job in jobs),
+    "sum_of_finish_times",
+)
 for job in jobs:
     demo += start[job] <= 10, f"{job}_starts_by_10"
 print(demo)
@@ -280,11 +287,19 @@ reward = [10, 13, 18, 31, 7, 15]
 weight = [2, 3, 4, 7, 1, 3]
 
 
-def build_knapsack(capacity: float) -> tuple[pulp.LpProblem, list[pulp.LpVariable]]:
+def build_knapsack(
+    capacity: float,
+) -> tuple[pulp.LpProblem, list[pulp.LpVariable]]:
     problem = pulp.LpProblem(name="knapsack", sense=pulp.LpMaximize)
-    items = [pulp.LpVariable(name=f"x_{i + 1}", cat="Binary") for i in range(len(reward))]
+    items = [
+        pulp.LpVariable(name=f"x_{i + 1}", cat="Binary")
+        for i in range(len(reward))
+    ]
     problem += pulp.lpSum(reward[i] * items[i] for i in range(len(reward)))
-    problem += pulp.lpSum(weight[i] * items[i] for i in range(len(reward))) <= capacity
+    problem += (
+        pulp.lpSum(weight[i] * items[i] for i in range(len(reward)))
+        <= capacity
+    )
     return problem, items
 
 
@@ -296,7 +311,11 @@ knap11, items11 = build_knapsack(capacity=11)
 for new, old in zip(items11, items10):
     new.setInitialValue(old.value())
 knap11.solve(pulp.PULP_CBC_CMD(msg=False, warmStart=True))
-print("capacity 11, warm started:", [v.value() for v in items11], knap11.objective.value())
+print(
+    "capacity 11, warm started:",
+    [v.value() for v in items11],
+    knap11.objective.value(),
+)
 
 # %% [markdown]
 # For a problem this small the effect is not measurable, but inside a loop that re-solves a

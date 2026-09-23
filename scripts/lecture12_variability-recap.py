@@ -88,10 +88,21 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-if "google.colab" in sys.modules:  # fetch the data files this notebook reads from disk
+if (
+    "google.colab" in sys.modules
+):  # fetch the data files this notebook reads from disk
     Path("data").mkdir(exist_ok=True)
-    base_url = "https://raw.githubusercontent.com/UvA-SSO/simopt-lecture-notes/main/notebooks/data"
-    for csv_name in ["eurodist.csv", "AirPassengers.csv", "beaver1.csv", "beaver2.csv", "Nile.csv"]:
+    base_url = (
+        "https://raw.githubusercontent.com/"
+        "UvA-SSO/simopt-lecture-notes/main/notebooks/data"
+    )
+    for csv_name in [
+        "eurodist.csv",
+        "AirPassengers.csv",
+        "beaver1.csv",
+        "beaver2.csv",
+        "Nile.csv",
+    ]:
         urlretrieve(f"{base_url}/{csv_name}", f"data/{csv_name}")
 
 eurodist = pd.read_csv("data/eurodist.csv")["x"]
@@ -238,7 +249,9 @@ plt.ylabel("$F_N(x)$")
 print("P(15 of each sex):", stats.binom.pmf(15, 30, 0.5))
 print("P(10 or fewer girls):", stats.binom.cdf(10, 30, 0.5))
 rng = np.random.default_rng(0)
-print("10 sampled classes:", stats.binom.rvs(30, 0.5, size=10, random_state=rng))
+print(
+    "10 sampled classes:", stats.binom.rvs(30, 0.5, size=10, random_state=rng)
+)
 print("90th percentile:", stats.binom.ppf(0.9, 30, 0.5))
 
 # %% [markdown]
@@ -480,7 +493,12 @@ x = np.linspace(-8, 8, 200)
 fig, (ax_pdf, ax_cdf) = plt.subplots(1, 2, figsize=(8, 3))
 for mu, sigma2, style in [(0, 1, "-"), (3, 4, "--")]:
     sigma = np.sqrt(sigma2)
-    ax_pdf.plot(x, stats.norm.pdf(x, loc=mu, scale=sigma), style, label=f"N({mu},{sigma2})")
+    ax_pdf.plot(
+        x,
+        stats.norm.pdf(x, loc=mu, scale=sigma),
+        style,
+        label=f"N({mu},{sigma2})",
+    )
     ax_cdf.plot(x, stats.norm.cdf(x, loc=mu, scale=sigma), style)
 ax_pdf.legend()
 fig.tight_layout()
@@ -517,7 +535,9 @@ fig.tight_layout()
 rng = np.random.default_rng(0)
 fig, axes = plt.subplots(1, 4, figsize=(10, 2.5), sharey=True)
 for ax, n_avg in zip(axes, [1, 2, 5, 10]):
-    samples = stats.uniform.rvs(size=(20000, n_avg), random_state=rng).mean(axis=1)
+    samples = stats.uniform.rvs(size=(20000, n_avg), random_state=rng).mean(
+        axis=1
+    )
     ax.hist(samples, bins=30)
     ax.set_title(f"n = {n_avg}")
 fig.tight_layout()
@@ -556,7 +576,10 @@ fig.tight_layout()
 # :::
 
 # %%
-print("68% rule:", stats.norm.ppf(0.5 + 0.68 / 2) - stats.norm.ppf(0.5 - 0.68 / 2))
+print(
+    "68% rule:",
+    stats.norm.ppf(0.5 + 0.68 / 2) - stats.norm.ppf(0.5 - 0.68 / 2),
+)
 print("95% rule (z-value):", stats.norm.ppf(0.975))
 
 # %% [markdown]
@@ -688,8 +711,14 @@ print(stats.binomtest(62, 100))
 # $$
 
 # %%
-print("p-value (normal approx.):", 1 - stats.norm.cdf(np.sqrt(100) * (178 - 174) / 5))
-print("p-value (t-distribution):", 1 - stats.t.cdf(np.sqrt(100) * (178 - 174) / 5, df=99))
+print(
+    "p-value (normal approx.):",
+    1 - stats.norm.cdf(np.sqrt(100) * (178 - 174) / 5),
+)
+print(
+    "p-value (t-distribution):",
+    1 - stats.t.cdf(np.sqrt(100) * (178 - 174) / 5, df=99),
+)
 
 # %% [markdown]
 # The p-value is very small either way. The conclusion is therefore that the null-hypothesis is rejected and that the Dutch are taller than the world average. `scipy.stats.ttest_1samp` runs this kind of test directly on a full sample (not just its mean and SD): `stats.ttest_1samp(data, popmean=174, alternative="greater")`, where `alternative="greater"` mirrors $H_1: \mu > \mu_0$ above (`scipy`'s default is a two-sided test).
@@ -778,7 +807,11 @@ print(stats.shapiro(beaver1["temp"]))
 # :::
 
 # %%
-print("95% credible interval:", stats.beta.ppf(0.025, 63, 39), stats.beta.ppf(0.975, 63, 39))
+print(
+    "95% credible interval:",
+    stats.beta.ppf(0.025, 63, 39),
+    stats.beta.ppf(0.975, 63, 39),
+)
 
 # %% [markdown]
 # giving a 95% credible interval of about $[0.52, 0.71]$ for the last distribution (bottom-right posterior in the figure above, after 62 successes and 38 failures).

@@ -152,7 +152,10 @@ def dist(i: str, j: str) -> float:
 
 shortest_path = pulp.LpProblem(name="shortest_path", sense=pulp.LpMinimize)
 flow = {
-    (i, j): pulp.LpVariable(name=f"x_{i}_{j}", lowBound=0) for i in nodes for j in nodes if i != j
+    (i, j): pulp.LpVariable(name=f"x_{i}_{j}", lowBound=0)
+    for i in nodes
+    for j in nodes
+    if i != j
 }
 shortest_path += pulp.lpSum(
     dist(i, j) * flow[i, j]
@@ -351,7 +354,9 @@ flow = {
     (i, j): pulp.LpVariable(name=f"x_{i}_{j}", lowBound=0, upBound=cap)
     for (i, j), cap in capacity.items()
 }
-max_flow += pulp.lpSum(flow[source, j] for j in nodes if (source, j) in capacity)
+max_flow += pulp.lpSum(
+    flow[source, j] for j in nodes if (source, j) in capacity
+)
 for k in nodes:
     if k in (source, sink):
         continue

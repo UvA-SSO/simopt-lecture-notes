@@ -159,7 +159,8 @@ print("optimal profit:", product_mix.objective.value())
 
 # %%
 profit = {"bookcase": 3, "desk": 5}
-resource_use = {  # resource_use[res][p]: units of resource res per unit of product p
+# resource_use[res][p]: units of resource res per unit of product p
+resource_use = {
     "oak panels": {"bookcase": 1, "desk": 3},
     "assembly hours": {"bookcase": 2, "desk": 1},
 }
@@ -172,7 +173,8 @@ dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 product_mix += pulp.lpSum(profit[p] * dec_vars[p] for p in products), "profit"
 for res, cap in available.items():
     product_mix += (
-        pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products) <= cap,
+        pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
+        <= cap,
         res.replace(" ", "_"),
     )
 
@@ -201,7 +203,8 @@ print("optimal profit:", product_mix.objective.value())
 
 # %%
 profit = {"bookcase": 3, "desk": 5, "chair": 4}
-resource_use = {  # resource_use[res][p]: units of resource res per unit of product p
+# resource_use[res][p]: units of resource res per unit of product p
+resource_use = {
     "oak panels": {"bookcase": 1, "desk": 3, "chair": 2},
     "assembly hours": {"bookcase": 2, "desk": 1, "chair": 1},
 }
@@ -211,10 +214,14 @@ products = list(profit)
 larger_lo = pulp.LpProblem(name="larger_lo", sense=pulp.LpMaximize)
 larger_dec_vars = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
 
-larger_lo += pulp.lpSum(profit[p] * larger_dec_vars[p] for p in products), "profit"
+larger_lo += (
+    pulp.lpSum(profit[p] * larger_dec_vars[p] for p in products),
+    "profit",
+)
 for res, cap in available.items():
     larger_lo += (
-        pulp.lpSum(resource_use[res][p] * larger_dec_vars[p] for p in products) <= cap,
+        pulp.lpSum(resource_use[res][p] * larger_dec_vars[p] for p in products)
+        <= cap,
         res.replace(" ", "_"),
     )
 
@@ -251,17 +258,37 @@ print("optimal profit:", larger_lo.objective.value())
 # %% tags=["hide-input"]
 x_grid = np.linspace(0, 12, 200)
 plt.figure(figsize=(5, 5))
-plt.plot(x_grid, (12 - x_grid) / 3, color="C0", label=r"$x + 3y \leq 12$ (oak panels)")
-plt.plot(x_grid, 10 - 2 * x_grid, color="C1", label=r"$2x + y \leq 10$ (assembly hours)")
+plt.plot(
+    x_grid,
+    (12 - x_grid) / 3,
+    color="C0",
+    label=r"$x + 3y \leq 12$ (oak panels)",
+)
+plt.plot(
+    x_grid,
+    10 - 2 * x_grid,
+    color="C1",
+    label=r"$2x + y \leq 10$ (assembly hours)",
+)
 y_upper = np.minimum((12 - x_grid) / 3, 10 - 2 * x_grid)
-plt.fill_between(x_grid, 0, y_upper, where=(y_upper >= 0), alpha=0.2, label="feasible region")
+plt.fill_between(
+    x_grid,
+    0,
+    y_upper,
+    where=(y_upper >= 0),
+    alpha=0.2,
+    label="feasible region",
+)
 
 x_opt, y_opt = dec_vars["bookcase"].value(), dec_vars["desk"].value()
 for level, style in [(15, ":"), (product_mix.objective.value(), "-")]:
     plt.plot(x_grid, (level - 3 * x_grid) / 5, style, color="grey")
 plt.plot(x_opt, y_opt, "ko")
 plt.annotate(
-    f"optimum ({x_opt:.1f}, {y_opt:.1f})", (x_opt, y_opt), textcoords="offset points", xytext=(8, 8)
+    f"optimum ({x_opt:.1f}, {y_opt:.1f})",
+    (x_opt, y_opt),
+    textcoords="offset points",
+    xytext=(8, 8),
 )
 
 plt.xlim(0, 7)
@@ -269,7 +296,9 @@ plt.ylim(0, 5)
 plt.xlabel("bookcases $x$")
 plt.ylabel("desks $y$")
 plt.legend(loc="upper right", fontsize=8)
-plt.title("The two grey lines are objective contours; the solid one is optimal")
+plt.title(
+    "The two grey lines are objective contours; the solid one is optimal"
+)
 plt.show()
 
 # %% [markdown]
@@ -367,7 +396,9 @@ plt.show()
 unbounded_lp = pulp.LpProblem(name="unbounded_example", sense=pulp.LpMaximize)
 x = pulp.LpVariable(name="x", lowBound=0)
 y = pulp.LpVariable(name="y", lowBound=0)
-s = pulp.LpVariable(name="s", lowBound=0)  # a hypothetical service, no resources needed
+s = pulp.LpVariable(
+    name="s", lowBound=0
+)  # a hypothetical service, no resources needed
 unbounded_lp += 3 * x + 5 * y + 1 * s
 unbounded_lp += x + 3 * y <= 12
 unbounded_lp += 2 * x + y <= 10
@@ -377,7 +408,9 @@ unbounded_lp.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[unbounded_lp.status])
 
 # %%
-infeasible_lp = pulp.LpProblem(name="infeasible_example", sense=pulp.LpMaximize)
+infeasible_lp = pulp.LpProblem(
+    name="infeasible_example", sense=pulp.LpMaximize
+)
 x = pulp.LpVariable(name="x", lowBound=0)
 y = pulp.LpVariable(name="y", lowBound=0)
 infeasible_lp += 3 * x + 5 * y
@@ -435,11 +468,20 @@ print("status:", pulp.LpStatus[infeasible_lp.status])
 
 # %%
 duration = {"A": 3, "B": 4, "C": 2, "D": 5, "E": 1, "F": 3}
-precedences = [("A", "C"), ("A", "D"), ("B", "D"), ("C", "E"), ("D", "E"), ("D", "F")]
+precedences = [
+    ("A", "C"),
+    ("A", "D"),
+    ("B", "D"),
+    ("C", "E"),
+    ("D", "E"),
+    ("D", "F"),
+]
 
 # %%
 project = pulp.LpProblem(name="project_planning", sense=pulp.LpMinimize)
-finish = {a: pulp.LpVariable(name=f"x_{a}", lowBound=duration[a]) for a in duration}
+finish = {
+    a: pulp.LpVariable(name=f"x_{a}", lowBound=duration[a]) for a in duration
+}
 makespan = pulp.LpVariable(name="z", lowBound=0)
 
 for a in duration:
@@ -447,12 +489,16 @@ for a in duration:
 for before, after in precedences:
     project += finish[before] + duration[after] <= finish[after]
 
-# minimize z; the tiny extra term only breaks ties, so activities that have slack still get
-# their *earliest* finish time reported instead of an arbitrary one consistent with z.
+# minimize z; the tiny extra term only breaks ties, so activities that
+# have slack still get their *earliest* finish time reported instead of an
+# arbitrary one consistent with z.
 project += makespan + 1e-4 * pulp.lpSum(finish[a] for a in duration)
 
 project.solve(pulp.PULP_CBC_CMD(msg=False))
-print("earliest finish times:", {a: round(finish[a].value(), 2) for a in duration})
+print(
+    "earliest finish times:",
+    {a: round(finish[a].value(), 2) for a in duration},
+)
 print("project finish time (makespan):", makespan.value())
 
 # %% [markdown]

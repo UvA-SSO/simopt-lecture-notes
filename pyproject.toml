@@ -29,10 +29,11 @@ dev = [
 
 [tool.isort]
 profile = "black"
+line_length = 79
 float_to_top = true
 
 [tool.ruff]
-line-length = 100
+line-length = 79
 
 [tool.mypy]
 ignore_missing_imports = true

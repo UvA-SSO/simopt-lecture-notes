@@ -65,7 +65,8 @@ import pulp
 
 # %%
 profit = {"bookcase": 3, "desk": 5}
-resource_use = {  # resource_use[res][p]: units of resource res per unit of product p
+# resource_use[res][p]: units of resource res per unit of product p
+resource_use = {
     "oak panels": {"bookcase": 1, "desk": 3},
     "assembly hours": {"bookcase": 2, "desk": 1},
 }
@@ -73,10 +74,14 @@ available = {"oak panels": 12, "assembly hours": 10}
 products = list(profit)
 
 int_mix = pulp.LpProblem(name="integer_product_mix", sense=pulp.LpMaximize)
-dec_vars = {p: pulp.LpVariable(name=p, lowBound=0, cat="Integer") for p in products}
+dec_vars = {
+    p: pulp.LpVariable(name=p, lowBound=0, cat="Integer") for p in products
+}
 int_mix += pulp.lpSum(profit[p] * dec_vars[p] for p in products)
 for res, cap in available.items():
-    int_mix += pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products) <= cap
+    int_mix += (
+        pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products) <= cap
+    )
 int_mix.solve(pulp.PULP_CBC_CMD(msg=False))
 print("integer optimum:", {p: dec_vars[p].value() for p in products})
 print("optimal profit:", int_mix.objective.value())
@@ -90,19 +95,48 @@ print("optimal profit:", int_mix.objective.value())
 # %% tags=["hide-input"]
 x_grid = np.linspace(0, 6, 200)
 plt.figure(figsize=(5, 5))
-plt.plot(x_grid, (12 - x_grid) / 3, color="C0", label=r"$x + 3y \leq 12$ (oak panels)")
-plt.plot(x_grid, 10 - 2 * x_grid, color="C1", label=r"$2x + y \leq 10$ (assembly hours)")
+plt.plot(
+    x_grid,
+    (12 - x_grid) / 3,
+    color="C0",
+    label=r"$x + 3y \leq 12$ (oak panels)",
+)
+plt.plot(
+    x_grid,
+    10 - 2 * x_grid,
+    color="C1",
+    label=r"$2x + y \leq 10$ (assembly hours)",
+)
 y_upper = np.minimum((12 - x_grid) / 3, 10 - 2 * x_grid)
-plt.fill_between(x_grid, 0, y_upper, where=(y_upper >= 0), alpha=0.15, label="feasible region")
+plt.fill_between(
+    x_grid,
+    0,
+    y_upper,
+    where=(y_upper >= 0),
+    alpha=0.15,
+    label="feasible region",
+)
 
 xs, ys = np.meshgrid(range(7), range(5))
 feasible = (xs + 3 * ys <= 12) & (2 * xs + ys <= 10)
-plt.scatter(xs[feasible], ys[feasible], color="C2", zorder=3, label="integer feasible points")
 plt.scatter(
-    xs[~feasible], ys[~feasible], color="lightgrey", zorder=2, label="integer infeasible points"
+    xs[feasible],
+    ys[feasible],
+    color="C2",
+    zorder=3,
+    label="integer feasible points",
+)
+plt.scatter(
+    xs[~feasible],
+    ys[~feasible],
+    color="lightgrey",
+    zorder=2,
+    label="integer infeasible points",
 )
 
-plt.plot(3.6, 2.8, "C3*", markersize=14, zorder=4, label="LP relaxation optimum")
+plt.plot(
+    3.6, 2.8, "C3*", markersize=14, zorder=4, label="LP relaxation optimum"
+)
 x_int, y_int = dec_vars["bookcase"].value(), dec_vars["desk"].value()
 plt.plot(x_int, y_int, "ko", markersize=8, zorder=4, label="ILO optimum")
 
@@ -190,7 +224,9 @@ capacity = 10
 n_items = len(reward)
 
 knapsack = pulp.LpProblem(name="knapsack", sense=pulp.LpMaximize)
-take = [pulp.LpVariable(name=f"x_{i + 1}", cat="Binary") for i in range(n_items)]
+take = [
+    pulp.LpVariable(name=f"x_{i + 1}", cat="Binary") for i in range(n_items)
+]
 knapsack += pulp.lpSum(reward[i] * take[i] for i in range(n_items))
 knapsack += pulp.lpSum(weight[i] * take[i] for i in range(n_items)) <= capacity
 knapsack.solve(pulp.PULP_CBC_CMD(msg=False))

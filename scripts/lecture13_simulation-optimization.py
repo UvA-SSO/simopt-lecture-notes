@@ -258,13 +258,17 @@ def profit_at_price(price, u):
 rng_grad = np.random.default_rng(11)
 price_k, eps, gamma0 = 10.0, 0.5, 4.0
 for k in range(1, 6):
-    u_shared = rng_grad.uniform(0, 1, 2000)  # CRN across the two perturbed evaluations
+    u_shared = rng_grad.uniform(
+        0, 1, 2000
+    )  # CRN across the two perturbed evaluations
     grad_hat = (
         profit_at_price(price_k + eps, u_shared).mean()
         - profit_at_price(price_k - eps, u_shared).mean()
     ) / (2 * eps)
     price_k += (gamma0 / k) * grad_hat
-    print(f"step {k}: price = {price_k:.2f}, estimated gradient = {grad_hat:.2f}")
+    print(
+        f"step {k}: price = {price_k:.2f}, estimated gradient = {grad_hat:.2f}"
+    )
 
 # %% [markdown]
 # ## Additional Reading

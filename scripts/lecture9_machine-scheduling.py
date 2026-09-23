@@ -138,7 +138,10 @@ big_m = sum(s.values()) + max(r.values())
 sched = pulp.LpProblem(name="single_machine", sense=pulp.LpMinimize)
 start = {i: pulp.LpVariable(name=f"x_{i}", lowBound=r[i]) for i in jobs}
 before = {
-    (i, j): pulp.LpVariable(name=f"y_{i}_{j}", cat="Binary") for i in jobs for j in jobs if i != j
+    (i, j): pulp.LpVariable(name=f"y_{i}_{j}", cat="Binary")
+    for i in jobs
+    for j in jobs
+    if i != j
 }
 tardy = {i: pulp.LpVariable(name=f"z_{i}", lowBound=0) for i in jobs}
 
@@ -156,7 +159,12 @@ for i in jobs:
 sched.solve(pulp.PULP_CBC_CMD(msg=False))
 order = sorted(jobs, key=lambda i: start[i].value())
 print("start times:", {i: start[i].value() for i in jobs})
-print("processing order:", order, "| total weighted tardiness:", sched.objective.value())
+print(
+    "processing order:",
+    order,
+    "| total weighted tardiness:",
+    sched.objective.value(),
+)
 
 # %% [markdown]
 # ### Other Objectives

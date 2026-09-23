@@ -95,7 +95,9 @@ lifetimes = -np.log(1 - u) / rate
 
 x_grid = np.linspace(0, 20, 200)
 plt.hist(lifetimes, bins=40, density=True, alpha=0.6, label="ITM samples")
-plt.plot(x_grid, stats.expon.pdf(x_grid, scale=1 / rate), label="exponential pdf")
+plt.plot(
+    x_grid, stats.expon.pdf(x_grid, scale=1 / rate), label="exponential pdf"
+)
 plt.xlabel("lifetime (years)")
 plt.legend()
 
@@ -121,8 +123,13 @@ cumulative_probs = np.array([0.2, 0.7, 1.0])
 u2 = rng.uniform(0, 1, 20000)
 delays = outcomes[np.searchsorted(cumulative_probs, u2, side="left")]
 
-for value, prob in zip(outcomes, np.diff(np.concatenate(([0.0], cumulative_probs)))):
-    print(f"P(X={value}) target {prob:.2f}, sampled {np.mean(delays == value):.3f}")
+for value, prob in zip(
+    outcomes, np.diff(np.concatenate(([0.0], cumulative_probs)))
+):
+    print(
+        f"P(X={value}) target {prob:.2f}, "
+        f"sampled {np.mean(delays == value):.3f}"
+    )
 
 # %% [markdown]
 # :::{note} Random Number Generators and Seeds
@@ -198,7 +205,12 @@ print("95% CI:", (m - 2 * s / np.sqrt(n), m + 2 * s / np.sqrt(n)))
 # %%
 above_300 = overtime_cost > 300
 m, s = above_300.mean(), above_300.std(ddof=1)
-print("fraction above €300:", m, "95% CI:", (m - 2 * s / np.sqrt(n), m + 2 * s / np.sqrt(n)))
+print(
+    "fraction above €300:",
+    m,
+    "95% CI:",
+    (m - 2 * s / np.sqrt(n), m + 2 * s / np.sqrt(n)),
+)
 
 # %% [markdown]
 # :::{exercise}
@@ -276,7 +288,10 @@ while time < horizon:
         stock = order_up_to
         next_delivery = np.inf
 
-print(f"stockouts: {stockouts} out of {demands} demands ({stockouts / demands:.1%})")
+print(
+    f"stockouts: {stockouts} out of {demands} demands "
+    f"({stockouts / demands:.1%})"
+)
 
 # %% [markdown]
 # :::{exercise}

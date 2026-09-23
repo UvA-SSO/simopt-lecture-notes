@@ -69,7 +69,9 @@ cost = {
 }
 
 transport = pulp.LpProblem(name="transportation", sense=pulp.LpMinimize)
-ship = {(i, j): pulp.LpVariable(name=f"x_{i}_{j}", lowBound=0) for (i, j) in cost}
+ship = {
+    (i, j): pulp.LpVariable(name=f"x_{i}_{j}", lowBound=0) for (i, j) in cost
+}
 
 transport += pulp.lpSum(cost[i, j] * ship[i, j] for (i, j) in cost)
 for i, cap in supply.items():

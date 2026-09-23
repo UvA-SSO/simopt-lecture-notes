@@ -83,7 +83,10 @@ set_cover = pulp.LpProblem(name="set_cover", sense=pulp.LpMinimize)
 pick = {s: pulp.LpVariable(name=s, cat="Binary") for s in covers}
 set_cover += pulp.lpSum(pick.values())
 for u in universe:
-    set_cover += pulp.lpSum(pick[s] for s in covers if u in covers[s]) >= 1, f"cover_{u}"
+    set_cover += (
+        pulp.lpSum(pick[s] for s in covers if u in covers[s]) >= 1,
+        f"cover_{u}",
+    )
 
 set_cover.solve(pulp.PULP_CBC_CMD(msg=False))
 print("stations:", [s for s in covers if pick[s].value() == 1])
@@ -125,13 +128,26 @@ shift_cost = {"morning": 30, "midday": 30, "late": 30, "full": 50}
 required = {1: 3, 2: 6, 3: 7, 4: 4}
 
 roster = pulp.LpProblem(name="shift_scheduling", sense=pulp.LpMinimize)
-count = {s: pulp.LpVariable(name=s, lowBound=0, cat="Integer") for s in shift_intervals}
+count = {
+    s: pulp.LpVariable(name=s, lowBound=0, cat="Integer")
+    for s in shift_intervals
+}
 roster += pulp.lpSum(shift_cost[s] * count[s] for s in shift_intervals)
 for u, need in required.items():
-    roster += pulp.lpSum(count[s] for s in shift_intervals if u in shift_intervals[s]) >= need
+    roster += (
+        pulp.lpSum(
+            count[s] for s in shift_intervals if u in shift_intervals[s]
+        )
+        >= need
+    )
 
 roster.solve(pulp.PULP_CBC_CMD(msg=False))
-print("roster:", {s: count[s].value() for s in shift_intervals}, "cost", roster.objective.value())
+print(
+    "roster:",
+    {s: count[s].value() for s in shift_intervals},
+    "cost",
+    roster.objective.value(),
+)
 
 # %% [markdown]
 # ## References
