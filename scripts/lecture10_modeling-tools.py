@@ -81,7 +81,9 @@ for t in periods:
     prev = s0 if t == 0 else stock[t - 1]
     inventory += stock[t] == prev + order[t] - demand[t], f"balance_{t + 1}"
 
-inventory.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+
+inventory.solve(solver)
 print("orders:", [order[t].value() for t in periods])
 print("end-of-period stock:", [stock[t].value() for t in periods])
 print("total cost:", inventory.objective.value())
@@ -144,7 +146,9 @@ fit += pulp.lpSum(e_pos[k] + e_neg[k] for k in range(len(xs)))
 for k in range(len(xs)):
     fit += ys[k] - (a + slope * xs[k]) == e_pos[k] - e_neg[k]
 
-fit.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+
+fit.solve(solver)
 a_hat, b_hat = a.value(), slope.value()
 print(f"robust line: y = {a_hat:.2f} + {b_hat:.2f} x")
 
@@ -199,7 +203,7 @@ plt.show()
 # through better algorithms alone, comparable to the hardware speed-up over the same
 # period.
 #
-# pulp can call any installed solver without changing the model; only the `.solve(...)`
+# pulp can call any installed solver without changing the model; only the `getSolver(...)`
 # line changes. To see what is available here:
 
 # %%
@@ -224,7 +228,7 @@ print(pulp.listSolvers(onlyAvailable=True))
 # planners rather than modelers.
 #
 # [pulp](https://coin-or.github.io/pulp/) gives the AML benefits inside Python
-# (`pip install pulp[cbc]` bundles CBC), plus everything Python brings for preparing data
+# (`pip install pulp[cbc]` installs CBC, which pulp runs through its `COIN_CMD` interface), plus everything Python brings for preparing data
 # and analyzing solutions. The key discipline is the same as an AML's model/data split:
 # keep the instance data in plain Python structures, and build the model (`LpProblem`,
 # variables, objective, constraints) from that data so the model code is reused unchanged
@@ -271,7 +275,8 @@ print(demo)
 # stopped early reports the best solution so far and the still-open gap.
 
 # %%
-demo.solve(pulp.PULP_CBC_CMD(msg=True))
+solver = pulp.getSolver("COIN_CMD", msg=True)
+demo.solve(solver)
 print("status:", pulp.LpStatus[demo.status])
 
 # %% [markdown]
@@ -304,13 +309,15 @@ def build_knapsack(
 
 
 knap10, items10 = build_knapsack(capacity=10)
-knap10.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+knap10.solve(solver)
 print("capacity 10:", [v.value() for v in items10], knap10.objective.value())
 
 knap11, items11 = build_knapsack(capacity=11)
 for new, old in zip(items11, items10):
     new.setInitialValue(old.value())
-knap11.solve(pulp.PULP_CBC_CMD(msg=False, warmStart=True))
+solver = pulp.getSolver("COIN_CMD", msg=False, warmStart=True)
+knap11.solve(solver)
 print(
     "capacity 11, warm started:",
     [v.value() for v in items11],

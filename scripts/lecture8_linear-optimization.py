@@ -149,7 +149,7 @@ print(product_mix)
 # We are ready to solve the LO problem. We first load a solver and then use it in `.solve()`; `LpStatus` reports whether it found an optimum, and `.value()` reads off the variables and the objective.
 
 # %%
-solver = pulp.PULP_CBC_CMD(msg=False)
+solver = pulp.getSolver("COIN_CMD", msg=False)
 product_mix.solve(solver)
 print("status:", pulp.LpStatus[product_mix.status])
 print(f"x = {x.value()}, y = {y.value()}")
@@ -186,7 +186,8 @@ for res, cap in available.items():
     product_mix += usage <= cap, res.replace(" ", "_")
 
 # solving the model and printing the results
-product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+product_mix.solve(solver)
 mix_solution = {p: dec_vars[p].value() for p in products}
 optimal_profit = product_mix.objective.value()
 print("status:", pulp.LpStatus[product_mix.status])
@@ -232,7 +233,8 @@ for res, cap in available.items():
     product_mix += usage <= cap, res.replace(" ", "_")
 
 # solving the model and printing the results
-product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+product_mix.solve(solver)
 print("status:", pulp.LpStatus[product_mix.status])
 print("optimal mix:", {p: dec_vars[p].value() for p in products})
 print("optimal profit:", product_mix.objective.value())
@@ -409,7 +411,9 @@ unbounded_lp += x + 3 * y <= 12
 unbounded_lp += 2 * x + y <= 10
 # no constraint at all limits s
 
-unbounded_lp.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+
+unbounded_lp.solve(solver)
 print("status:", pulp.LpStatus[unbounded_lp.status])
 
 # %%
@@ -423,7 +427,9 @@ infeasible_lp += x + 3 * y <= 12
 infeasible_lp += 2 * x + y <= 10
 infeasible_lp += y >= 5  # the customer contract
 
-infeasible_lp.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+
+infeasible_lp.solve(solver)
 print("status:", pulp.LpStatus[infeasible_lp.status])
 
 # %% [markdown]
@@ -497,7 +503,9 @@ for before, after in precedences:
 # arbitrary one consistent with z.
 project += makespan + 1e-4 * pulp.lpSum(finish[a] for a in duration)
 
-project.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+
+project.solve(solver)
 print(
     "earliest finish times:",
     {a: round(finish[a].value(), 2) for a in duration},

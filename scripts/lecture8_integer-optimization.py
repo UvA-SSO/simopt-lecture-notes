@@ -80,7 +80,8 @@ int_mix += pulp.lpSum(profit[p] * dec_vars[p] for p in products)
 for res, cap in available.items():
     usage = pulp.lpSum(resource_use[res][p] * dec_vars[p] for p in products)
     int_mix += usage <= cap, res.replace(" ", "_")
-int_mix.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+int_mix.solve(solver)
 print("integer optimum:", {p: dec_vars[p].value() for p in products})
 print("optimal profit:", int_mix.objective.value())
 
@@ -227,7 +228,8 @@ take = [
 ]
 knapsack += pulp.lpSum(reward[i] * take[i] for i in range(n_items))
 knapsack += pulp.lpSum(weight[i] * take[i] for i in range(n_items)) <= capacity
-knapsack.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+knapsack.solve(solver)
 print("take items:", [i + 1 for i in range(n_items) if take[i].value() == 1])
 print("total reward:", knapsack.objective.value())
 

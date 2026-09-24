@@ -172,6 +172,15 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   abbreviate the iterable right next to them (`for p in products`,
   `for res, cap in available.items()`). Single-letter decision variables
   (`x`, `y`) belong only in the direct, hardcoded version that mirrors the math.
+- Solve every pulp model through `getSolver` with the `COIN_CMD`
+  interface, never `pulp.PULP_CBC_CMD` (deprecated: CBC is no longer
+  bundled with PuLP and runs through `COIN_CMD`):
+  ```python
+  solver = pulp.getSolver("COIN_CMD", msg=False)
+  product_mix.solve(solver)
+  ```
+  Extra solver options go in the same call, e.g.
+  `pulp.getSolver("COIN_CMD", msg=False, warmStart=True)`.
 - Never let a line break fall inside a nested expression (e.g. an `lpSum`
   wrapped inside a constraint tuple). Pull the inner part into a named
   intermediate instead:

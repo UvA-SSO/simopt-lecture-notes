@@ -156,7 +156,9 @@ for i in jobs:
         if i < j:
             sched += before[i, j] + before[j, i] == 1
 
-sched.solve(pulp.PULP_CBC_CMD(msg=False))
+solver = pulp.getSolver("COIN_CMD", msg=False)
+
+sched.solve(solver)
 order = sorted(jobs, key=lambda i: start[i].value())
 print("start times:", {i: start[i].value() for i in jobs})
 print(
