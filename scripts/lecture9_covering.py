@@ -89,7 +89,6 @@ for u in universe:
     )
 
 solver = pulp.getSolver("COIN_CMD", msg=False)
-
 set_cover.solve(solver)
 print("stations:", [s for s in covers if pick[s].value() == 1])
 
@@ -144,7 +143,6 @@ for u, need in required.items():
     )
 
 solver = pulp.getSolver("COIN_CMD", msg=False)
-
 roster.solve(solver)
 print(
     "roster:",

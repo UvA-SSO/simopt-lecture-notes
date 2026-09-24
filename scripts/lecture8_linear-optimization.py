@@ -412,7 +412,6 @@ unbounded_lp += 2 * x + y <= 10
 # no constraint at all limits s
 
 solver = pulp.getSolver("COIN_CMD", msg=False)
-
 unbounded_lp.solve(solver)
 print("status:", pulp.LpStatus[unbounded_lp.status])
 
@@ -428,7 +427,6 @@ infeasible_lp += 2 * x + y <= 10
 infeasible_lp += y >= 5  # the customer contract
 
 solver = pulp.getSolver("COIN_CMD", msg=False)
-
 infeasible_lp.solve(solver)
 print("status:", pulp.LpStatus[infeasible_lp.status])
 
@@ -504,7 +502,6 @@ for before, after in precedences:
 project += makespan + 1e-4 * pulp.lpSum(finish[a] for a in duration)
 
 solver = pulp.getSolver("COIN_CMD", msg=False)
-
 project.solve(solver)
 print(
     "earliest finish times:",

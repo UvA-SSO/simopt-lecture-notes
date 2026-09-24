@@ -82,7 +82,6 @@ for t in periods:
     inventory += stock[t] == prev + order[t] - demand[t], f"balance_{t + 1}"
 
 solver = pulp.getSolver("COIN_CMD", msg=False)
-
 inventory.solve(solver)
 print("orders:", [order[t].value() for t in periods])
 print("end-of-period stock:", [stock[t].value() for t in periods])
@@ -147,7 +146,6 @@ for k in range(len(xs)):
     fit += ys[k] - (a + slope * xs[k]) == e_pos[k] - e_neg[k]
 
 solver = pulp.getSolver("COIN_CMD", msg=False)
-
 fit.solve(solver)
 a_hat, b_hat = a.value(), slope.value()
 print(f"robust line: y = {a_hat:.2f} + {b_hat:.2f} x")
