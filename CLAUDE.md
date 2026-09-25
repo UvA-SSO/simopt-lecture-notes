@@ -270,6 +270,33 @@ after finishing a lecture, or a meaningful chunk of one) rather than accumulatin
 large, unreviewed changes. This keeps history useful and makes it easy to see how
 each lecture evolved.
 
+## Releasing changes: changelog and version footer
+
+The notes are live with students, so changes are published as **releases**:
+each push to `main` that students should know about gets a git tag and a
+curated entry in `changelog.md` (last item in the TOC, newest entry first).
+
+- Commit locally as often as needed; not every commit is a release.
+- Release tag names are the Amsterdam release time, `YYYY-MM-DD-HHMM`
+  (e.g. `2026-09-25-1430`). The changelog heading is the same moment in
+  display form, `## 2026-09-25 14:30`.
+- Before publishing, look at what changed since the previous release:
+  `git log <last-tag>..HEAD --oneline` and `git diff --stat <last-tag>..HEAD`.
+  Write 2-5 student-facing bullets (what changed for the reader, linking to the
+  changed page or section, e.g. `[Machine Scheduling](notebooks/lecture9_machine-scheduling.ipynb)`),
+  group typo/formatting fixes into one line, leave out purely internal changes
+  (hooks, CI, CLAUDE.md), and end with
+  `[Full diff on GitHub](https://github.com/UvA-SSO/simopt-lecture-notes/compare/<last-tag>...<new-tag>)`.
+  The same writing-style rules as the notes apply.
+- Commit the entry, then `git tag <new-tag>` and
+  `git push --atomic origin main <new-tag>` (tag and branch in one push, so
+  CI sees the tag when it checks out `main`).
+- The footer on every page comes from `site.parts.footer: _footer.md` in
+  `myst.yml`. The committed `_footer.md` is a "Local build" placeholder; the
+  "Stamp version footer" step in `.github/workflows/build-and-possibly-deploy.yml`
+  overwrites it with `Version <tag time or commit time> · commit <sha> ·
+  Changelog`. Don't commit a stamped `_footer.md`.
+
 ## Pre-commit hooks
 
 `.pre-commit-config.yaml` runs, in order: standard hygiene checks (trailing

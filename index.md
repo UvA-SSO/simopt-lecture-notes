@@ -38,6 +38,8 @@ This course assumes a basic understanding of quantitative methods, including alg
 
 These notes are intended to support the lectures and other course materials rather than replace them. They are best read sequentially, with attention to the examples, exercises, and computational tasks. Students are encouraged to work through the examples actively and to connect the mathematical concepts to practical decision problems. Try the exercises first before looking at the solutions.
 
+The notes are updated during the course. The [Changelog](changelog.md) lists what changed in each version, and the bottom of every page shows which version you are reading.
+
 The materials are organized by lecture, and each lecture is divided into topic-specific Jupyter notebooks. The table of contents in the left-hand menu follows this structure: lectures are grouped together, and the individual topics are listed underneath each lecture.
 
 ### Running the notebooks

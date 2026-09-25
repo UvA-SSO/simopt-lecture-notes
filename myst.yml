@@ -56,6 +56,8 @@ project:
           title: Simulation Optimization
         - file: notebooks/lecture13_exercises.ipynb
           title: Exercises
+    - file: changelog.md
+      title: Changelog
 site:
   title: 'Simulation and Optimization: Lecture Notes'
   template: book-theme
@@ -63,3 +65,5 @@ site:
     logo: images/logo.png
     logo_text: SimOpt Lecture Notes
     favicon: images/logo.png
+  parts:
+    footer: _footer.md

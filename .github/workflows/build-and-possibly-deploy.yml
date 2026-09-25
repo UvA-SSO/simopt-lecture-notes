@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history and tags, so the footer can show the release tag.
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
@@ -30,6 +33,22 @@ jobs:
 
       - name: Run lint/format/sync checks
         run: uv run pre-commit run --all-files
+
+      - name: Stamp version footer
+        # Runs after pre-commit so the hooks don't see the modified file.
+        # A release tag (YYYY-MM-DD-HHMM) on HEAD is shown as its date and
+        # time; an untagged commit falls back to its Amsterdam commit time.
+        run: |
+          TAG=$(git tag --points-at HEAD | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}$' | sort | tail -1 || true)
+          if [ -n "$TAG" ]; then
+            VERSION=$(echo "$TAG" | sed -E 's/^(.{10})-(..)(..)$/\1 \2:\3/')
+          else
+            VERSION=$(TZ=Europe/Amsterdam git log -1 --date=format-local:'%Y-%m-%d %H:%M' --format=%cd)
+          fi
+          SHA=$(git rev-parse --short HEAD)
+          URL="${{ github.server_url }}/${{ github.repository }}/commit/$(git rev-parse HEAD)"
+          echo "Version $VERSION · commit [$SHA]($URL) · [Changelog](changelog.md)" > _footer.md
+          cat _footer.md
 
       - name: Build the book
         # BASE_URL tells MyST the site is served from a subpath
