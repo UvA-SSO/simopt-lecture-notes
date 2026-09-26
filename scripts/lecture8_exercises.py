@@ -904,7 +904,7 @@ show_region(fig, lim_x, lim_y)
 #
 # b. Without running the code, determine what it prints. Motivate your answer.
 #
-# c. What does the first line of the output become if, separately, (i) `<=` in the constraint loop is replaced by `>=`, and (ii) `pulp.LpMaximize` is replaced by `pulp.LpMinimize`? Explain, and say for each case what the other two lines of the output tell you.
+# c. What does the first line of the output become if, separately, (i) `<=` in the constraint loop is replaced by `>=`, and (ii) `pulp.LpMaximize` is replaced by `pulp.LpMinimize`? Explain.
 # :::
 
 # %% [markdown]
@@ -931,13 +931,7 @@ show_region(fig, lim_x, lim_y)
 #    26.0
 #    ```
 #
-# c. (i) With `>=`, both constraints say "at least": the feasible region contains points with arbitrarily many chairs and tables, and since we maximize profit, the problem is unbounded. The first line becomes `Unbounded`. pulp still prints values on the next two lines (here zeros), but they are not an optimal solution: only when the status is `Optimal` do the printed values mean something. Always check the status first.
-#
-#    ```text
-#    Unbounded
-#    {'chair': 0.0, 'table': 0.0}
-#    0.0
-#    ```
+# c. (i) With `>=`, both constraints say "at least": the feasible region contains points with arbitrarily many chairs and tables, and since we maximize profit, the problem is unbounded. The first line becomes `Unbounded`: there is no optimal solution.
 #
 #    (ii) Minimizing the profit: making nothing is feasible, and the profit cannot be negative, since both variables are at least 0 and both profits are positive. The first line is still `Optimal`, now with both values 0 and objective value 0.
 # ::::
