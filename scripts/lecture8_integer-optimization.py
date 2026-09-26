@@ -160,74 +160,98 @@ plt.show()
 # %% [markdown]
 # ## Branch and Bound
 #
-# The method used to solve ILO problems exactly is branch and bound. It rests on two ideas,
-# stated here for a maximization problem:
+# A common method for solving integer linear optimization (ILO) problems is **branch and bound**. The basic idea is to start by just ignoring the integer restrictions. More precisely, we allow integer variables to be continuous while retaining all their other bounds and constraints. For example, instead of requiring a binary variable to satisfy $x_i \in \{0,1\}$, we allow it to take any value between zero and one:
+# $$
+# 0 \leq x_i \leq 1.
+# $$
+# Likewise, instead of requiring $x_i \in \{0,1,2,\ldots\}$, we only require:
+# $$
+# x_i \geq 0.
+# $$
+# This produces the **LO relaxation**: the same optimization problem, but without the requirement that certain variables must be integers.
 #
-# 1. The LO relaxation, the same problem with the integer constraints dropped
-#    ($x_i \in \{0,1\}$ becomes $0 \le x_i \le 1$; $x_i \in \{0,1,2,\dots\}$ becomes
-#    $x_i \ge 0$), is less restrictive, so its optimal value is an *upper bound (UB)* on the
-#    ILO optimum.
-# 2. Any feasible *integer* solution gives a *lower bound (LB)* on the ILO optimum.
+# The optimal solution to the LO relaxation usually contains non-integer values that should be integers. Such a solution is therefore infeasible for the original ILO problem, but it is still useful in two ways. First, for a maximization problem, it provides an **upper bound (UB)**: the best possible integer solution cannot have a higher objective value than the relaxed solution. Second, it provides a starting point for further search by **branching** on non-integer variables one by one.
 #
-# If a subproblem's UB is $\le$ the best LB found so far, that subproblem cannot contain a
-# better solution and is eliminated: this is what makes the method cleverer than checking
-# every integer point. When a relaxation is non-integer, we branch: pick a fractional
-# variable, say $x_j = 2.5$, and create two subproblems, one with $x_j \le 2$ and one with
-# $x_j \ge 3$. When a relaxation is already integer, it is a candidate LB and we stop
-# branching that subproblem.
+# Branching on an LO relaxation that yields an infeasible ILO solution works as follows. Suppose the relaxed solution contains $x_j = 2.5$, while $x_j$ should be an integer. We then branch the original root problem into two subproblems based on the LO relaxation of the original problem:
 #
-# For the integer product-mix problem:
+# - First subproblem: original problem but with extra constraint $x_j \leq 2$;
+# - Second subproblem: original problem but with extra constraint $x_j \geq 3$;
 #
-# - **Root.** LO relaxation optimum $(3.6, 2.8)$, value $24.8$, so UB $= 24.8$. Branch on
-#   the fractional $y = 2.8$.
-# - **Branch $y \le 2$.** Relaxation optimum $(4, 2)$, value $22$, integer, so LB $= 22$.
-# - **Branch $y \ge 3$.** Relaxation optimum $(3, 3)$, value $24$, integer, so LB $= 24$.
+# Together, these two subproblems cover all possible integer values of $x_j$, but neither allows $x_j = 2.5$ anymore. We then solve the LO relaxation of each subproblem (independently) in the same manner. If either relaxation again yields a non-integer variable that must be integer, we apply the same strategy and branch again, et cetera. To illustrate this, suppose that solving the relaxation for the subproblem with $x_j \leq 2$ leads to a solution with $x_k = 5.6$. We then branch this subproblem again to get one subproblem with constraints $x_j \leq 2$ and $x_k \leq 5$, and one subproblem with $x_j \leq 2$ and $x_k \geq 6$. Indeed, both subproblems still have the previous constraint $x_j \leq 2$.
 #
-# The best LB is $24$ from the right branch; the left branch's value $22$ is below it, so it
-# is eliminated. Every subproblem is now resolved, and $(3, 3)$ with profit $24$ is the
-# proven ILO optimum, matching what pulp reported above. Only three linear relaxations had
-# to be solved.
+# At first sight, this may seem like enumerating all possible integer values. The crucial difference is that branch and bound uses bounds to avoid exploring subproblems that cannot improve the best integer solution found so far. Hence the name branch and bound.
 #
-# Many LO solvers handle integer constraints this way; the best (proprietary) ones for
-# large instances are CPLEX and Gurobi.
+# Any feasible integer solution to the original ILO problem provides a **lower bound (LB)** for a maximization problem. Along the way, we keep track of the best original ILO solution, called the **incumbent**. Its objective value is the current best/largest LB. On the other hand, as mentioned before, the LO relaxation of a subproblem is always an UB for the best integer-feasible solution at the subproblem. So if the UB at a subproblem is smaller than the current best LB, we don't need to branch further on that subproblem, as it will never lead to a better ILO solution, saving computation time.
+#
+# Let us formalize this method further. The branch and bound method keeps track of (1) a pool of (sub)problems whose LO relaxation is not solved yet and which may still lead to an optimal solution, and (2) the current best solution with the largest/best LB so far. Initially, this pool contains only the original problem, and the LB is set to $-\infty$. As long as the pool is not empty, choose a (sub)problem from the pool, remove it, and solve its LO relaxation. This solve leads to two possibilities:
+#
+# 1. The found solution is infeasible for the ILO problem, and its objective value is an UB:
+#    1. If UB $\leq$ largest LB: We eliminate this subproblem (we will not find a better solution here; this can by default not happen for the original problem).
+#    2. If UB $>$ largest LB: Pick a variable from the solution that is non-integer but should be. Branch the (sub)problem on this variable into two new (sub)problems and add them to the pool.
+# 2. The found solution is feasible for the ILO problem and gives a new LB:
+#    1. If LB $>$ largest LB: Update the new best LB and see whether we can eliminate subproblems that were not eliminated yet. In particular, for all non-eliminated subproblems for which we obtained a UB, check whether their UB $<$ largest LB; if so, eliminate the subproblem and remove all its descendants still in the pool.
+#    2. If LB $\leq$ largest LB: Eliminate this subproblem (nothing to branch further here).
+# 3. There is no feasible solution for the specific (sub)problem: Eliminate this subproblem as it cannot have an ILO feasible solution.
+#
+# Keep repeating this procedure until the pool is empty. Once the pool is empty, we are guaranteed that the solution with the current best LB is optimal.
+#
+# The process can be visualized as a tree. The original problem is the root. Each time we branch, we split one (sub)problem into two child subproblems. The pool contains the subproblems that have not yet been eliminated or solved.
+#
+# We did not discuss how to choose two things: which decision variable to branch on (since an LO relaxation solution typically has many non-integer variables that should be integer) and which (sub)problem from the pool to pick first. The choice affects performance, and what works best is a research topic on its own and outside the scope of this course. In this course, just make a choice; we always know that in the end we will find the optimal solution.
+#
+# Let us apply this idea to the integer product-mix problem to illustrate its workings:
+#
+# - **Root problem.** The LO relaxation has optimum $\left(3.6, 2.8\right)$ with objective value $24.8$. This is an UB, but the solution is not integer in both decision variables and thus infeasible. Just pick a decision variable to branch on. We branch on $y = 2.8$.
+# - **Left subproblem:** root problem with $y \leq 2$. Its relaxation has optimum $\left(4, 2\right)$ with value $22$. This solution is integer, so it is feasible for the ILO problem and thus holds the current best LB of $22$. No need to branch further from this subproblem.
+# - **Right subproblem:** root problem with $y \geq 3$. Its relaxation has optimum $\left(3, 3\right)$ with value $24$. This is also feasible for the ILO problem, so it improves the best LB to $24$, and we can replace the previous best solution with the solution $\left(3, 3\right)$. No need to branch further from this subproblem.
+#
+# Since the pool is now empty (no promising (sub)problems left to explore), we are done, and the current best solution of $\left(3,3\right)$ with profit $24$ must be the optimal ILO solution.
+#
+# In this example, we needed only three LO relaxations, rather than checking every possible integer combination. Modern integer-optimization solvers use this basic branch-and-bound idea, often enhanced with additional techniques. More on this later.
 
 # %% [markdown]
 # ## The Knapsack Problem
 #
 # The archetypal binary ILO problem is the knapsack problem: from a set of items, each with
 # a *reward* and a *weight*, choose a subset of maximum total reward whose total weight fits
-# a capacity. Applications include which items to load in a truck, cutting stock in a steel
+# a given capacity. Applications include which items to load in a truck, cutting stock in a steel
 # plant, and simple forms of portfolio selection.
 #
-# Consider capacity 10 and six numbered items:
+# Let us consider a concrete example with $n=6$ numbered items:
 #
-# | item  | 1 | 2 | 3 | 4 | 5 | 6 |
-# |-------|---|---|---|---|---|---|
-# | reward | 10 | 13 | 18 | 31 | 7 | 15 |
-# | weight | 2 | 3 | 4 | 7 | 1 | 3 |
+# | item $i$     | 1 | 2 | 3 | 4 | 5 | 6 |
+# |--------------|---|---|---|---|---|---|
+# | reward $r_i$ | 10 | 13 | 18 | 31 | 7 | 15 |
+# | weight $w_i$ | 2 | 3 | 4 | 7 | 1 | 3 |
 #
-# With binary $x_i$, which is 1 if we take item $i$ and 0 otherwise:
+# In here, the reward and weight of the $i$th item is denoted by $r_i$ and $w_i$, respectively. The capacity $C = 10$. Furthermore, define the binary decision variable $x_i$ as 1 if we take item $i$ and 0 otherwise. The ILO problem can then be stated as follows:
 #
 # $$
 # \begin{aligned}
-# \text{maximize} \quad & \sum_i r_i x_i \\
-# \text{subject to} \quad & \sum_i w_i x_i \le 10 \\
+# \text{maximize} \quad & \sum_{i=1}^n r_i x_i \\
+# \text{subject to} \quad & \sum_{i=1}^n w_i x_i \le C \\
 # & x_i \in \{0, 1\} \text{ for all } i.
 # \end{aligned}
 # $$
+#
+# This problem can be solved in pulp as follows.
 
 # %%
+# data
 reward = [10, 13, 18, 31, 7, 15]
 weight = [2, 3, 4, 7, 1, 3]
 capacity = 10
 n_items = len(reward)
 
+# modeling
 knapsack = pulp.LpProblem(name="knapsack", sense=pulp.LpMaximize)
 take = [
     pulp.LpVariable(name=f"x_{i + 1}", cat="Binary") for i in range(n_items)
 ]
 knapsack += pulp.lpSum(reward[i] * take[i] for i in range(n_items))
 knapsack += pulp.lpSum(weight[i] * take[i] for i in range(n_items)) <= capacity
+
+# solve and print solution
 solver = pulp.getSolver("COIN_CMD", msg=False)
 knapsack.solve(solver)
 print("take items:", [i + 1 for i in range(n_items) if take[i].value() == 1])
