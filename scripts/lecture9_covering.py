@@ -92,8 +92,7 @@ for u in universe:
         f"cover_{u}",
     )
 
-solver = pulp.getSolver("COIN_CMD", msg=False)
-set_cover.solve(solver)
+set_cover.solve(pulp.PULP_CBC_CMD(msg=False))
 print("stations:", [s for s in covers if pick[s].value() == 1])
 
 # %% [markdown]
@@ -146,8 +145,7 @@ for u, need in required.items():
         >= need
     )
 
-solver = pulp.getSolver("COIN_CMD", msg=False)
-roster.solve(solver)
+roster.solve(pulp.PULP_CBC_CMD(msg=False))
 print(
     "roster:",
     {s: count[s].value() for s in shift_intervals},

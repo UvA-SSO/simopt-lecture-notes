@@ -91,8 +91,7 @@
 # for t in range(1, max_periods + 1):
 #     ILO_problem += stock[t] == stock[t - 1] - demands[t] + supply[t], f"stock_balance_{t}"
 #
-# solver = pulp.getSolver("COIN_CMD", msg=False)
-# ILO_problem.solve(solver)
+# ILO_problem.solve(pulp.PULP_CBC_CMD(msg=False))
 # print("Status:", pulp.LpStatus[ILO_problem.status])
 # for v in ILO_problem.variables():
 #     print(v.name, "=", v.varValue)

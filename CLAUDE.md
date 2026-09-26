@@ -136,8 +136,8 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
 - All Excel/R/AMPL content has been converted to Python and Excel is not part of
   this course's tooling: don't reference it, even where the source book or a
   lecture's own slides demo a technique in Excel. Optimization uses
-  [pulp](https://coin-or.github.io/pulp/) (`pip install pulp[cbc]`, already a
-  project dependency); statistics/simulation use `scipy.stats`, `numpy`,
+  [pulp](https://coin-or.github.io/pulp/) (PuLP 3.3.2, `pip install pulp==3.3.2`,
+  already a project dependency; see the PuLP version rule below); statistics/simulation use `scipy.stats`, `numpy`,
   `pandas`, `matplotlib`. R-only base datasets (`eurodist`, `AirPassengers`,
   `beaver1`, `beaver2`, `Nile`) are one-time snapshots fetched from
   [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/) (via
@@ -253,15 +253,23 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   abbreviate the iterable right next to them (`for p in products`,
   `for res, cap in available.items()`). Single-letter decision variables
   (`x`, `y`) belong only in the direct, hardcoded version that mirrors the math.
-- Solve every pulp model through `getSolver` with the `COIN_CMD`
-  interface, never `pulp.PULP_CBC_CMD` (deprecated: CBC is no longer
-  bundled with PuLP and runs through `COIN_CMD`):
+- PuLP version: this course uses PuLP 3.3.2 (pinned as `pulp==3.3.2` in
+  `pyproject.toml`), the version Google Colab provides and the one the notes
+  were taught with. PuLP 4.0 changed the API (e.g. `prob.add_variable(...)`
+  instead of `pulp.LpVariable(...)`, `PULP_CBC_CMD` removed). Don't use the
+  4.0 API and don't "fix" the 4.0 `DeprecationWarning`s that 3.3.2 raises
+  (they are hidden by the default Jupyter/Colab warning filters). Migrating
+  to 4.0 is planned for after the course. `index.md` has a "PuLP version"
+  section (`(pulp-version)=`) telling students how to install 3.3.2.
+- Solve every pulp model with the CBC solver bundled in the PuLP 3.3.2
+  wheel, through `PULP_CBC_CMD`:
   ```python
-  solver = pulp.getSolver("COIN_CMD", msg=False)
-  product_mix.solve(solver)
+  product_mix.solve(pulp.PULP_CBC_CMD(msg=False))
   ```
   Extra solver options go in the same call, e.g.
-  `pulp.getSolver("COIN_CMD", msg=False, warmStart=True)`.
+  `pulp.PULP_CBC_CMD(msg=False, warmStart=True)`. Don't use
+  `getSolver("COIN_CMD")`: it needs a `cbc` executable on PATH, which Colab
+  does not have (so every solve cell failed there).
 - Never let a line break fall inside a nested expression (e.g. an `lpSum`
   wrapped inside a constraint tuple). Pull the inner part into a named
   intermediate instead:

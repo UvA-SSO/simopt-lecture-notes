@@ -48,6 +48,17 @@ Every notebook has an "Open in Colab" button at the top, which opens it directly
 
 You can also download the notebooks with the download button and run them locally in a local Python environment with required packages installed such as jupyter(lab), PuLP, and plotly (used for the interactive figures).
 
+(pulp-version)=
+### PuLP version
+
+These notes use PuLP 3.3.2. The newer PuLP 4.0 has since been released, and code written for it differs from the code in these notes, so make sure you work with version 3.3.2:
+
+- In Google Colab, you do not need to install anything: Colab already provides PuLP 3.3.2, including the CBC solver.
+- Locally, install it with `pip install pulp==3.3.2`. This includes the CBC solver. If you already installed PuLP 4.0, the same command switches you back to 3.3.2.
+- Check which version you have with `import pulp; print(pulp.__version__)`.
+
+PuLP's own website and many examples online now show PuLP 4.0 code (for example `prob.add_variable(...)` to create variables), which does not work with version 3.3.2. When in doubt, follow the code in these notes.
+
 ## Tooling
 
 The simulation and optimization part of this course uses Python. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (see [Modeling Tools and Solvers](notebooks/lecture10_modeling-tools.ipynb)). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.

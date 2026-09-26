@@ -83,8 +83,7 @@ for i, cap in supply.items():
 for j, req in demand.items():
     transport += pulp.lpSum(ship[i, j] for i in supply) >= req, f"demand_{j}"
 
-solver = pulp.getSolver("COIN_CMD", msg=False)
-transport.solve(solver)
+transport.solve(pulp.PULP_CBC_CMD(msg=False))
 print("shipments:", {k: v.value() for k, v in ship.items() if v.value() > 0})
 print("total cost:", transport.objective.value())
 

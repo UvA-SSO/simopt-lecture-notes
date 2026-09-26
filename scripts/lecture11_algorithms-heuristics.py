@@ -175,8 +175,7 @@ for k in nodes:
         flow[i, k] for i in nodes if i != k and i != destination
     ) == pulp.lpSum(flow[k, j] for j in nodes if j != k and j != source)
 
-solver = pulp.getSolver("COIN_CMD", msg=False)
-shortest_path.solve(solver)
+shortest_path.solve(pulp.PULP_CBC_CMD(msg=False))
 print("shortest distance A to F:", shortest_path.objective.value())
 
 # %% [markdown]
@@ -369,8 +368,7 @@ for k in nodes:
     outflow = pulp.lpSum(flow[k, j] for j in nodes if (k, j) in capacity)
     max_flow += inflow == outflow
 
-solver = pulp.getSolver("COIN_CMD", msg=False)
-max_flow.solve(solver)
+max_flow.solve(pulp.PULP_CBC_CMD(msg=False))
 print("maximum flow:", max_flow.objective.value())
 
 # %% [markdown]
