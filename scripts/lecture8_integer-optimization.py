@@ -92,7 +92,7 @@ print("optimal profit:", int_mix.objective.value())
 # feasible or optimal. The ILO optimum (the black dot) is the best *feasible* grid point,
 # which can be several steps away from the naive rounding of the relaxation.
 
-# %% tags=["hide-input"]
+# %% tags=["remove-cell"] label="lattice-plot"
 x_grid = np.linspace(0, 6, 200)
 plt.figure(figsize=(5, 5))
 plt.plot(
@@ -147,6 +147,13 @@ plt.ylabel("desks $y$")
 plt.legend(loc="upper right", fontsize=7)
 plt.title("Feasible region with integer lattice points")
 plt.show()
+
+# %% [markdown]
+# :::{figure} #lattice-plot
+# :label: fig-lattice
+#
+# Feasible region of the integer product-mix problem with its integer points, the optimum of the LO relaxation (star) and the ILO optimum (black dot).
+# :::
 
 # %% [markdown]
 # :::{exercise}
@@ -292,6 +299,7 @@ def draw_bb_tree(
     plt.show()
 
 
+# %% tags=["remove-cell"] label="bb-product-mix"
 draw_bb_tree(
     nodes={
         "root": (5.0, 5.0, "Step 1: 24.8 (UB)", "3.6, 2.8", "UB"),
@@ -313,7 +321,20 @@ draw_bb_tree(
 )
 
 # %% [markdown]
+# :::{figure} #bb-product-mix
+# :label: fig-bb-product-mix
+#
+# Branch-and-bound tree for the integer product-mix problem (UB = upper bound from the LO relaxation, LB = lower bound from a feasible integer solution).
+# :::
+
+# %% [markdown]
 # In this example, we needed only three LO relaxations, rather than checking every possible integer combination. Modern integer-optimization solvers use this basic branch-and-bound idea, often enhanced with additional techniques. More on this later.
+#
+# :::{exercise}
+# :label: ex-bb-branch-x
+#
+# Solve the integer product-mix problem with branch and bound again, but now branch on $x$ instead of $y$ in step 1. Solve each LO relaxation graphically, number the steps, and draw the branch-and-bound tree in the same style as the figure above. Do you find the same optimal solution, and how many LO relaxations do you need this time?
+# :::
 
 # %% [markdown]
 # ## The Knapsack Problem
@@ -410,7 +431,7 @@ print("total reward:", knapsack.objective.value())
 #
 # The figure below shows the branch-and-bound tree.
 
-# %% tags=["hide-input"]
+# %% tags=["remove-cell"] label="bb-knapsack"
 draw_bb_tree(
     nodes={
         "root": (7.2, 5.0, "Step 1: 32 (UB)", "1, 1, 0.8, 0", "UB"),
@@ -436,6 +457,13 @@ draw_bb_tree(
     figsize=(11, 5),
     box_width=4.5,
 )
+
+# %% [markdown]
+# :::{figure} #bb-knapsack
+# :label: fig-bb-knapsack
+#
+# Branch-and-bound tree for the knapsack example (UB = upper bound from the LO relaxation, LB = lower bound from a feasible integer solution).
+# :::
 
 # %% [markdown]
 # (general-formulation)=

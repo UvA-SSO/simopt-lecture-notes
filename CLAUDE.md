@@ -134,14 +134,29 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   directives with a `:label:` (original book caption, no "Figure N.M:" numbering)
   so they're auto-numbered and cross-referenceable via `[](#label)` — this is a
   separate, verified-working mechanism from the code-cell one below.
-- **Do not** try to label a live matplotlib plot's *output* as a numbered
-  `{figure}` via mystmd's `#| label: cell-name` code-cell-tag convention +
-  `` :::{figure} #cell-name ` `` — it renders fine in mystmd itself, but this
-  project's pinned `ruff-format` (`ruff-pre-commit` rev `v0.6.9`, older than the
-  `ruff` used elsewhere) rewrites `#| label: x` to `# | label: x` on every
-  pre-commit run, silently breaking the cell tag. Just let the plot render as
-  plain, unlabeled code-cell output, introduced by a descriptive sentence
-  ("the figure below shows...") instead of a `[](#label)` cross-reference.
+- Every figure, including a live matplotlib plot, gets a caption below it.
+  For a plot, put the label in the jupytext cell marker's metadata and embed
+  the output in a `{figure}` in the next markdown cell:
+  ```python
+  # %% tags=["remove-cell"] label="bb-knapsack"
+  draw_bb_tree(...)
+
+  # %% [markdown]
+  # :::{figure} #bb-knapsack
+  # :label: fig-bb-knapsack
+  #
+  # Branch-and-bound tree for the knapsack example.
+  # :::
+  ```
+  (verified in `lecture8_integer-optimization`). The `remove-cell` tag hides
+  the source cell so the plot isn't shown twice; `remove-output` or
+  `hide-output` don't work because the embedded copy inherits them. If the
+  plotting code should stay viewable, put reusable parts (e.g. a drawing
+  function) in a separate `hide-input` cell. Don't use mystmd's
+  `#| label: x` comment instead: the pinned `ruff-format` (`ruff-pre-commit`
+  rev `v0.6.9`) rewrites it to `# | label: x`, which breaks the label. Also
+  don't put a `caption` in the cell metadata: mystmd then renders the caption
+  above the plot.
 - Put all `import` statements for a notebook in its **first** code cell. `isort`
   runs with `--float-to-top` and will relocate any `import` found in a later
   cell up to the first one on the next pre-commit run, which silently breaks
