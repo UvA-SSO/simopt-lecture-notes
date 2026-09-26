@@ -12,3 +12,8 @@
   stroke: var(--myst-color-border) !important;
   stroke-opacity: 1 !important;
 }
+
+/* Feasible regions: a stronger fill in the dark theme for contrast. */
+.dark .js-plotly-plot .main-svg .js-fill {
+  fill-opacity: 0.35 !important;
+}

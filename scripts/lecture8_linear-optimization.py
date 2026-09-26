@@ -300,7 +300,7 @@ graphical.add_trace(
         x=[x for x, _ in corners],
         y=[y for _, y in corners],
         fill="toself",
-        fillcolor="rgba(31,119,180,0.15)",
+        fillcolor="rgba(44,160,44,0.18)",
         mode="none",
         name="feasible region",
         hoverinfo="skip",
@@ -343,7 +343,7 @@ graphical.add_trace(
         y=[y for _, y in corners],
         customdata=[3 * x + 5 * y for x, y in corners],
         mode="markers",
-        marker={"color": "rgba(31,119,180,0.6)", "size": 9},
+        marker={"color": "#1f77b4", "size": 9},
         name="corner point",
         hovertemplate="(%{x:.1f}, %{y:.1f})<br>profit %{customdata:.1f}"
         "<extra></extra>",

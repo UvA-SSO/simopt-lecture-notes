@@ -98,10 +98,18 @@ AXIS_STYLE = {
     "fixedrange": True,
 }
 PLOT_CONFIG = {"displayModeBar": False}
-LINE_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c"]
+LINE_COLORS = ["#1f77b4", "#ff7f0e", "#17becf"]
+# green marks feasible solutions (region, integer points, segments)
+FEASIBLE_GREEN = "#2ca02c"
 
 
-def region(corners, objective, name="corner point"):
+def region(
+    corners,
+    objective,
+    name="corner point",
+    fill_name="feasible region",
+    fillcolor="rgba(44,160,44,0.18)",
+):
     """Shaded feasible region; hovering a corner shows its objective value."""
     xs = [x for x, _ in corners]
     ys = [y for _, y in corners]
@@ -109,9 +117,9 @@ def region(corners, objective, name="corner point"):
         x=xs,
         y=ys,
         fill="toself",
-        fillcolor="rgba(31,119,180,0.15)",
+        fillcolor=fillcolor,
         mode="none",
-        name="feasible region",
+        name=fill_name,
         hoverinfo="skip",
     )
     points = go.Scatter(
@@ -119,7 +127,7 @@ def region(corners, objective, name="corner point"):
         y=ys,
         customdata=[objective(x, y) for x, y in corners],
         mode="markers",
-        marker={"color": "rgba(31,119,180,0.6)", "size": 8},
+        marker={"color": "#1f77b4", "size": 8},
         name=name,
         hovertemplate="(%{x:.3~f}, %{y:.3~f})<br>objective %{customdata:.3~f}"
         "<extra></extra>",
@@ -176,8 +184,15 @@ fig.add_trace(point(5, 2.5, "optimum", "optimum (5, 2.5)<br>objective 7.5"))
 show_region(fig, lim_x, lim_y)
 
 # %% tags=["remove-cell"] label="hw-8-1c"
+# the shaded area is only feasible for the LO relaxation; the feasible
+# solutions (y integer) are the green segments
 fig = go.Figure(
-    region([(0, 0), (5, 0), (5, 2.5), (3, 3.5), (0, 3.5)], lambda x, y: x + y)
+    region(
+        [(0, 0), (5, 0), (5, 2.5), (3, 3.5), (0, 3.5)],
+        lambda x, y: x + y,
+        fill_name="feasible region of the LO relaxation",
+        fillcolor="rgba(128,128,128,0.2)",
+    )
 )
 for level in range(4):
     x_max = min(5, 10 - 2 * level)
@@ -186,7 +201,7 @@ for level in range(4):
             x=[0, x_max],
             y=[level, level],
             mode="lines",
-            line={"color": LINE_COLORS[2], "width": 5},
+            line={"color": FEASIBLE_GREEN, "width": 5},
             name="feasible (y integer)",
             legendgroup="segments",
             showlegend=level == 0,
@@ -775,7 +790,11 @@ fig.add_trace(
         y=[j for _, j in int_points],
         customdata=[i + j for i, j in int_points],
         mode="markers",
-        marker={"color": LINE_COLORS[2], "size": 9},
+        marker={
+            "color": FEASIBLE_GREEN,
+            "size": 9,
+            "line": {"color": "white", "width": 1},
+        },
         name="integer feasible points",
         hovertemplate="(%{x}, %{y})<br>objective %{customdata}<extra></extra>",
     )

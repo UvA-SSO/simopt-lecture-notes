@@ -130,7 +130,7 @@ lattice.add_trace(
         x=[0, 5, 3.6, 0],
         y=[0, 0, 2.8, 4],
         fill="toself",
-        fillcolor="rgba(31,119,180,0.15)",
+        fillcolor="rgba(44,160,44,0.18)",
         mode="none",
         name="feasible region",
         hoverinfo="skip",
@@ -165,7 +165,11 @@ lattice.add_trace(
         y=[y for _, y in feasible_pts],
         customdata=[3 * x + 5 * y for x, y in feasible_pts],
         mode="markers",
-        marker={"color": "#2ca02c", "size": 9},
+        marker={
+            "color": "#2ca02c",
+            "size": 9,
+            "line": {"color": "white", "width": 1},
+        },
         name="integer feasible points",
         hovertemplate="(%{x}, %{y})<br>profit %{customdata}<extra></extra>",
     )

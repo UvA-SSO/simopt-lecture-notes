@@ -210,6 +210,14 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
     labels, axis titles, legend and annotations to the theme's
     `--myst-color-text`, and grid lines to `--myst-color-border`. Plotly output
     here does not render LaTeX: use Unicode (`≤`, `x₃`) in labels.
+    Colours: green means feasible. The feasible region is filled
+    `rgba(44,160,44,0.18)` (`custom.css` raises the fill opacity to 0.35 in
+    the dark theme); integer feasible points are green (`#2ca02c`) with a
+    white outline; a region that is only feasible for the LO relaxation
+    while the actual feasible set is drawn on top (e.g. segments) is grey
+    `rgba(128,128,128,0.2)`. Constraint lines are blue, orange, cyan (never
+    green); objective lines dashed/dotted grey; the LO optimum is a red star,
+    the integer optimum a purple diamond; corner points solid blue.
   - Box-and-text diagrams such as branch-and-bound trees are static
     matplotlib images that scale with the screen (`draw_bb_tree`): transparent
     figure background, every text on its own box (branch labels in white
