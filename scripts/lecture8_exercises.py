@@ -62,6 +62,77 @@
 # :::
 #
 
+# %% tags=["remove-cell"]
+import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+
+
+def draw_line(ax, a, b, c, xlim, **style):
+    """Draw the line a x + b y = c over the horizontal range xlim."""
+    if b == 0:
+        ax.axvline(c / a, **style)
+    else:
+        xs = [xlim[0], xlim[1]]
+        ax.plot(xs, [(c - a * x) / b for x in xs], **style)
+
+
+def draw_region(ax, corners, xlim, ylim, xlabel="$x$", ylabel="$y$"):
+    """Shade the feasible region with the given corner points."""
+    ax.add_patch(Polygon(corners, alpha=0.15, label="feasible region"))
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+
+# %% tags=["remove-cell"] label="hw-8-1b"
+fig, ax = plt.subplots(figsize=(5, 4))
+lim_x, lim_y = (0.0, 8.0), (0.0, 5.5)
+draw_region(ax, [(0, 0), (5, 0), (5, 2.5), (3, 3.5), (0, 3.5)], lim_x, lim_y)
+draw_line(ax, 1, 0, 5, lim_x, color="C0", label=r"$x \leq 5$")
+draw_line(ax, 0, 1, 3.5, lim_x, color="C1", label=r"$y \leq 3.5$")
+draw_line(ax, 1, 2, 10, lim_x, color="C2", label=r"$x + 2y \leq 10$")
+draw_line(ax, 1, 1, 7.5, lim_x, color="k", ls="--", label="$x + y = 7.5$")
+ax.plot(5, 2.5, "C3*", markersize=14, zorder=4, clip_on=False, label="optimum")
+ax.legend(loc="upper right", fontsize=8)
+plt.show()
+
+# %% tags=["remove-cell"] label="hw-8-1c"
+fig, ax = plt.subplots(figsize=(5, 4))
+draw_region(ax, [(0, 0), (5, 0), (5, 2.5), (3, 3.5), (0, 3.5)], lim_x, lim_y)
+for level in range(4):
+    x_max = min(5, 10 - 2 * level)
+    segment_label = "feasible ($y$ integer)" if level == 0 else None
+    ax.plot(
+        [0, x_max],
+        [level, level],
+        color="C2",
+        lw=3,
+        label=segment_label,
+        clip_on=False,
+    )
+draw_line(ax, 1, 1, 7, lim_x, color="k", ls="--", label="$x + y = 7$")
+ax.plot(
+    5,
+    2.5,
+    "C3*",
+    markersize=14,
+    zorder=4,
+    clip_on=False,
+    label="LO relaxation optimum",
+)
+ax.plot(
+    [5, 4],
+    [2, 3],
+    "ko",
+    markersize=8,
+    zorder=4,
+    clip_on=False,
+    label="optimal solutions",
+)
+ax.legend(loc="upper right", fontsize=8)
+plt.show()
+
 # %% [markdown]
 #
 # ::::{solution} hw-8-1
@@ -75,20 +146,43 @@
 #    \max x + y \quad \text{s.t.} \quad x \le 5,\ y \le 3.5,\ x + 2y \le 10,\ x, y \ge 0.
 #    $$
 #
-# b. The optimal solution is where lines $x = 5$ and $x + 2y = 10$ cross: $x = 5$,
-#    $y = 2.5$, objective value 7.5.
+# b. The figure below shows the feasible region. Shifting the objective line $x + y = c$
+#    up (increasing $c$) as far as possible, it last touches the feasible region where the
+#    lines $x = 5$ and $x + 2y = 10$ cross. Substituting $x = 5$ in $x + 2y = 10$ gives
+#    $y = 2.5$: the optimal solution is $(x, y) = (5, 2.5)$ with objective value 7.5.
 #
-# :::{figure} images/lecture8_hw1-ex1b.png
+# :::{figure} #hw-8-1b
 # :label: fig-hw-8-1b
 #
-# The feasible region of part a, with the optimum at $(5, 2.5)$.
+# The feasible region of part a, with the objective line $x + y = 7.5$ through the optimum
+# $(5, 2.5)$.
 # :::
 #
-# c. Shifting the objective line $x + y = 7.5$ toward the feasible region, the objective
-#    line $x + y = 7$ first touches two feasible integer points at once: where it crosses
-#    $x + 2y = 10$, giving $(x, y) = (4, 3)$, and where it crosses $x = 5$, giving
-#    $(x, y) = (5, 2)$. Both have objective value 7, and since these are the first
-#    feasible integer points the line reaches, both are optimal.
+# c. Only $y$ has to be integer; $x$ may still take any value. We use
+#    [branch and bound](lecture8_integer-optimization.ipynb#branch-and-bound). The LO
+#    relaxation is the problem of part b, with optimum $(5, 2.5)$ and UB 7.5. Since
+#    $y = 2.5$ is not integer, we branch on $y$:
+#
+#    - $y \le 2$: the LO optimum is $(5, 2)$ with value 7. Here $y$ is integer, so this is
+#      a feasible solution and gives LB 7. It is also the only optimal solution of this
+#      subproblem, since $x \le 5$ and $y \le 2$.
+#    - $y \ge 3$: now $3 \le y \le 3.5$, and the labor constraint gives $x \le 10 - 2y$,
+#      so the objective is at most $10 - y$. The LO optimum is therefore $(4, 3)$ with
+#      value 7, again with integer $y$, and no other point of this subproblem reaches 7.
+#
+#    Both subproblems are solved and the pool is empty, so the optimal value is 7, and it
+#    is reached in both subproblems. The optimal solutions are $(x, y) = (5, 2)$ and
+#    $(x, y) = (4, 3)$. The figure below shows the same result graphically: with integer
+#    $y$, the feasible solutions are the horizontal line segments, and the objective line
+#    $x + y = 7$ touches them in exactly these two points.
+#
+# :::{figure} #hw-8-1c
+# :label: fig-hw-8-1c
+#
+# With $y$ integer and $x$ continuous, the feasible solutions of part c lie on the
+# horizontal segments. The objective line $x + y = 7$ touches them in $(5, 2)$ and
+# $(4, 3)$.
+# :::
 #
 # d. Let binary $z = 1$ if the exchange is used, 0 otherwise. The ILO becomes
 #
@@ -101,8 +195,8 @@
 #
 #    Case $z = 0$ is solved in part b, objective 7.5. For $z = 1$, the labor constraint
 #    becomes $x + 2y \le 15$, and the corner of the feasible region moves to where
-#    $x = 5$ meets $y = 3.5$, giving objective $5 + 3.5 - 0.25 = 8.25$. Since
-#    $8.25 > 7.5$, it is optimal to use the exchange.
+#    $x = 5$ meets $y = 3.5$ (labor used: $5 + 7 = 12 \le 15$), giving objective
+#    $5 + 3.5 - 0.25 = 8.25$. Since $8.25 > 7.5$, it is optimal to use the exchange.
 # ::::
 
 # %% [markdown]
@@ -126,12 +220,72 @@
 #    (ii) 1 unit of A and 4 units of B. For each plan, give and motivate a value for the
 #    pair $(p_A, p_B)$ such that that plan is optimal.
 #
-# d. Now the profit for the first 2 units of A is 1.5 euro per unit, and from the 2nd unit
+# d. Now the profit for the first 2 units of A is 1.5 euro per unit, and from 2 units
 #    onward it drops to 0.5 euro per unit (e.g. 3.5 units of A give a profit of
 #    $2 \times 1.5 + 1.5 \times 0.5 = 3.75$ euro). Model this as an LO problem and derive
 #    the optimal solution.
 # :::
 #
+
+# %% tags=["remove-cell"] label="hw-8-2b"
+fig, ax = plt.subplots(figsize=(5, 4))
+lim_x, lim_y = (0.0, 5.5), (0.0, 8.0)
+draw_region(ax, [(0, 0), (3.75, 0), (2.5, 2.5), (0, 5)], lim_x, lim_y)
+draw_line(ax, 1, 1, 5, lim_x, color="C0", label=r"$x + y \leq 5$ (flour)")
+draw_line(ax, 2, 1, 7.5, lim_x, color="C1", label=r"$2x + y \leq 7.5$ (yeast)")
+draw_line(
+    ax, 1.5, 1, 6.25, lim_x, color="k", ls="--", label="$1.5x + y = 6.25$"
+)
+ax.plot(
+    2.5, 2.5, "C3*", markersize=14, zorder=4, clip_on=False, label="optimum"
+)
+ax.legend(loc="upper right", fontsize=8)
+plt.show()
+
+# %% tags=["remove-cell"] label="hw-8-2d"
+fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(10, 4))
+draw_region(ax_left, [(0, 0), (2, 0), (2, 3), (0, 5)], lim_x, lim_y)
+draw_line(ax_left, 1, 1, 5, lim_x, color="C0", label=r"$x + y \leq 5$")
+draw_line(ax_left, 2, 1, 7.5, lim_x, color="C1", label=r"$2x + y \leq 7.5$")
+draw_line(ax_left, 1, 0, 2, lim_x, color="C2", label=r"$x \leq 2$")
+draw_line(
+    ax_left, 1.5, 1, 6, lim_x, color="k", ls="--", label="$1.5x + y = 6$"
+)
+ax_left.plot(
+    2, 3, "C3*", markersize=14, zorder=4, clip_on=False, label="optimum"
+)
+ax_left.set_title("case $z = 0$")
+ax_left.legend(loc="upper right", fontsize=8)
+
+lim_y_case, lim_z_case = (0.0, 4.0), (0.0, 3.0)
+draw_region(
+    ax_right,
+    [(0, 0), (3, 0), (2.5, 0.5), (0, 1.75)],
+    lim_y_case,
+    lim_z_case,
+    xlabel="$y$",
+    ylabel="$z$",
+)
+draw_line(ax_right, 1, 1, 3, lim_y_case, color="C0", label=r"$y + z \leq 3$")
+draw_line(
+    ax_right, 1, 2, 3.5, lim_y_case, color="C1", label=r"$y + 2z \leq 3.5$"
+)
+draw_line(
+    ax_right,
+    1,
+    0.5,
+    3,
+    lim_y_case,
+    color="k",
+    ls="--",
+    label="$3 + y + 0.5z = 6$",
+)
+ax_right.plot(
+    3, 0, "C3*", markersize=14, zorder=4, clip_on=False, label="optimum"
+)
+ax_right.set_title("case $z > 0$, so $x = 2$")
+ax_right.legend(loc="upper right", fontsize=8)
+plt.show()
 
 # %% [markdown]
 #
@@ -146,26 +300,32 @@
 #    \max 1.5x + y \quad \text{s.t.} \quad x + y \le 5,\ 2x + y \le 7.5,\ x, y \ge 0.
 #    $$
 #
-# b. The optimal solution is where lines $x + y = 5$ and $2x + y = 7.5$ cross: $x = 2.5$,
-#    $y = 2.5$, objective value 6.25.
+# b. The figure below shows the feasible region. Shifting the objective line
+#    $1.5x + y = c$ up as far as possible, it last touches the feasible region where the
+#    lines $x + y = 5$ and $2x + y = 7.5$ cross. Subtracting the first equation from the
+#    second gives $x = 2.5$, and then $y = 2.5$: the optimal solution is
+#    $(x, y) = (2.5, 2.5)$ with objective value 6.25.
 #
-# :::{figure} images/lecture8_hw1-ex2b.png
+# :::{figure} #hw-8-2b
 # :label: fig-hw-8-2b
 #
-# The feasible region of part a, with the optimum at $(2.5, 2.5)$.
+# The feasible region of part a, with the objective line $1.5x + y = 6.25$ through the
+# optimum $(2.5, 2.5)$.
 # :::
 #
 # c. The objective function is $p_A x + p_B y$.
 #
 #    i. $(p_A, p_B) = (0, 1)$: since A earns no profit, it is optimal to bake as much B as
-#       possible, i.e. $(x, y) = (0, 5)$.
+#       possible. The flour constraint limits this to 5 units of B, so $(x, y) = (0, 5)$.
 #
-#    ii. From part b, $(x, y) = (1, 4)$ lies on the constraint line $x + y = 5$. Choosing
-#        the objective line parallel to that constraint, e.g. $(p_A, p_B) = (1, 1)$, makes
-#        every point on that edge, including $(1, 4)$, optimal.
+#    ii. The point $(1, 4)$ lies on the flour constraint line $x + y = 5$ and satisfies
+#        the yeast constraint ($2 + 4 = 6 \le 7.5$), so it lies on the edge of the
+#        feasible region between $(0, 5)$ and $(2.5, 2.5)$. Choosing the objective line
+#        parallel to this edge, e.g. $(p_A, p_B) = (1, 1)$, makes every point on the
+#        edge optimal, including $(1, 4)$.
 #
-# d. Let nonnegative $z$ be the less profitable, unrestricted continuation of $x$, and cap
-#    $x$ itself at 2. The LO becomes
+# d. Let nonnegative $z$ be the less profitable version of $x$ that is unrestricted from
+#    above, and restrict $x$ itself by the upper bound 2. The LO becomes
 #
 #    $$
 #    \begin{aligned}
@@ -174,16 +334,32 @@
 #    \end{aligned}
 #    $$
 #
-#    :::{figure} images/lecture8_hw1-ex2d.png
+#    Since $x$ and $z$ use the same resources and $x$ is more profitable, an optimal
+#    solution only has $z > 0$ if $x$ is at its upper bound 2. There are two cases (see
+#    the figure below):
+#
+#    - $z = 0$: then the model of part a applies with the extra constraint $x \le 2$.
+#      Drawing this constraint in the figure of part b shows that the optimum is now
+#      $(x, y, z) = (2, 3, 0)$, with objective value $1.5 \cdot 2 + 3 = 6$.
+#    - $z > 0$: then $x = 2$, and the LO reduces to
+#
+#      $$
+#      \max 3 + y + 0.5z \quad \text{s.t.} \quad y + z \le 3,\ y + 2z \le 3.5,\ y, z \ge 0.
+#      $$
+#
+#      In the $(y, z)$ plane, the objective line reaches furthest where $y + z = 3$
+#      crosses the axis $z = 0$, so the optimum is $(x, y, z) = (2, 3, 0)$ with objective
+#      value 6. So a positive $z$ does not pay off.
+#
+#    Both cases lead to the same solution, so $(x, y, z) = (2, 3, 0)$ with profit 6 is
+#    optimal: bake 2 units of A and 3 units of B.
+#
+#    :::{figure} #hw-8-2d
 #    :label: fig-hw-8-2d
 #
-#    The feasible region once $x$ is capped at 2 and $z$ takes over (axes read as $y$ and
-#    $z$).
+#    The two cases of part d. Left: $z = 0$, the region of part b with $x \le 2$ added.
+#    Right: $z > 0$, so $x = 2$, and the remaining problem in $y$ and $z$.
 #    :::
-#
-#    The optimizer always fills the more profitable $x$ before $z$; working out both the
-#    $z = 0$ and $z > 0$ cases leads to the same optimum $(x, y, z) = (2, 3, 0)$, objective
-#    $1.5 \times 2 + 3 = 6$.
 # ::::
 
 # %% [markdown]
@@ -220,29 +396,65 @@
 #    x_i \in \{0, 1\}.
 #    $$
 #
-#    Checking the combinations that use the capacity fully: $\{1, 2, 3\}$ (size 8, reward
-#    12), $\{1, 2, 4\}$ (size 8, reward 9), $\{3, 4\}$ (size 8, reward 13). The optimal
-#    solution is $(x_1, x_2, x_3, x_4) = (0, 0, 1, 1)$, reward 13.
+#    All rewards are positive, so an optimal solution leaves no room for another item. Each
+#    item weighs at least 2 kg and items 3 and 4 together already weigh 8 kg, so the
+#    solutions that use the capacity as much as possible are items $\{1, 2, 3\}$ (8 kg,
+#    reward 12), items $\{1, 2, 4\}$ (8 kg, reward 9) and items $\{3, 4\}$ (8 kg, reward
+#    13). The optimal solution is $(x_1, x_2, x_3, x_4) = (0, 0, 1, 1)$ with reward 13.
 #
-# b. The reward-to-size ratios are $1.5, 0.5, 2, 1.25$ for items 1-4, so fill the knapsack
-#    in the order 3, 1, 4, 2. Items 3 and 1 fit completely (total size $4 + 2 = 6$),
-#    leaving 3 kg for item 4 (size 4), i.e. a $3/4$ fraction of it. The optimal LO
-#    relaxation solution is $(x_1, x_2, x_3, x_4) = (1, 0, 1, 3/4)$, objective
-#    $8 + 3 + 3.75 = 14.75$.
+# b. As in
+#    [Integer Optimization](lecture8_integer-optimization.ipynb#knapsack-lo-relaxation),
+#    fill the knapsack in decreasing order of the reward-to-weight ratios, which are
+#    $1.5, 0.5, 2, 1.25$ euro/kg for items 1-4. The order is 3, 1, 4, 2. Items 3 and 1 fit
+#    completely (total weight $4 + 2 = 6$), leaving 3 kg for item 4 (weight 4), i.e. a
+#    fraction $3/4$ of it. The optimal solution of the LO relaxation is
+#    $(x_1, x_2, x_3, x_4) = (1, 0, 1, 3/4)$ with objective value $3 + 8 + 3.75 = 14.75$.
 #
-# c. Branching on the fractional variables of the LO relaxation from part b, the optimum
-#    is found at step 13: $(0, 0, 1, 1)$, reward 13, matching part a.
+# c. We follow the
+#    [branch and bound](lecture8_integer-optimization.ipynb#branch-and-bound) procedure
+#    and solve every LO relaxation as in part b, packing the items fixed to 1 first. The
+#    order in which subproblems are picked from the pool is a choice. Here we solve both
+#    subproblems of the root first and then continue depth first: we always pick the most
+#    recently created subproblem, with the branch $x_i = 0$ before $x_i = 1$.
+#
+#    - **Step 1: root problem.** From part b: $(1, 0, 1, 0.75)$ with value 14.75, a UB.
+#      We branch on $x_4$.
+#    - **Step 2: $x_4 = 0$.** Items 3, 1 and 2 all fit (8 kg): $(1, 1, 1, 0)$ with value
+#      12. This solution is integer, so it gives the current best LB of 12.
+#    - **Step 3: $x_4 = 1$.** Item 4 uses 4 kg; item 3 then fits and half of item 1 fills
+#      the last kg: $(0.5, 0, 1, 1)$ with value 14.5. This UB is larger than 12, so we
+#      branch on $x_1$.
+#    - **Step 4: $x_4 = 1$, $x_1 = 0$.** Items 4 and 3 fit, and half of item 2 fills the
+#      last kg: $(0, 0.5, 1, 1)$ with value 13.5, a UB larger than 12. We branch on $x_2$.
+#    - **Step 5: $x_4 = 1$, $x_1 = 0$, $x_2 = 0$.** Items 4 and 3: $(0, 0, 1, 1)$ with
+#      value 13. This solution is integer and improves the best LB to 13.
+#    - **Step 6: suboptimal.** The solution of step 2 has value $12 < 13$.
+#    - **Step 7: $x_4 = 1$, $x_1 = 0$, $x_2 = 1$.** Items 4 and 2 use 6 kg, and $3/4$ of
+#      item 3 fills the rest: $(0, 1, 0.75, 1)$ with value 12, a UB.
+#    - **Step 8: eliminate.** The UB of 12 is below the best LB of 13.
+#    - **Step 9: $x_4 = 1$, $x_1 = 1$.** Items 4 and 1 use 6 kg, and $3/4$ of item 3 fills
+#      the rest: $(1, 0, 0.75, 1)$ with value 14, a UB larger than 13. We branch on $x_3$.
+#    - **Step 10: $x_4 = 1$, $x_1 = 1$, $x_3 = 0$.** Items 4 and 1, and item 2 still fits:
+#      $(1, 1, 0, 1)$ with value 9, an integer solution and thus a LB.
+#    - **Step 11: suboptimal.** The LB of 9 is below the best LB of 13.
+#    - **Step 12: $x_4 = 1$, $x_1 = 1$, $x_3 = 1$.** The items fixed to 1 weigh
+#      $4 + 2 + 4 = 10 > 9$ kg, so this subproblem is infeasible and is eliminated.
+#    - **Step 13: optimum.** The pool is empty, so the best solution found,
+#      $(0, 0, 1, 1)$ with reward 13 from step 5, is optimal. This matches part a.
 #
 # :::{figure} images/lecture8_hw1-ex3c.png
 # :label: fig-hw-8-3c
 #
-# Branch and bound applied to the knapsack problem (UB = upper bound from the LO
-# relaxation, LB = lower bound from a feasible integer solution).
+# Branch-and-bound tree for part c (UB = upper bound from the LO relaxation, LB = lower
+# bound from a feasible integer solution). The infeasible subproblem of step 12 has no
+# solution; its second line shows the values fixed by branching.
 # :::
 #
-# d. Adding $4x_1 + 8x_2 + 2x_3 + 10x_4 \le 12$: the solution from part c,
-#    $(0, 0, 1, 1)$, uses volume $2 + 10 = 12 \le 12$, so it remains feasible and
-#    therefore still optimal: reward 13.
+# d. Add the constraint $4x_1 + 8x_2 + 2x_3 + 10x_4 \le 12$ to the model of part a. An
+#    extra constraint can only make the feasible region smaller, so the optimal value
+#    cannot increase. The solution $(0, 0, 1, 1)$ from part c uses volume
+#    $2 + 10 = 12 \le 12$, so it is still feasible, and with reward 13 it is still
+#    optimal.
 # ::::
 
 # %% [markdown]
@@ -267,6 +479,42 @@
 # :::
 #
 
+# %% tags=["remove-cell"] label="hw-8-4b"
+fig, ax = plt.subplots(figsize=(5, 4))
+lim_x, lim_y = (0.0, 4.5), (0.0, 5.0)
+draw_region(ax, [(0, 0), (3, 0), (16 / 7, 20 / 7), (0, 4)], lim_x, lim_y)
+draw_line(ax, 4, 1, 12, lim_x, color="C0", label=r"$4x + y \leq 12$")
+draw_line(ax, 2, 4, 16, lim_x, color="C1", label=r"$2x + 4y \leq 16$")
+draw_line(ax, 1, 1, 36 / 7, lim_x, color="k", ls="--", label="$x + y = 36/7$")
+int_points = [
+    (i, j)
+    for i in range(5)
+    for j in range(6)
+    if 4 * i + j <= 12 and 2 * i + 4 * j <= 16
+]
+ax.scatter(
+    [i for i, _ in int_points],
+    [j for _, j in int_points],
+    color="C2",
+    zorder=3,
+    label="integer feasible points",
+    clip_on=False,
+)
+ax.plot(
+    16 / 7,
+    20 / 7,
+    "C3*",
+    markersize=14,
+    zorder=4,
+    clip_on=False,
+    label="LO optimum",
+)
+ax.plot(
+    2, 3, "ko", markersize=8, zorder=4, clip_on=False, label="integer optimum"
+)
+ax.legend(loc="upper right", fontsize=8)
+plt.show()
+
 # %% [markdown]
 #
 # ::::{solution} hw-8-4
@@ -279,24 +527,31 @@
 #    \max x + y \quad \text{s.t.} \quad 4x + y \le 12,\ 2x + 4y \le 16,\ x, y \ge 0.
 #    $$
 #
-# b. The optimal solution is where lines $4x + y = 12$ and $2x + 4y = 16$ cross:
-#    $x = 16/7$ and $y = 20/7$, objective value $36/7 \approx 5.14$.
+# b. The figure below shows the feasible region. Shifting the objective line $x + y = c$
+#    up as far as possible, it last touches the feasible region where the lines
+#    $4x + y = 12$ and $2x + 4y = 16$ cross. From the first line, $y = 12 - 4x$;
+#    substituting in the second gives $2x + 48 - 16x = 16$, so $x = 16/7$ and
+#    $y = 20/7$, with objective value $36/7 \approx 5.14$.
 #
-# :::{figure} images/lecture8_hw1-ex4b.png
+# :::{figure} #hw-8-4b
 # :label: fig-hw-8-4b
 #
-# The feasible region of part a, with the continuous optimum at $(16/7, 20/7)$.
+# The feasible region of part a, with the objective line through the LO optimum
+# $(16/7, 20/7)$ and the feasible integer points used in part c.
 # :::
 #
-# c. Add the constraints $x, y \in \{0, 1, 2, \dots\}$. Shifting the objective line down
-#    from the continuous optimum, the first feasible integer point it reaches is
-#    $(x, y) = (2, 3)$, objective value 5. So the optimal integer solution is
-#    $(x, y) = (2, 3)$.
+# c. Add the constraints $x, y \in \{0, 1, 2, \dots\}$. The LO optimum of part b is an
+#    upper bound: no integer solution has a value above $36/7 \approx 5.14$. With $x$ and
+#    $y$ integer, the value $x + y$ is integer too, so it is at most 5. The point
+#    $(x, y) = (2, 3)$ is feasible ($8 + 3 = 11 \le 12$ and $4 + 12 = 16 \le 16$) and
+#    has value 5, so it reaches this bound and is optimal. In the figure: shifting the
+#    objective line down from the LO optimum, $(2, 3)$ is the first feasible integer
+#    point it reaches.
 #
-# d. Constraint $2x + 4y \le 16$ becomes $2x + 4y \le 20$. The continuous optimum is now
-#    where $4x + y = 12$ meets $2x + 4y = 20$: $x = 2$, $y = 4$, objective value 6. Since
-#    this solution is already integer, it is also optimal for the integer case. The
-#    additional revenue compared to part c is $6 - 5 = 1$ euro.
+# d. Constraint $2x + 4y \le 16$ becomes $2x + 4y \le 20$. The LO optimum is now where
+#    $4x + y = 12$ meets $2x + 4y = 20$: $x = 2$, $y = 4$, objective value 6. Since this
+#    solution is already integer, it is also optimal for the integer case. The additional
+#    revenue compared to part c is $6 - 5 = 1$.
 # ::::
 
 # %% [markdown]
@@ -324,7 +579,9 @@
 #
 # a. Solve it in pulp (pulp accepts `>=` and `==` constraints directly).
 #
-# b. Rewrite it in the general form below (maximization, only "$\le$" constraints).
+# b. Rewrite it in the
+#    [general form](lecture8_integer-optimization.ipynb#general-formulation)
+#    (maximization, only "$\le$" constraints).
 #
 # c. Solve the rewritten problem and check it gives the same solution as a.
 # :::

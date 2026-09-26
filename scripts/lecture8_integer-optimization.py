@@ -166,6 +166,7 @@ plt.show()
 # :::
 
 # %% [markdown]
+# (branch-and-bound)=
 # ## Branch and Bound
 #
 # A common method for solving integer linear optimization (ILO) problems is **branch and bound**. The basic idea is to start by just ignoring the integer restrictions. More precisely, we allow integer variables to be continuous while retaining all their other bounds and constraints. For example, instead of requiring a binary variable to satisfy $x_i \in \{0,1\}$, we allow it to take any value between zero and one:
@@ -396,6 +397,7 @@ print("total reward:", knapsack.objective.value())
 # :::
 
 # %% [markdown]
+# (knapsack-lo-relaxation)=
 # ### Solving the LO Relaxation
 #
 # Now let us solve our example with the branch and bound method. Every step of branch and bound solves an LO relaxation, so we first need to know how to do that. For the knapsack problem this turns out to be easy, and no LO solver is needed.
