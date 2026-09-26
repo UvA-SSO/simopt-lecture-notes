@@ -323,16 +323,16 @@ draw_bb_tree(
 # a given capacity. Applications include which items to load in a truck, cutting stock in a steel
 # plant, and simple forms of portfolio selection.
 #
-# The knapsack problem is interesting in its own right, and its simple structure also makes it a good problem to see branch and bound at work. We first solve an instance with pulp and then solve one by hand with branch and bound.
+# The knapsack problem is interesting in its own right, and its simple structure also makes it a good problem to see branch and bound at work. We first solve an instance with pulp and then solve the same instance by hand with branch and bound.
 #
-# Let us consider a concrete example with $n=6$ numbered items:
+# Let us consider a concrete example with $n=4$ numbered items:
 #
-# | item $i$     | 1 | 2 | 3 | 4 | 5 | 6 |
-# |--------------|---|---|---|---|---|---|
-# | reward $r_i$ | 10 | 13 | 18 | 31 | 7 | 15 |
-# | weight $w_i$ | 2 | 3 | 4 | 7 | 1 | 3 |
+# | item $i$     | 1  | 2 | 3  | 4 |
+# |--------------|----|---|----|---|
+# | reward $r_i$ | 15 | 9 | 10 | 5 |
+# | weight $w_i$ | 1  | 3 | 5  | 4 |
 #
-# In here, the reward and weight of the $i$th item is denoted by $r_i$ and $w_i$, respectively. The capacity $C = 10$. Furthermore, define the binary decision variable $x_i$ as 1 if we take item $i$ and 0 otherwise. The ILO problem can then be stated as follows:
+# In here, the reward and weight of the $i$th item is denoted by $r_i$ and $w_i$, respectively. The capacity $C = 8$. Furthermore, define the binary decision variable $x_i$ as 1 if we take item $i$ and 0 otherwise. The ILO problem can then be stated as follows:
 #
 # $$
 # \begin{aligned}
@@ -346,9 +346,9 @@ draw_bb_tree(
 
 # %%
 # data
-reward = [10, 13, 18, 31, 7, 15]
-weight = [2, 3, 4, 7, 1, 3]
-capacity = 10
+reward = [15, 9, 10, 5]
+weight = [1, 3, 5, 4]
+capacity = 8
 n_items = len(reward)
 
 # modeling
@@ -377,82 +377,27 @@ print("total reward:", knapsack.objective.value())
 # %% [markdown]
 # ### Solving the LO Relaxation
 #
-# Now let us solve a knapsack problem with the branch and bound method. Every step of branch and bound solves an LO relaxation, so we first need to know how to do that. For the knapsack problem this turns out to be easy, and no LO solver is needed.
+# Now let us solve our example with the branch and bound method. Every step of branch and bound solves an LO relaxation, so we first need to know how to do that. For the knapsack problem this turns out to be easy, and no LO solver is needed.
 #
 # In the LO relaxation, $x_i \in \{0, 1\}$ becomes $0 \leq x_i \leq 1$: we may take any fraction of an item, and a fraction $x_i$ of item $i$ gives reward $r_i x_i$ and uses capacity $w_i x_i$. Each unit of capacity should then go to the item that gives the most reward per unit of weight. So we sort the items in decreasing order of their **reward-to-weight ratio** $r_i / w_i$ and fill the knapsack in that order, taking each item completely as long as it fits. The first item that no longer fits completely is taken for the fraction that fills the remaining capacity, and all later items are left out. As a result, at most one variable in the optimal solution of the LO relaxation is fractional.
 #
-# The function below implements this. The argument `fixed` is not needed yet: in branch and bound we will use it to fix some variables to 0 or 1 in a subproblem. Items fixed to 1 are packed first, items fixed to 0 are skipped, and the remaining items are packed by ratio. If the items fixed to 1 already exceed the capacity, the subproblem is infeasible and the function returns `None`.
-
-
-# %%
-def knapsack_relaxation(reward, weight, capacity, fixed=None):
-    fixed = fixed or {}
-    fraction = [0.0] * len(reward)
-    remaining = capacity
-    for i, value in fixed.items():
-        fraction[i] = float(value)
-        remaining -= value * weight[i]
-    if remaining < 0:
-        return None
-    free = [i for i in range(len(reward)) if i not in fixed]
-    # fill by decreasing reward-to-weight ratio
-    for i in sorted(free, key=lambda i: reward[i] / weight[i], reverse=True):
-        fraction[i] = min(1.0, remaining / weight[i])
-        remaining -= fraction[i] * weight[i]
-    total = sum(r * f for r, f in zip(reward, fraction))
-    return [round(f, 3) for f in fraction], total
-
-
-print(knapsack_relaxation(reward, weight, capacity))
-
-# %% [markdown]
-# For the six-item example, the ratios are $5, 4.33, 4.5, 4.43, 7, 5$. Packing items 5, 1, 6 and 3 in that order uses exactly the capacity of 10, so the LO relaxation happens to have an integer optimal solution, which is then also optimal for the ILO problem: branch and bound would stop at the root. A more interesting instance is the one of four items with rewards $(15, 9, 10, 5)$, weights $(1, 3, 5, 4)$ and capacity $C = 8$. Its ratios are $15, 3, 2, 1.25$, already in decreasing order. Items 1 and 2 fit completely and use 4 of the capacity, which leaves room for $4/5$ of item 3 (weight 5). The optimal solution of the LO relaxation is therefore $(1, 1, 0.8, 0)$ with objective value $15 + 9 + 0.8 \cdot 10 = 32$. The figure below shows how the capacity is filled, and the code confirms the result with the function above and with pulp.
-
-# %% tags=["hide-input"]
-small_reward = [15, 9, 10, 5]
-small_weight = [1, 3, 5, 4]
-small_capacity = 8
-
-relaxation = knapsack_relaxation(small_reward, small_weight, small_capacity)
-assert relaxation is not None
-small_fraction, small_total = relaxation
-fig, ax = plt.subplots(figsize=(8, 1.6))
-start = 0.0
-for i, f in enumerate(small_fraction):
-    if f == 0:
-        continue
-    used = f * small_weight[i]
-    ax.barh(0, used, left=start, color=f"C{i}", edgecolor="black")
-    label = f"item {i + 1}" if f == 1 else f"{f:.0%} of item {i + 1}"
-    ax.text(start + used / 2, 0, label, ha="center", va="center")
-    start += used
-ax.set_xlim(0, small_capacity)
-ax.set_xlabel("capacity used")
-ax.set_yticks([])
-ax.set_title("LO relaxation: filling the knapsack by reward-to-weight ratio")
-plt.show()
-
-# %%
-print(
-    "greedy:", knapsack_relaxation(small_reward, small_weight, small_capacity)
-)
-
-small_relaxed = pulp.LpProblem(name="small_relaxed", sense=pulp.LpMaximize)
-share = [
-    pulp.LpVariable(name=f"x_{i + 1}", lowBound=0, upBound=1)
-    for i in range(len(small_reward))
-]
-small_relaxed += pulp.lpSum(r * x for r, x in zip(small_reward, share))
-small_relaxed += (
-    pulp.lpSum(w * x for w, x in zip(small_weight, share)) <= small_capacity
-)
-small_relaxed.solve(solver)
-print("pulp:  ", [x.value() for x in share], small_relaxed.objective.value())
+# For our example, the ratios are $15/1 = 15$, $9/3 = 3$, $10/5 = 2$ and $5/4 = 1.25$, so the items are already in decreasing order of ratio. Filling the knapsack in that order goes as follows:
+#
+# | item $i$ | ratio $r_i / w_i$ | weight $w_i$ | fraction taken $x_i$ | capacity left |
+# |---|---|---|---|---|
+# | 1 | 15 | 1 | 1 | 7 |
+# | 2 | 3 | 3 | 1 | 4 |
+# | 3 | 2 | 5 | 4/5 | 0 |
+# | 4 | 1.25 | 4 | 0 | 0 |
+#
+# Items 1 and 2 fit completely. Item 3 does not: only 4 of its weight of 5 fits, so we take a fraction $4/5$ of it, and there is no capacity left for item 4. The optimal solution of the LO relaxation is therefore $(1, 1, 0.8, 0)$ with objective value $15 + 9 + 0.8 \cdot 10 = 32$.
+#
+# In branch and bound, some variables are fixed to 0 or 1 in a subproblem. The same rule then still applies: items fixed to 1 are packed first, items fixed to 0 are left out, and the remaining items fill the remaining capacity in decreasing order of ratio. If the items fixed to 1 already exceed the capacity, the subproblem is infeasible.
 
 # %% [markdown]
 # ### Branch and Bound for the Knapsack Problem
 #
-# With the LO relaxation in hand, we solve the four-item instance with branch and bound. Since the LO relaxation has at most one fractional variable, there is only one variable to branch on in each step, and branching on a binary variable means fixing it to 0 in one subproblem and to 1 in the other. We use the same step numbering as before:
+# With the LO relaxation in hand, we solve our example with branch and bound. Since the LO relaxation has at most one fractional variable, there is only one variable to branch on in each step, and branching on a binary variable means fixing it to 0 in one subproblem and to 1 in the other. We use the same step numbering as before:
 #
 # - **Step 1: root problem.** The LO relaxation has optimum $(1, 1, 0.8, 0)$ with value $32$, a UB. We branch on $x_3 = 0.8$.
 # - **Step 2: subproblem $x_3 = 0$.** Without item 3, items 1, 2 and 4 fit exactly: the relaxation has optimum $(1, 1, 0, 1)$ with value $29$. This solution is integer, so it is feasible for the ILO problem and gives the current best LB of $29$. No need to branch further from this subproblem.
@@ -463,7 +408,7 @@ print("pulp:  ", [x.value() for x in share], small_relaxed.objective.value())
 # - **Step 7: suboptimal.** The LB of $19$ is below the best LB of $29$.
 # - **Step 8: optimum.** The pool is now empty, so the best solution found, $(1, 1, 0, 1)$ with reward $29$ from step 2, is optimal.
 #
-# The figure below shows the branch-and-bound tree, and the code after it repeats each step's LO relaxation with `knapsack_relaxation` (with Python's 0-based item indices in `fixed`).
+# The figure below shows the branch-and-bound tree.
 
 # %% tags=["hide-input"]
 draw_bb_tree(
@@ -491,20 +436,6 @@ draw_bb_tree(
     figsize=(11, 5),
     box_width=4.5,
 )
-
-# %%
-bb_subproblems = {
-    "step 1, root": {},
-    "step 2, x_3 = 0": {2: 0},
-    "step 3, x_3 = 1": {2: 1},
-    "step 4, x_3 = 1, x_2 = 0": {2: 1, 1: 0},
-    "step 6, x_3 = 1, x_2 = 1": {2: 1, 1: 1},
-}
-for step, fixed_vars in bb_subproblems.items():
-    result = knapsack_relaxation(
-        small_reward, small_weight, small_capacity, fixed_vars
-    )
-    print(f"{step}: {result}")
 
 # %% [markdown]
 # (general-formulation)=
