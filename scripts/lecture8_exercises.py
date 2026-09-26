@@ -35,6 +35,10 @@
 # solve it, look at the answer to help you continue. Once solved, come back at a later
 # time and try it again without looking at the answer. As extra practice, you can also
 # solve them with pulp.
+#
+# The exam can also contain questions about pulp code, answered on paper: reading code
+# and predicting what it prints, completing code, finding errors in code, or changing it.
+# [](#hw-8-5) is an example.
 # :::
 
 # %% [markdown]
@@ -864,6 +868,80 @@ show_region(fig, lim_x, lim_y)
 #    solution is already integer, it is also optimal for the integer case. The additional
 #    revenue compared to part c is $6 - 5 = 1$.
 # ::::
+
+# %% [markdown]
+# :::{exercise}
+# :label: hw-8-5
+#
+# A furniture maker solves the following product-mix problem with pulp.
+#
+# ```python
+# import pulp
+#
+# profit = {"chair": 4, "table": 6}
+# # use[res][p]: units of resource res per unit of product p
+# use = {
+#     "hours": {"chair": 1, "table": 2},
+#     "wood": {"chair": 3, "table": 2},
+# }
+# available = {"hours": 8, "wood": 12}
+# products = list(profit)
+#
+# furniture = pulp.LpProblem(name="furniture", sense=pulp.LpMaximize)
+# make = {p: pulp.LpVariable(name=p, lowBound=0) for p in products}
+# furniture += pulp.lpSum(profit[p] * make[p] for p in products)
+# for res, cap in available.items():
+#     usage = pulp.lpSum(use[res][p] * make[p] for p in products)
+#     furniture += usage <= cap, res
+#
+# furniture.solve(pulp.PULP_CBC_CMD(msg=False))
+# print(pulp.LpStatus[furniture.status])
+# print({p: make[p].value() for p in products})
+# print(furniture.objective.value())
+# ```
+#
+# a. Write down the LO model that this code solves. Define the decision variables in words.
+#
+# b. Without running the code, determine what it prints. Motivate your answer.
+#
+# c. What does the first line of the output become if, separately, (i) `<=` in the constraint loop is replaced by `>=`, and (ii) `pulp.LpMaximize` is replaced by `pulp.LpMinimize`? Explain, and say for each case what the other two lines of the output tell you.
+# :::
+
+# %% [markdown]
+# ::::{solution} hw-8-5
+# :label: sol-hw-8-5
+# :class: dropdown
+#
+# a. Let $x_{\text{chair}}$ and $x_{\text{table}}$ be the number of chairs and tables made. The objective adds up `profit[p] * make[p]`, and the loop creates one constraint per resource, with `use[res][p]` as coefficients and the resource name as constraint name:
+#
+#    $$
+#    \begin{aligned}
+#    \max \quad & 4x_{\text{chair}} + 6x_{\text{table}} \\
+#    \text{s.t.} \quad & x_{\text{chair}} + 2x_{\text{table}} \le 8 \quad \text{(hours)} \\
+#    & 3x_{\text{chair}} + 2x_{\text{table}} \le 12 \quad \text{(wood)} \\
+#    & x_{\text{chair}}, x_{\text{table}} \ge 0.
+#    \end{aligned}
+#    $$
+#
+# b. The corner points of the feasible region are $(0, 0)$ with profit 0, $(4, 0)$ with profit 16, $(0, 4)$ with profit 24, and the point where both resource constraints are met exactly. Subtracting $x + 2y = 8$ from $3x + 2y = 12$ gives $2x = 4$, so this point is $(2, 3)$ with profit $8 + 18 = 26$: the optimum. pulp prints the values as floats:
+#
+#    ```text
+#    Optimal
+#    {'chair': 2.0, 'table': 3.0}
+#    26.0
+#    ```
+#
+# c. (i) With `>=`, both constraints say "at least": the feasible region contains points with arbitrarily many chairs and tables, and since we maximize profit, the problem is unbounded. The first line becomes `Unbounded`. pulp still prints values on the next two lines (here zeros), but they are not an optimal solution: only when the status is `Optimal` do the printed values mean something. Always check the status first.
+#
+#    ```text
+#    Unbounded
+#    {'chair': 0.0, 'table': 0.0}
+#    0.0
+#    ```
+#
+#    (ii) Minimizing the profit: making nothing is feasible, and the profit cannot be negative, since both variables are at least 0 and both profits are positive. The first line is still `Optimal`, now with both values 0 and objective value 0.
+# ::::
+
 
 # %% [markdown]
 # ## Further Exercises

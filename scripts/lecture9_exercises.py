@@ -36,6 +36,10 @@
 # solve it, look at the answer to help you continue. Once solved, come back at a later
 # time and try it again without looking at the answer. As extra practice, you can also
 # solve them with pulp.
+#
+# The exam can also contain questions about pulp code, answered on paper: reading code
+# and predicting what it prints, completing code, finding errors in code, or changing it.
+# [](#hw-9-7) is an example.
 # :::
 
 # %% [markdown]
@@ -399,6 +403,164 @@
 #    $z \ge \sum_t y_{tc}$ for all $c$ to the model of part a makes minimizing $z$
 #    correctly capture this.
 # :::
+
+# %% [markdown]
+# :::{exercise}
+# :label: hw-9-7
+#
+# A company ships a product from two warehouses, A and B, to three customers, C1, C2 and C3. The supply of each warehouse, the demand of each customer and the transport cost per unit are given in the code below. The transportation model is
+#
+# $$
+# \begin{aligned}
+# \min \quad & \sum_{i} \sum_{j} c_{ij} x_{ij} \\
+# \text{s.t.} \quad & \sum_{j} x_{ij} \le a_i \text{ for every warehouse } i \\
+# & \sum_{i} x_{ij} \ge b_j \text{ for every customer } j \\
+# & x_{ij} \ge 0 \text{ for all } i, j,
+# \end{aligned}
+# $$
+#
+# with $x_{ij}$ the number of units shipped from warehouse $i$ to customer $j$, $c_{ij}$ the cost per unit, $a_i$ the supply and $b_j$ the demand.
+#
+# a. Complete the code by replacing each `...`, so that it solves this model and prints the status, the positive shipments and the total cost.
+#
+#    ```python
+#    import pulp
+#
+#    supply = {"A": 60, "B": 45}
+#    demand = {"C1": 20, "C2": 25, "C3": 15}
+#    cost = {
+#        ("A", "C1"): 2,
+#        ("A", "C2"): 4,
+#        ("A", "C3"): 5,
+#        ("B", "C1"): 3,
+#        ("B", "C2"): 1,
+#        ("B", "C3"): 2,
+#    }
+#
+#    transport = pulp.LpProblem(name="transportation", sense=...)
+#    ship = {
+#        (i, j): ... for (i, j) in cost
+#    }
+#
+#    transport += ...
+#    for i, cap in supply.items():
+#        shipped = ...
+#        transport += ..., f"supply_{i}"
+#    for j, need in demand.items():
+#        received = ...
+#        transport += ..., f"demand_{j}"
+#
+#    transport.solve(...)
+#    print(pulp.LpStatus[transport.status])
+#    for (i, j), var in ship.items():
+#        if var.value() > 0:
+#            print(i, "->", j, var.value())
+#    print("total cost:", transport.objective.value())
+#    ```
+#
+# b. Warehouse B can ship at most 10 units to customer C2. Change the code of part a to take this into account.
+#
+# c. Start again from the code of part a. Using a warehouse costs a fixed amount per day, on top of the transport costs: 100 for A and 150 for B. A warehouse that is not used costs nothing, but cannot ship anything. Change the code so that it finds the cheapest plan, including the choice of which warehouses to use. Motivate your changes.
+# :::
+
+# %% [markdown]
+# ::::{solution} hw-9-7
+# :label: sol-hw-9-7
+# :class: dropdown
+#
+# a. The completed code (compare [Transportation and Transshipment](lecture9_transportation.ipynb)):
+#
+#    ```python
+#    import pulp
+#
+#    supply = {"A": 60, "B": 45}
+#    demand = {"C1": 20, "C2": 25, "C3": 15}
+#    cost = {
+#        ("A", "C1"): 2,
+#        ("A", "C2"): 4,
+#        ("A", "C3"): 5,
+#        ("B", "C1"): 3,
+#        ("B", "C2"): 1,
+#        ("B", "C3"): 2,
+#    }
+#
+#    transport = pulp.LpProblem(name="transportation", sense=pulp.LpMinimize)
+#    ship = {
+#        (i, j): pulp.LpVariable(name=f"x_{i}_{j}", lowBound=0) for (i, j) in cost
+#    }
+#
+#    transport += pulp.lpSum(cost[i, j] * ship[i, j] for (i, j) in cost)
+#    for i, cap in supply.items():
+#        shipped = pulp.lpSum(ship[i, j] for j in demand)
+#        transport += shipped <= cap, f"supply_{i}"
+#    for j, need in demand.items():
+#        received = pulp.lpSum(ship[i, j] for i in supply)
+#        transport += received >= need, f"demand_{j}"
+#
+#    transport.solve(pulp.PULP_CBC_CMD(msg=False))
+#    print(pulp.LpStatus[transport.status])
+#    for (i, j), var in ship.items():
+#        if var.value() > 0:
+#            print(i, "->", j, var.value())
+#    print("total cost:", transport.objective.value())
+#    ```
+#
+#    It prints:
+#
+#    ```text
+#    Optimal
+#    A -> C1 20.0
+#    B -> C2 25.0
+#    B -> C3 15.0
+#    total cost: 95.0
+#    ```
+#
+# b. Add one constraint before the solve line:
+#
+#    ```python
+#    transport += ship["B", "C2"] <= 10, "limit_B_C2"
+#    ```
+#
+#    Now B can deliver only 10 of the 25 units for C2, and the other 15 come from A at 4 per unit instead of 1, so the cost rises by $15 \cdot 3 = 45$:
+#
+#    ```text
+#    Optimal
+#    A -> C1 20.0
+#    A -> C2 15.0
+#    B -> C2 10.0
+#    B -> C3 15.0
+#    total cost: 140.0
+#    ```
+#
+# c. Add a binary variable per warehouse, $u_i = 1$ if warehouse $i$ is used, add the fixed costs $\sum_i f_i u_i$ to the objective, and change the supply constraint to $\sum_j x_{ij} \le a_i u_i$: if $u_i = 0$ the warehouse ships nothing, and if $u_i = 1$ it is the original supply constraint (the fixed-cost modeling trick from [Machine Scheduling](lecture9_machine-scheduling.ipynb)). The changed and added lines:
+#
+#    ```python
+#    fixed_cost = {"A": 100, "B": 150}
+#    # ...
+#    used = {i: pulp.LpVariable(name=f"used_{i}", cat="Binary") for i in supply}
+#
+#    shipping_cost = pulp.lpSum(cost[i, j] * ship[i, j] for (i, j) in cost)
+#    opening_cost = pulp.lpSum(fixed_cost[i] * used[i] for i in supply)
+#    transport += shipping_cost + opening_cost
+#    for i, cap in supply.items():
+#        shipped = pulp.lpSum(ship[i, j] for j in demand)
+#        transport += shipped <= cap * used[i], f"supply_{i}"
+#    # ... (demand constraints and solve as in part a)
+#    print("used:", {i: used[i].value() for i in supply})
+#    ```
+#
+#    Using both warehouses costs $95 + 100 + 150 = 345$. Warehouse A alone can supply all 60 units, at transport cost $40 + 100 + 75 = 215$ plus 100 fixed cost, which is 315 and cheaper. B alone is infeasible (supply 45 < 60). The code prints:
+#
+#    ```text
+#    Optimal
+#    A -> C1 20.0
+#    A -> C2 25.0
+#    A -> C3 15.0
+#    used: {'A': 1.0, 'B': 0.0}
+#    total cost: 315.0
+#    ```
+# ::::
+
 
 # %% [markdown]
 # ## Further Exercises

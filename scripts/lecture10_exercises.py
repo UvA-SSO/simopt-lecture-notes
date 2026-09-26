@@ -34,6 +34,10 @@
 # solve it, look at the answer to help you continue. Once solved, come back at a later
 # time and try it again without looking at the answer. As extra practice, you can also
 # solve them with pulp.
+#
+# The exam can also contain questions about pulp code, answered on paper: reading code
+# and predicting what it prints, completing code, finding errors in code, or changing it.
+# [](#hw-10-3) is an example.
 # :::
 
 # %% [markdown]
@@ -252,3 +256,136 @@
 # c. From slow to fast: Excel solver, CBC, SCIP, Gurobi. The fastest is proprietary
 #    (though a student license is available), which limits its use in practice.
 # :::
+
+# %% [markdown]
+# :::{exercise}
+# :label: hw-10-3
+#
+# The code below should solve the inventory model of [](#hw-10-1) for $T = 3$ periods, with demand $d = (4, 6, 3)$, order costs $c = (3, 5, 4)$, holding costs $h_t = 1$ and initial stock $s_0 = 2$. Python numbers the periods 0, 1, 2. The code prints `Unbounded`.
+#
+# ```python
+# import pulp
+#
+# demand = [4, 6, 3]
+# holding = [1, 1, 1]
+# order_cost = [3, 5, 4]
+# s0 = 2
+# periods = range(len(demand))
+#
+# inventory = pulp.LpProblem(name="inventory", sense=pulp.LpMinimize)
+# order = [pulp.LpVariable(name=f"x_{t + 1}", lowBound=0) for t in periods]
+# stock = [pulp.LpVariable(name=f"s_{t + 1}") for t in periods]
+#
+# inventory += pulp.lpSum(
+#     order_cost[t] * order[t] + holding[t] * stock[t] for t in periods
+# )
+# for t in range(1, len(demand)):
+#     prev = s0 if t == 0 else stock[t - 1]
+#     inventory += stock[t] == prev + order[t] - demand[t], f"balance_{t + 1}"
+#
+# inventory.solve(pulp.PULP_CBC_CMD(msg=False))
+# print(pulp.LpStatus[inventory.status])
+# print("orders:", [order[t].value() for t in periods])
+# print("end-of-period stock:", [stock[t].value() for t in periods])
+# print("total cost:", inventory.objective.value())
+# ```
+#
+# a. The code contains two errors. Find them, explain for each what goes wrong in the model, and correct the code.
+#
+# b. Without running the corrected code, determine the optimal orders and the total cost. Motivate your answer.
+#
+# c. The supplier now only delivers in batches of 5 units, so each order must be a multiple of 5. Change the corrected code to take this into account.
+# :::
+
+# %% [markdown]
+# ::::{solution} hw-10-3
+# :label: sol-hw-10-3
+# :class: dropdown
+#
+# a. The two errors:
+#
+#    - The `stock` variables have no `lowBound=0`, so stock levels can be negative: demand is then met from stock that does not exist, and negative stock even lowers the holding cost.
+#    - `range(1, len(demand))` only runs over $t = 1, 2$, so the balance constraint of the first period ($t = 0$ in Python) is missing: nothing links $s_1$ to $s_0$, $x_1$ and $d_1$.
+#
+#    Together, $s_1$ can be made as negative as you like (with $s_2$ and $s_3$ following through their balance constraints), which lowers the cost without limit: `Unbounded`. The corrected code:
+#
+#    ```python
+#    import pulp
+#
+#    demand = [4, 6, 3]
+#    holding = [1, 1, 1]
+#    order_cost = [3, 5, 4]
+#    s0 = 2
+#    periods = range(len(demand))
+#
+#    inventory = pulp.LpProblem(name="inventory", sense=pulp.LpMinimize)
+#    order = [pulp.LpVariable(name=f"x_{t + 1}", lowBound=0) for t in periods]
+#    stock = [pulp.LpVariable(name=f"s_{t + 1}", lowBound=0) for t in periods]
+#
+#    inventory += pulp.lpSum(
+#        order_cost[t] * order[t] + holding[t] * stock[t] for t in periods
+#    )
+#    for t in periods:
+#        prev = s0 if t == 0 else stock[t - 1]
+#        inventory += stock[t] == prev + order[t] - demand[t], f"balance_{t + 1}"
+#
+#    inventory.solve(pulp.PULP_CBC_CMD(msg=False))
+#    print(pulp.LpStatus[inventory.status])
+#    print("orders:", [order[t].value() for t in periods])
+#    print("end-of-period stock:", [stock[t].value() for t in periods])
+#    print("total cost:", inventory.objective.value())
+#    ```
+#
+#    Fixing only one of the two errors is not enough. With only the lower bounds added, the first period's balance is still missing, and the model takes 9 units of stock in period 1 from nowhere:
+#
+#    ```text
+#    Optimal
+#    orders: [0.0, 0.0, 0.0]
+#    end-of-period stock: [9.0, 3.0, 0.0]
+#    total cost: 12.0
+#    ```
+#
+#    With only the loop fixed, stock is allowed to be negative, and ordering nothing is "optimal":
+#
+#    ```text
+#    Optimal
+#    orders: [0.0, 0.0, 0.0]
+#    end-of-period stock: [-2.0, -8.0, -11.0]
+#    total cost: -21.0
+#    ```
+#
+# b. A unit needed in period $t$ can be ordered in period $t$ or earlier and held in stock, which costs 1 per period. Compare the options for each period:
+#
+#    - Period 1 needs $4 - 2 = 2$ units beyond the initial stock; they can only be ordered in period 1, at 3 each.
+#    - Period 2 needs 6 units: ordering in period 1 costs $3 + 1 = 4$ per unit, in period 2 it costs 5, so order them in period 1.
+#    - Period 3 needs 3 units: period 1 costs $3 + 2 = 5$, period 2 costs $5 + 1 = 6$, period 3 costs 4, so order them in period 3.
+#
+#    The orders are $x = (8, 0, 3)$, the end-of-period stock is $(6, 0, 0)$, and the total cost is $3 \cdot 8 + 4 \cdot 3 + 6 = 42$. The corrected code prints:
+#
+#    ```text
+#    Optimal
+#    orders: [8.0, 0.0, 3.0]
+#    end-of-period stock: [6.0, 0.0, 0.0]
+#    total cost: 42.0
+#    ```
+#
+# c. Add an integer variable $n_t \ge 0$ for the number of batches ordered in period $t$, and the constraints $x_t = 5 n_t$. Added to the corrected code, before the solve line:
+#
+#    ```python
+#    batches = [
+#        pulp.LpVariable(name=f"n_{t + 1}", lowBound=0, cat="Integer")
+#        for t in periods
+#    ]
+#    for t in periods:
+#        inventory += order[t] == 5 * batches[t], f"batch_{t + 1}"
+#    ```
+#
+#    The plan changes: period 1 orders 10 units (8 needed), and in period 3 the one missing unit requires a full batch of 5:
+#
+#    ```text
+#    Optimal
+#    orders: [10.0, 0.0, 5.0]
+#    end-of-period stock: [8.0, 2.0, 4.0]
+#    total cost: 64.0
+#    ```
+# ::::
