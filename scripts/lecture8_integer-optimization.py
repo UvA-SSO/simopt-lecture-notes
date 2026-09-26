@@ -211,75 +211,106 @@ plt.show()
 # The figure below shows these steps as a branch-and-bound tree. Each node is a (sub)problem: its header gives the step in which its LO relaxation is solved, the objective value, and whether that value is a UB or a LB, and the line below gives the relaxation's optimal solution $(x, y)$. The labels on the edges are the constraints added by branching.
 
 # %% tags=["hide-input"]
-# (x, y) center, header text, solution text, header color, body color
-tree_nodes = {
-    "root": (5.0, 5.0, "Step 1: 24.8 (UB)", "3.6, 2.8", "#5b9bd5", "#d6dce5"),
-    "left": (2.2, 2.4, "Step 2: 22 (LB)", "4, 2", "#70ad47", "#d9e7cf"),
-    "right": (7.8, 2.4, "Step 3: 24 (LB)", "3, 3", "#70ad47", "#d9e7cf"),
+# header and body colors per node type, and colors of the status boxes
+NODE_COLORS = {
+    "UB": ("#5b9bd5", "#d6dce5"),
+    "LB": ("#70ad47", "#d9e7cf"),
+    "infeasible": ("#e00000", "#fbd5b5"),
 }
-# later steps, shown in a box below the node they concern
-tree_status = {
-    "left": ("Step 4: 22 < 24 (subopt)", "#e00000"),
-    "right": ("Step 5: optimum", "#375623"),
-}
-box_width, box_height = 3.6, 0.55
-
-fig, ax = plt.subplots(figsize=(8, 4.6))
-for child, branch_label in [("left", r"$y \leq 2$"), ("right", r"$y \geq 3$")]:
-    x_from, y_from = tree_nodes["root"][:2]
-    x_to, y_to = tree_nodes[child][:2]
-    y_from -= 1.5 * box_height
-    y_to += 0.5 * box_height
-    ax.plot([x_from, x_to], [y_from, y_to], color="#5b9bd5", lw=1)
-    ax.text(
-        (x_from + x_to) / 2 + (0.6 if x_to > x_from else -0.6),
-        (y_from + y_to) / 2,
-        branch_label,
-        ha="center",
-        va="center",
-        fontsize=11,
-    )
-for node, (x_c, y_c, header, body, dark, light) in tree_nodes.items():
-    boxes = [(header, dark, "white", "bold"), (body, light, "black", "normal")]
-    if node in tree_status:
-        status, status_color = tree_status[node]
-        boxes.append((status, status_color, "white", "bold"))
-    for row, (text, face, text_color, font_weight) in enumerate(boxes):
-        y_row = y_c - row * (box_height + 0.08)
-        ax.add_patch(
-            Rectangle(
-                (x_c - box_width / 2, y_row - box_height / 2),
-                box_width,
-                box_height,
-                facecolor=face,
-                edgecolor="none",
-            )
-        )
-        ax.text(
-            x_c,
-            y_row,
-            text,
-            ha="center",
-            va="center",
-            color=text_color,
-            fontweight=font_weight,
-            fontsize=11,
-        )
-ax.text(
-    5.0,
-    0.45,
+STATUS_COLORS = {"pruned": "#e00000", "optimum": "#375623"}
+BB_LEGEND = (
     "UB = upper bound (follows from LO relaxation)\n"
     "LB = lower bound (if ILO solution is found)\n"
-    "subopt = suboptimal solution",
-    ha="center",
-    va="top",
-    fontsize=9,
-    bbox={"facecolor": "white", "edgecolor": "black"},
+    "subopt = suboptimal solution"
 )
-ax.set_xlim(0, 10)
-ax.set_ylim(-0.6, 5.4)
-ax.axis("off")
-plt.show()
+
+
+def draw_bb_tree(
+    nodes, edges, status, legend_xy, xlim, ylim, figsize, box_width=3.6
+):
+    """Draw a branch-and-bound tree.
+
+    nodes: name -> (x, y, header, solution, node type)
+    edges: (parent, child, branching constraint) tuples
+    status: name -> (text, status type) for a box below the node
+    """
+    box_height, gap = 0.55, 0.08
+    fig, ax = plt.subplots(figsize=figsize)
+    for parent, child, branch_label in edges:
+        x_from, y_from = nodes[parent][:2]
+        x_to, y_to = nodes[child][:2]
+        y_from -= 1.5 * box_height + gap
+        y_to += 0.5 * box_height
+        ax.plot([x_from, x_to], [y_from, y_to], color="#5b9bd5", lw=1)
+        shift = 0.7 if x_to > x_from else -0.7
+        ax.text(
+            (x_from + x_to) / 2 + shift,
+            (y_from + y_to) / 2,
+            branch_label,
+            ha="center",
+            va="center",
+            fontsize=11,
+        )
+    for node, (x_c, y_c, header, body, node_type) in nodes.items():
+        dark, light = NODE_COLORS[node_type]
+        boxes = [(header, dark, "white", "bold"), (body, light, "black", "")]
+        if node in status:
+            text, status_type = status[node]
+            boxes.append((text, STATUS_COLORS[status_type], "white", "bold"))
+        for row, (text, face, text_color, font_weight) in enumerate(boxes):
+            y_row = y_c - row * (box_height + gap)
+            ax.add_patch(
+                Rectangle(
+                    (x_c - box_width / 2, y_row - box_height / 2),
+                    box_width,
+                    box_height,
+                    facecolor=face,
+                    edgecolor="none",
+                )
+            )
+            ax.text(
+                x_c,
+                y_row,
+                text,
+                ha="center",
+                va="center",
+                color=text_color,
+                fontweight=font_weight or "normal",
+                fontsize=11,
+            )
+    ax.text(
+        *legend_xy,
+        BB_LEGEND,
+        ha="center",
+        va="top",
+        fontsize=9,
+        bbox={"facecolor": "white", "edgecolor": "black"},
+    )
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.axis("off")
+    plt.show()
+
+
+draw_bb_tree(
+    nodes={
+        "root": (5.0, 5.0, "Step 1: 24.8 (UB)", "3.6, 2.8", "UB"),
+        "left": (2.2, 2.4, "Step 2: 22 (LB)", "4, 2", "LB"),
+        "right": (7.8, 2.4, "Step 3: 24 (LB)", "3, 3", "LB"),
+    },
+    edges=[
+        ("root", "left", r"$y \leq 2$"),
+        ("root", "right", r"$y \geq 3$"),
+    ],
+    status={
+        "left": ("Step 4: 22 < 24 (subopt)", "pruned"),
+        "right": ("Step 5: optimum", "optimum"),
+    },
+    legend_xy=(5.0, 0.45),
+    xlim=(0, 10),
+    ylim=(-0.6, 5.4),
+    figsize=(8, 4.6),
+)
 
 # %% [markdown]
 # In this example, we needed only three LO relaxations, rather than checking every possible integer combination. Modern integer-optimization solvers use this basic branch-and-bound idea, often enhanced with additional techniques. More on this later.
@@ -287,10 +318,12 @@ plt.show()
 # %% [markdown]
 # ## The Knapsack Problem
 #
-# The archetypal binary ILO problem is the knapsack problem: from a set of items, each with
+# The archetypal binary ILO problem is the **knapsack problem**: from a set of items, each with
 # a *reward* and a *weight*, choose a subset of maximum total reward whose total weight fits
 # a given capacity. Applications include which items to load in a truck, cutting stock in a steel
 # plant, and simple forms of portfolio selection.
+#
+# The knapsack problem is interesting in its own right, and its simple structure also makes it a good problem to see branch and bound at work. We first solve an instance with pulp and then solve one by hand with branch and bound.
 #
 # Let us consider a concrete example with $n=6$ numbered items:
 #
@@ -340,15 +373,138 @@ print("total reward:", knapsack.objective.value())
 # one currently-excluded item and removing whatever is needed to stay within capacity)
 # improves the total reward.
 # :::
+
+# %% [markdown]
+# ### Solving the LO Relaxation
 #
-# :::{exercise}
-# :label: ex-6-11
+# Now let us solve a knapsack problem with the branch and bound method. Every step of branch and bound solves an LO relaxation, so we first need to know how to do that. For the knapsack problem this turns out to be easy, and no LO solver is needed.
 #
-# Solve, by branch and bound *on paper*, the knapsack problem with rewards $(15, 9, 10, 5)$,
-# weights $(1, 3, 5, 4)$ and capacity 8. For the relaxation bound, fill the capacity with
-# items in decreasing order of reward-to-weight ratio, allowing a fraction of the last one.
-# Check your answer with pulp.
-# :::
+# In the LO relaxation, $x_i \in \{0, 1\}$ becomes $0 \leq x_i \leq 1$: we may take any fraction of an item, and a fraction $x_i$ of item $i$ gives reward $r_i x_i$ and uses capacity $w_i x_i$. Each unit of capacity should then go to the item that gives the most reward per unit of weight. So we sort the items in decreasing order of their **reward-to-weight ratio** $r_i / w_i$ and fill the knapsack in that order, taking each item completely as long as it fits. The first item that no longer fits completely is taken for the fraction that fills the remaining capacity, and all later items are left out. As a result, at most one variable in the optimal solution of the LO relaxation is fractional.
+#
+# The function below implements this. The argument `fixed` is not needed yet: in branch and bound we will use it to fix some variables to 0 or 1 in a subproblem. Items fixed to 1 are packed first, items fixed to 0 are skipped, and the remaining items are packed by ratio. If the items fixed to 1 already exceed the capacity, the subproblem is infeasible and the function returns `None`.
+
+
+# %%
+def knapsack_relaxation(reward, weight, capacity, fixed=None):
+    fixed = fixed or {}
+    fraction = [0.0] * len(reward)
+    remaining = capacity
+    for i, value in fixed.items():
+        fraction[i] = float(value)
+        remaining -= value * weight[i]
+    if remaining < 0:
+        return None
+    free = [i for i in range(len(reward)) if i not in fixed]
+    # fill by decreasing reward-to-weight ratio
+    for i in sorted(free, key=lambda i: reward[i] / weight[i], reverse=True):
+        fraction[i] = min(1.0, remaining / weight[i])
+        remaining -= fraction[i] * weight[i]
+    total = sum(r * f for r, f in zip(reward, fraction))
+    return [round(f, 3) for f in fraction], total
+
+
+print(knapsack_relaxation(reward, weight, capacity))
+
+# %% [markdown]
+# For the six-item example, the ratios are $5, 4.33, 4.5, 4.43, 7, 5$. Packing items 5, 1, 6 and 3 in that order uses exactly the capacity of 10, so the LO relaxation happens to have an integer optimal solution, which is then also optimal for the ILO problem: branch and bound would stop at the root. A more interesting instance is the one of four items with rewards $(15, 9, 10, 5)$, weights $(1, 3, 5, 4)$ and capacity $C = 8$. Its ratios are $15, 3, 2, 1.25$, already in decreasing order. Items 1 and 2 fit completely and use 4 of the capacity, which leaves room for $4/5$ of item 3 (weight 5). The optimal solution of the LO relaxation is therefore $(1, 1, 0.8, 0)$ with objective value $15 + 9 + 0.8 \cdot 10 = 32$. The figure below shows how the capacity is filled, and the code confirms the result with the function above and with pulp.
+
+# %% tags=["hide-input"]
+small_reward = [15, 9, 10, 5]
+small_weight = [1, 3, 5, 4]
+small_capacity = 8
+
+relaxation = knapsack_relaxation(small_reward, small_weight, small_capacity)
+assert relaxation is not None
+small_fraction, small_total = relaxation
+fig, ax = plt.subplots(figsize=(8, 1.6))
+start = 0.0
+for i, f in enumerate(small_fraction):
+    if f == 0:
+        continue
+    used = f * small_weight[i]
+    ax.barh(0, used, left=start, color=f"C{i}", edgecolor="black")
+    label = f"item {i + 1}" if f == 1 else f"{f:.0%} of item {i + 1}"
+    ax.text(start + used / 2, 0, label, ha="center", va="center")
+    start += used
+ax.set_xlim(0, small_capacity)
+ax.set_xlabel("capacity used")
+ax.set_yticks([])
+ax.set_title("LO relaxation: filling the knapsack by reward-to-weight ratio")
+plt.show()
+
+# %%
+print(
+    "greedy:", knapsack_relaxation(small_reward, small_weight, small_capacity)
+)
+
+small_relaxed = pulp.LpProblem(name="small_relaxed", sense=pulp.LpMaximize)
+share = [
+    pulp.LpVariable(name=f"x_{i + 1}", lowBound=0, upBound=1)
+    for i in range(len(small_reward))
+]
+small_relaxed += pulp.lpSum(r * x for r, x in zip(small_reward, share))
+small_relaxed += (
+    pulp.lpSum(w * x for w, x in zip(small_weight, share)) <= small_capacity
+)
+small_relaxed.solve(solver)
+print("pulp:  ", [x.value() for x in share], small_relaxed.objective.value())
+
+# %% [markdown]
+# ### Branch and Bound for the Knapsack Problem
+#
+# With the LO relaxation in hand, we solve the four-item instance with branch and bound. Since the LO relaxation has at most one fractional variable, there is only one variable to branch on in each step, and branching on a binary variable means fixing it to 0 in one subproblem and to 1 in the other. We use the same step numbering as before:
+#
+# - **Step 1: root problem.** The LO relaxation has optimum $(1, 1, 0.8, 0)$ with value $32$, a UB. We branch on $x_3 = 0.8$.
+# - **Step 2: subproblem $x_3 = 0$.** Without item 3, items 1, 2 and 4 fit exactly: the relaxation has optimum $(1, 1, 0, 1)$ with value $29$. This solution is integer, so it is feasible for the ILO problem and gives the current best LB of $29$. No need to branch further from this subproblem.
+# - **Step 3: subproblem $x_3 = 1$.** Item 3 uses 5 of the capacity, item 1 then fits, and $2/3$ of item 2 fills the rest: optimum $(1, 2/3, 1, 0)$ with value $31$. This UB is larger than the best LB of $29$, so this subproblem may still contain a better solution. We branch on $x_2$.
+# - **Step 4: subproblem $x_3 = 1$, $x_2 = 0$.** Items 3 and 1 fit, and half of item 4 fills the rest: optimum $(1, 0, 1, 0.5)$ with value $27.5$, a UB.
+# - **Step 5: eliminate.** The UB of $27.5$ is below the best LB of $29$, so this subproblem cannot contain a better solution and we eliminate it without branching.
+# - **Step 6: subproblem $x_3 = 1$, $x_2 = 1$.** Items 3 and 2 use the full capacity, so item 1 no longer fits: optimum $(0, 1, 1, 0)$ with value $19$. This solution is integer and thus a LB.
+# - **Step 7: suboptimal.** The LB of $19$ is below the best LB of $29$.
+# - **Step 8: optimum.** The pool is now empty, so the best solution found, $(1, 1, 0, 1)$ with reward $29$ from step 2, is optimal.
+#
+# The figure below shows the branch-and-bound tree, and the code after it repeats each step's LO relaxation with `knapsack_relaxation` (with Python's 0-based item indices in `fixed`).
+
+# %% tags=["hide-input"]
+draw_bb_tree(
+    nodes={
+        "root": (7.2, 5.0, "Step 1: 32 (UB)", "1, 1, 0.8, 0", "UB"),
+        "x3=0": (2.5, 2.6, "Step 2: 29 (LB)", "1, 1, 0, 1", "LB"),
+        "x3=1": (10.2, 2.6, "Step 3: 31 (UB)", "1, 2/3, 1, 0", "UB"),
+        "x2=0": (7.9, 0.2, "Step 4: 27.5 (UB)", "1, 0, 1, 0.5", "UB"),
+        "x2=1": (12.5, 0.2, "Step 6: 19 (LB)", "0, 1, 1, 0", "LB"),
+    },
+    edges=[
+        ("root", "x3=0", "$x_3 = 0$"),
+        ("root", "x3=1", "$x_3 = 1$"),
+        ("x3=1", "x2=0", "$x_2 = 0$"),
+        ("x3=1", "x2=1", "$x_2 = 1$"),
+    ],
+    status={
+        "x3=0": ("Step 8: optimum", "optimum"),
+        "x2=0": ("Step 5: 27.5 (UB) < 29 (LB)", "pruned"),
+        "x2=1": ("Step 7: 19 < 29 (subopt)", "pruned"),
+    },
+    legend_xy=(2.5, 0.6),
+    xlim=(0, 15),
+    ylim=(-1.4, 5.4),
+    figsize=(11, 5),
+    box_width=4.5,
+)
+
+# %%
+bb_subproblems = {
+    "step 1, root": {},
+    "step 2, x_3 = 0": {2: 0},
+    "step 3, x_3 = 1": {2: 1},
+    "step 4, x_3 = 1, x_2 = 0": {2: 1, 1: 0},
+    "step 6, x_3 = 1, x_2 = 1": {2: 1, 1: 1},
+}
+for step, fixed_vars in bb_subproblems.items():
+    result = knapsack_relaxation(
+        small_reward, small_weight, small_capacity, fixed_vars
+    )
+    print(f"{step}: {result}")
 
 # %% [markdown]
 # (general-formulation)=
