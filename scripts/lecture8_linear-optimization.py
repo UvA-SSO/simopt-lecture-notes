@@ -99,8 +99,7 @@
 # LO (and, later, ILO) models. Let's import it.
 
 # %%
-import matplotlib.pyplot as plt
-import numpy as np
+import plotly.graph_objects as go
 import pulp
 
 # %% [markdown]
@@ -263,53 +262,115 @@ print("optimal profit:", product_mix.objective.value())
 # evaluate the objective at each, and check which one pulp found.
 # :::
 #
-# The code below only generates the figure. You do not need to learn this plotting code, so you can skip to the plot and use it to check your hand drawing, which you do need to master.
+# Use the figure below to check your hand drawing, which you do need to master. Hover over a corner point of the feasible region to see its coordinates and profit.
 
-# %% tags=["hide-input"]
-x_grid = np.linspace(0, 12, 200)
-plt.figure(figsize=(5, 5))
-plt.plot(
-    x_grid,
-    (12 - x_grid) / 3,
-    color="C0",
-    label=r"$x + 3y \leq 12$ (oak panels)",
-)
-plt.plot(
-    x_grid,
-    10 - 2 * x_grid,
-    color="C1",
-    label=r"$2x + y \leq 10$ (assembly hours)",
-)
-y_upper = np.minimum((12 - x_grid) / 3, 10 - 2 * x_grid)
-plt.fill_between(
-    x_grid,
-    0,
-    y_upper,
-    where=(y_upper >= 0),
-    alpha=0.2,
-    label="feasible region",
-)
+# %% tags=["remove-cell"] label="graphical-view"
+# Plot style for the light and the dark site theme: transparent background;
+# on the site, custom.css gives the text and grid lines the page colours.
+# TEXT_COLOR is the fallback elsewhere (Colab, local Jupyter). Zooming and
+# panning are off, so a swipe over a figure scrolls the page on a phone.
+GREY = "#888888"
+TEXT_COLOR = "#111827"
+PLOT_LAYOUT = {
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {"color": TEXT_COLOR, "size": 13},
+    "dragmode": False,
+    "margin": {"l": 60, "r": 20, "t": 20, "b": 50},
+    "legend": {
+        "bgcolor": "rgba(0,0,0,0)",
+        "orientation": "h",
+        "yanchor": "top",
+        "y": -0.18,
+    },
+    "hoverlabel": {"font": {"size": 13}},
+}
+AXIS_STYLE = {
+    "gridcolor": "rgba(128,128,128,0.25)",
+    "zerolinecolor": "rgba(128,128,128,0.5)",
+    "fixedrange": True,
+}
+PLOT_CONFIG = {"displayModeBar": False}
 
 x_opt, y_opt = mix_solution["bookcase"], mix_solution["desk"]
-for level, style in [(15, ":"), (optimal_profit, "-")]:
-    plt.plot(x_grid, (level - 3 * x_grid) / 5, style, color="grey")
-plt.plot(x_opt, y_opt, "ko")
-plt.annotate(
-    f"optimum ({x_opt:.1f}, {y_opt:.1f})",
-    (x_opt, y_opt),
-    textcoords="offset points",
-    xytext=(8, 8),
+corners = [(0, 0), (5, 0), (x_opt, y_opt), (0, 4)]
+graphical = go.Figure()
+graphical.add_trace(
+    go.Scatter(
+        x=[x for x, _ in corners],
+        y=[y for _, y in corners],
+        fill="toself",
+        fillcolor="rgba(31,119,180,0.15)",
+        mode="none",
+        name="feasible region",
+        hoverinfo="skip",
+    )
 )
+graphical.add_trace(
+    go.Scatter(
+        x=[0, 7],
+        y=[4, 5 / 3],
+        mode="lines",
+        line={"color": "#1f77b4"},
+        name="x + 3y ≤ 12 (oak panels)",
+        hoverinfo="skip",
+    )
+)
+graphical.add_trace(
+    go.Scatter(
+        x=[2.5, 5],
+        y=[5, 0],
+        mode="lines",
+        line={"color": "#ff7f0e"},
+        name="2x + y ≤ 10 (assembly hours)",
+        hoverinfo="skip",
+    )
+)
+for level, dash in [(15, "dot"), (optimal_profit, "solid")]:
+    graphical.add_trace(
+        go.Scatter(
+            x=[0, 7],
+            y=[level / 5, (level - 21) / 5],
+            mode="lines",
+            line={"color": GREY, "dash": dash},
+            name=f"profit {level:g}",
+            hoverinfo="skip",
+        )
+    )
+graphical.add_trace(
+    go.Scatter(
+        x=[x for x, _ in corners],
+        y=[y for _, y in corners],
+        customdata=[3 * x + 5 * y for x, y in corners],
+        mode="markers",
+        marker={"color": "rgba(31,119,180,0.6)", "size": 9},
+        name="corner point",
+        hovertemplate="(%{x:.1f}, %{y:.1f})<br>profit %{customdata:.1f}"
+        "<extra></extra>",
+    )
+)
+graphical.add_trace(
+    go.Scatter(
+        x=[x_opt],
+        y=[y_opt],
+        mode="markers",
+        marker={"color": "#d62728", "size": 18, "symbol": "star"},
+        name="optimum",
+        hovertemplate="optimum (%{x:.1f}, %{y:.1f})<br>"
+        f"profit {optimal_profit:.1f}<extra></extra>",
+    )
+)
+graphical.update_layout(**PLOT_LAYOUT, height=540)
+graphical.update_xaxes(range=[-0.2, 7], title="bookcases x", **AXIS_STYLE)
+graphical.update_yaxes(range=[-0.2, 5], title="desks y", **AXIS_STYLE)
+graphical.show(config=PLOT_CONFIG)
 
-plt.xlim(0, 7)
-plt.ylim(0, 5)
-plt.xlabel("bookcases $x$")
-plt.ylabel("desks $y$")
-plt.legend(loc="upper right", fontsize=8)
-plt.title(
-    "The two grey lines are objective contours; the solid one is optimal"
-)
-plt.show()
+# %% [markdown]
+# :::{figure} #graphical-view
+# :label: fig-graphical-view
+#
+# Feasible region of the product-mix problem with two objective contour lines: the dotted line has profit 15, the solid line the optimal profit 24.8, touching the region only in the optimum (3.6, 2.8). Hover over a corner point to see its coordinates and profit.
+# :::
 
 # %% [markdown]
 # The dotted grey line (profit 15) still has feasible points but we can do better; sliding

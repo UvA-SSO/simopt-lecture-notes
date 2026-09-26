@@ -191,8 +191,15 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   (the lecture 8 notebooks are the reference). Text in a figure that has no
   coloured box of its own must have the same colour as the page text around
   it, and no figure may need horizontal scrolling.
-  - Plots where hovering adds value (feasible regions: coordinates and
-    objective value of points) use plotly (`plotly.graph_objects`):
+  - Interactivity is only for graphical representations of an optimization
+    problem: the 2D drawings with constraint lines, a feasible region,
+    objective (contour) lines, corner/integer points and the optimum (e.g.
+    the Graphical View in `lecture8_linear-optimization`, the lattice plot in
+    `lecture8_integer-optimization`, the homework solution plots in
+    `lecture8_exercises`). Hover shows a point's coordinates and objective
+    value. Every other figure (trees, diagrams, histograms, simulation
+    output, ...) is static. The graphical representations use plotly
+    (`plotly.graph_objects`):
     transparent `paper_bgcolor`/`plot_bgcolor`, font colour `#111827` (the
     light-theme page text, used as fallback in Colab/local Jupyter),
     `dragmode=False` and `fixedrange=True` on all axes (so a swipe scrolls the
