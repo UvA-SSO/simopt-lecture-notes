@@ -134,6 +134,18 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   directives with a `:label:` (original book caption, no "Figure N.M:" numbering)
   so they're auto-numbered and cross-referenceable via `[](#label)` — this is a
   separate, verified-working mechanism from the code-cell one below.
+- Write (I)LO models line by line in an `aligned` block, one constraint per
+  line (never several constraints joined by commas on one line, and never an
+  inline `\max ... \quad \text{s.t.} \quad ...`):
+  ```latex
+  \begin{aligned}
+  \max \quad & x + y \\
+  \text{s.t.} \quad & x \le 5 \\
+  & x + 2y \le 10 \\
+  & x, y \ge 0.
+  \end{aligned}
+  ```
+  Sign/domain constraints on several variables (`x, y \ge 0`) share one line.
 - Every figure, including a live matplotlib plot, gets a caption below it.
   For a plot, put the label in the jupytext cell marker's metadata and embed
   the output in a `{figure}` in the next markdown cell:

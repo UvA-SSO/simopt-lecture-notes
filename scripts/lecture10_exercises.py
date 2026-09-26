@@ -48,8 +48,11 @@
 # level at time $t$. The ILO model is
 #
 # $$
-# \min_{x_t, s_t} \sum_{t=1}^{T} (c_t x_t + h_t s_t) \quad \text{s.t.} \quad
-# s_t = s_{t-1} - d_t + x_t,\ s_t, x_t \ge 0, \text{ for } t = 1, \dots, T.
+# \begin{aligned}
+# \min_{x_t, s_t} \quad & \sum_{t=1}^{T} (c_t x_t + h_t s_t) \\
+# \text{s.t.} \quad & s_t = s_{t-1} - d_t + x_t \text{ for } t = 1, \dots, T \\
+# & s_t, x_t \ge 0 \text{ for } t = 1, \dots, T.
+# \end{aligned}
 # $$
 #
 # Solving it in pulp for $s_0 = 8$, $d = (5, 4, 8, 10, 4, 2, 1)$, $h_t = 1$ for all $t$,

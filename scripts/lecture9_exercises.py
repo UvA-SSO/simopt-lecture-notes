@@ -163,8 +163,11 @@
 #    $$
 #    \begin{aligned}
 #    \min \quad & x_A + x_B + x_C + x_D \\
-#    \text{s.t.} \quad & x_A \ge 1 \ \text{(city 1)}, \quad x_A + x_B \ge 1 \ \text{(city 2)}, \\
-#    & x_B + x_D \ge 1 \ \text{(city 3)}, \quad x_D \ge 1 \ \text{(city 4)}, \quad x_C \ge 1 \ \text{(city 5)}, \\
+#    \text{s.t.} \quad & x_A \ge 1 \ \text{(city 1)} \\
+#    & x_A + x_B \ge 1 \ \text{(city 2)} \\
+#    & x_B + x_D \ge 1 \ \text{(city 3)} \\
+#    & x_D \ge 1 \ \text{(city 4)} \\
+#    & x_C \ge 1 \ \text{(city 5)} \\
 #    & x_A, x_B, x_C, x_D \in \{0, 1\}.
 #    \end{aligned}
 #    $$
@@ -218,8 +221,11 @@
 #    $$
 #    \begin{aligned}
 #    \min \quad & x_{11} + 2x_{12} + 3x_{21} + 5x_{22} + 5x_{31} + 3x_{32} \\
-#    \text{s.t.} \quad & x_{11} + x_{12} \le 30 \ \text{(supply 1)}, \quad x_{21} + x_{22} \le 10 \ \text{(supply 2)}, \quad x_{31} + x_{32} \le 10 \ \text{(supply 3)} \\
-#    & x_{11} + x_{21} + x_{31} \ge 25 \ \text{(demand 1)}, \quad x_{12} + x_{22} + x_{32} \ge 25 \ \text{(demand 2)} \\
+#    \text{s.t.} \quad & x_{11} + x_{12} \le 30 \ \text{(supply 1)} \\
+#    & x_{21} + x_{22} \le 10 \ \text{(supply 2)} \\
+#    & x_{31} + x_{32} \le 10 \ \text{(supply 3)} \\
+#    & x_{11} + x_{21} + x_{31} \ge 25 \ \text{(demand 1)} \\
+#    & x_{12} + x_{22} + x_{32} \ge 25 \ \text{(demand 2)} \\
 #    & x_{ij} \ge 0 \text{ for all } i, j.
 #    \end{aligned}
 #    $$
@@ -277,8 +283,10 @@
 #    $$
 #    \begin{aligned}
 #    \min \quad & x_1 + x_2 + x_3 + x_4 \\
-#    \text{s.t.} \quad & x_1 + x_2 + x_3 \ge 1 \ \text{(cover A)}, \quad x_1 + x_2 + x_4 \ge 1 \ \text{(cover B)}, \\
-#    & x_1 + x_3 + x_4 \ge 1 \ \text{(cover C)}, \quad x_2 + x_3 + x_4 \ge 1 \ \text{(cover D)}, \\
+#    \text{s.t.} \quad & x_1 + x_2 + x_3 \ge 1 \ \text{(cover A)} \\
+#    & x_1 + x_2 + x_4 \ge 1 \ \text{(cover B)} \\
+#    & x_1 + x_3 + x_4 \ge 1 \ \text{(cover C)} \\
+#    & x_2 + x_3 + x_4 \ge 1 \ \text{(cover D)} \\
 #    & x_i \in \{0, 1\} \text{ for } i = 1, 2, 3, 4.
 #    \end{aligned}
 #    $$

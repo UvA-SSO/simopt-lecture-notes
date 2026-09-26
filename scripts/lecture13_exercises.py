@@ -84,8 +84,11 @@
 #    ILO is
 #
 #    $$
-#    \max 10x_1 + 8x_2 + 5x_3 + 12x_4 \quad \text{s.t.} \quad 9x_1 + 6x_2 + 3x_3 + 10x_4
-#    \le 19,\ x_i \in \{0, 1\}.
+#    \begin{aligned}
+#    \max \quad & 10x_1 + 8x_2 + 5x_3 + 12x_4 \\
+#    \text{s.t.} \quad & 9x_1 + 6x_2 + 3x_3 + 10x_4 \le 19 \\
+#    & x_i \in \{0, 1\} \text{ for all } i.
+#    \end{aligned}
 #    $$
 #
 # b. Compute the total return $R$ and budget spend $B$ of the chosen policy. Simulate a

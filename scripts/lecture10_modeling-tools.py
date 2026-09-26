@@ -115,8 +115,11 @@ print("total cost:", inventory.objective.value())
 # so $e_i^+ + e_i^- = |e_i|$:
 #
 # $$
-# \min \sum_i (e_i^+ + e_i^-) \quad\text{s.t.}\quad y_i - (a + b x_i) = e_i^+ - e_i^-,\quad
-# e_i^+, e_i^- \ge 0.
+# \begin{aligned}
+# \min \quad & \sum_i (e_i^+ + e_i^-) \\
+# \text{s.t.} \quad & y_i - (a + b x_i) = e_i^+ - e_i^- \text{ for all } i \\
+# & e_i^+, e_i^- \ge 0 \text{ for all } i.
+# \end{aligned}
 # $$
 #
 # The same $x = x^+ - x^-$ split linearizes any $|x|$ that appears (with a non-negative

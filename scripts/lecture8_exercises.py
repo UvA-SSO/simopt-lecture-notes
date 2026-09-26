@@ -143,7 +143,13 @@ plt.show()
 #    Then the LO is
 #
 #    $$
-#    \max x + y \quad \text{s.t.} \quad x \le 5,\ y \le 3.5,\ x + 2y \le 10,\ x, y \ge 0.
+#    \begin{aligned}
+#    \max \quad & x + y \\
+#    \text{s.t.} \quad & x \le 5 \\
+#    & y \le 3.5 \\
+#    & x + 2y \le 10 \\
+#    & x, y \ge 0.
+#    \end{aligned}
 #    $$
 #
 # b. The figure below shows the feasible region. Shifting the objective line $x + y = c$
@@ -189,7 +195,12 @@ plt.show()
 #    $$
 #    \begin{aligned}
 #    \max \quad & x + y - 0.25z \\
-#    \text{s.t.} \quad & x \le 5,\ y \le 3.5,\ x + 2y \le 10 + 5z,\ y \ge 0.25z,\ x, y \ge 0,\ z \in \{0, 1\}.
+#    \text{s.t.} \quad & x \le 5 \\
+#    & y \le 3.5 \\
+#    & x + 2y \le 10 + 5z \\
+#    & y \ge 0.25z \\
+#    & x, y \ge 0 \\
+#    & z \in \{0, 1\}.
 #    \end{aligned}
 #    $$
 #
@@ -297,7 +308,12 @@ plt.show()
 #    is
 #
 #    $$
-#    \max 1.5x + y \quad \text{s.t.} \quad x + y \le 5,\ 2x + y \le 7.5,\ x, y \ge 0.
+#    \begin{aligned}
+#    \max \quad & 1.5x + y \\
+#    \text{s.t.} \quad & x + y \le 5 \\
+#    & 2x + y \le 7.5 \\
+#    & x, y \ge 0.
+#    \end{aligned}
 #    $$
 #
 # b. The figure below shows the feasible region. Shifting the objective line
@@ -330,7 +346,10 @@ plt.show()
 #    $$
 #    \begin{aligned}
 #    \max \quad & 1.5x + y + 0.5z \\
-#    \text{s.t.} \quad & x + y + z \le 5,\ 2x + y + 2z \le 7.5,\ x \le 2,\ x, y, z \ge 0.
+#    \text{s.t.} \quad & x + y + z \le 5 \\
+#    & 2x + y + 2z \le 7.5 \\
+#    & x \le 2 \\
+#    & x, y, z \ge 0.
 #    \end{aligned}
 #    $$
 #
@@ -344,7 +363,12 @@ plt.show()
 #    - $z > 0$: then $x = 2$, and the LO reduces to
 #
 #      $$
-#      \max 3 + y + 0.5z \quad \text{s.t.} \quad y + z \le 3,\ y + 2z \le 3.5,\ y, z \ge 0.
+#      \begin{aligned}
+#      \max \quad & 3 + y + 0.5z \\
+#      \text{s.t.} \quad & y + z \le 3 \\
+#      & y + 2z \le 3.5 \\
+#      & y, z \ge 0.
+#      \end{aligned}
 #      $$
 #
 #      In the $(y, z)$ plane, the objective line reaches furthest where $y + z = 3$
@@ -392,8 +416,11 @@ plt.show()
 # a. Number the items 1-4 and let $x_i = 1$ if item $i$ is taken, 0 otherwise. The ILO is
 #
 #    $$
-#    \max 3x_1 + x_2 + 8x_3 + 5x_4 \quad \text{s.t.} \quad 2x_1 + 2x_2 + 4x_3 + 4x_4 \le 9,\
-#    x_i \in \{0, 1\}.
+#    \begin{aligned}
+#    \max \quad & 3x_1 + x_2 + 8x_3 + 5x_4 \\
+#    \text{s.t.} \quad & 2x_1 + 2x_2 + 4x_3 + 4x_4 \le 9 \\
+#    & x_i \in \{0, 1\} \text{ for all } i.
+#    \end{aligned}
 #    $$
 #
 #    All rewards are positive, so an optimal solution leaves no room for another item. Each
@@ -524,7 +551,12 @@ plt.show()
 # a. Let $x$ and $y$ be the number of units produced of product 1 and 2. Then
 #
 #    $$
-#    \max x + y \quad \text{s.t.} \quad 4x + y \le 12,\ 2x + 4y \le 16,\ x, y \ge 0.
+#    \begin{aligned}
+#    \max \quad & x + y \\
+#    \text{s.t.} \quad & 4x + y \le 12 \\
+#    & 2x + 4y \le 16 \\
+#    & x, y \ge 0.
+#    \end{aligned}
 #    $$
 #
 # b. The figure below shows the feasible region. Shifting the objective line $x + y = c$

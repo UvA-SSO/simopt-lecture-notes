@@ -144,7 +144,12 @@
 #    $$
 #    \begin{aligned}
 #    \max \quad & x_{AB} + x_{AD} \\
-#    \text{s.t.} \quad & x_{AB} \le 6,\ x_{AD} \le 2,\ x_{BC} \le 1,\ x_{CD} \le 2,\ x_{BE} \le 4,\ x_{DE} \le 4 \\
+#    \text{s.t.} \quad & x_{AB} \le 6 \\
+#    & x_{AD} \le 2 \\
+#    & x_{BC} \le 1 \\
+#    & x_{CD} \le 2 \\
+#    & x_{BE} \le 4 \\
+#    & x_{DE} \le 4 \\
 #    & x_{AB} = x_{BC} + x_{BE} \ \text{(node B)} \\
 #    & x_{BC} = x_{CD} \ \text{(node C)} \\
 #    & x_{AD} + x_{CD} = x_{DE} \ \text{(node D)} \\
@@ -300,7 +305,14 @@
 #    $$
 #    \begin{aligned}
 #    \max \quad & x_{AB} + x_{AC} \\
-#    \text{s.t.} \quad & x_{AB} \le 20,\ x_{AC} \le 10,\ x_{BC} \le 5,\ x_{BD} \le 20,\ x_{CE} \le 20,\ x_{DF} \le 10,\ x_{ED} \le 10,\ x_{EF} \le 25 \\
+#    \text{s.t.} \quad & x_{AB} \le 20 \\
+#    & x_{AC} \le 10 \\
+#    & x_{BC} \le 5 \\
+#    & x_{BD} \le 20 \\
+#    & x_{CE} \le 20 \\
+#    & x_{DF} \le 10 \\
+#    & x_{ED} \le 10 \\
+#    & x_{EF} \le 25 \\
 #    & x_{AB} = x_{BC} + x_{BD} \ \text{(node B)} \\
 #    & x_{AC} + x_{BC} = x_{CE} \ \text{(node C)} \\
 #    & x_{BD} + x_{ED} = x_{DF} \ \text{(node D)} \\
