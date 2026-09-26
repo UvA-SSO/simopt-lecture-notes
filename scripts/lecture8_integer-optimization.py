@@ -62,6 +62,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pulp
+from matplotlib.patches import Rectangle
 
 profit = {"bookcase": 3, "desk": 5}
 # resource_use[res][p]: units of resource res per unit of product p
@@ -179,13 +180,13 @@ plt.show()
 #
 # Together, these two subproblems cover all possible integer values of $x_j$, but neither allows $x_j = 2.5$ anymore. We then solve the LO relaxation of each subproblem (independently) in the same manner. If either relaxation again yields a non-integer variable that must be integer, we apply the same strategy and branch again, et cetera. To illustrate this, suppose that solving the relaxation for the subproblem with $x_j \leq 2$ leads to a solution with $x_k = 5.6$. We then branch this subproblem again to get one subproblem with constraints $x_j \leq 2$ and $x_k \leq 5$, and one subproblem with $x_j \leq 2$ and $x_k \geq 6$. Indeed, both subproblems still have the previous constraint $x_j \leq 2$.
 #
-# At first sight, this may seem like enumerating all possible integer values. The crucial difference is that branch and bound uses bounds to avoid exploring subproblems that cannot improve the best integer solution found so far. Hence the name branch and bound.
+# At first sight, this may seem like enumerating all possible integer values. The key difference is that branch and bound uses bounds to avoid exploring subproblems that cannot improve the best integer solution found so far. Hence the name branch and bound.
 #
-# Any feasible integer solution to the original ILO problem provides a **lower bound (LB)** for a maximization problem. Along the way, we keep track of the best original ILO solution, called the **incumbent**. Its objective value is the current best/largest LB. On the other hand, as mentioned before, the LO relaxation of a subproblem is always an UB for the best integer-feasible solution at the subproblem. So if the UB at a subproblem is smaller than the current best LB, we don't need to branch further on that subproblem, as it will never lead to a better ILO solution, saving computation time.
+# Any feasible integer solution to the original ILO problem provides a **lower bound (LB)** for a maximization problem. Along the way, we keep track of the best original ILO solution, called the **incumbent**. Its objective value is the current best/largest LB. On the other hand, as mentioned before, the LO relaxation of a subproblem is always a UB for the best integer-feasible solution at the subproblem. So if the UB at a subproblem is smaller than the current best LB, we don't need to branch further on that subproblem, as it will never lead to a better ILO solution. This saves computation time.
 #
-# Let us formalize this method further. The branch and bound method keeps track of (1) a pool of (sub)problems whose LO relaxation is not solved yet and which may still lead to an optimal solution, and (2) the current best solution with the largest/best LB so far. Initially, this pool contains only the original problem, and the LB is set to $-\infty$. As long as the pool is not empty, choose a (sub)problem from the pool, remove it, and solve its LO relaxation. This solve leads to two possibilities:
+# Let us formalize this method further. The branch and bound method keeps track of (1) a pool of (sub)problems whose LO relaxation is not solved yet and which may still lead to an optimal solution, and (2) the current best solution with the largest/best LB so far. Initially, this pool contains only the original problem, and the LB is set to $-\infty$. As long as the pool is not empty, choose a (sub)problem from the pool, remove it, and solve its LO relaxation. This solve leads to one of three outcomes:
 #
-# 1. The found solution is infeasible for the ILO problem, and its objective value is an UB:
+# 1. The found solution is infeasible for the ILO problem, and its objective value is a UB:
 #    1. If UB $\leq$ largest LB: We eliminate this subproblem (we will not find a better solution here; this can by default not happen for the original problem).
 #    2. If UB $>$ largest LB: Pick a variable from the solution that is non-integer but should be. Branch the (sub)problem on this variable into two new (sub)problems and add them to the pool.
 # 2. The found solution is feasible for the ILO problem and gives a new LB:
@@ -199,14 +200,88 @@ plt.show()
 #
 # We did not discuss how to choose two things: which decision variable to branch on (since an LO relaxation solution typically has many non-integer variables that should be integer) and which (sub)problem from the pool to pick first. The choice affects performance, and what works best is a research topic on its own and outside the scope of this course. In this course, just make a choice; we always know that in the end we will find the optimal solution.
 #
-# Let us apply this idea to the integer product-mix problem to illustrate its workings:
+# Let us apply this idea to the integer product-mix problem to illustrate its workings. We number the steps in the order in which we take them:
 #
-# - **Root problem.** The LO relaxation has optimum $\left(3.6, 2.8\right)$ with objective value $24.8$. This is an UB, but the solution is not integer in both decision variables and thus infeasible. Just pick a decision variable to branch on. We branch on $y = 2.8$.
-# - **Left subproblem:** root problem with $y \leq 2$. Its relaxation has optimum $\left(4, 2\right)$ with value $22$. This solution is integer, so it is feasible for the ILO problem and thus holds the current best LB of $22$. No need to branch further from this subproblem.
-# - **Right subproblem:** root problem with $y \geq 3$. Its relaxation has optimum $\left(3, 3\right)$ with value $24$. This is also feasible for the ILO problem, so it improves the best LB to $24$, and we can replace the previous best solution with the solution $\left(3, 3\right)$. No need to branch further from this subproblem.
+# - **Step 1: root problem.** The LO relaxation has optimum $\left(3.6, 2.8\right)$ with objective value $24.8$. This is a UB, but the solution is not integer in both decision variables and thus infeasible. Just pick a decision variable to branch on. We branch on $y = 2.8$, which adds the subproblems with $y \leq 2$ and $y \geq 3$ to the pool.
+# - **Step 2: left subproblem,** the root problem with $y \leq 2$. Its relaxation has optimum $\left(4, 2\right)$ with value $22$. This solution is integer, so it is feasible for the ILO problem and thus holds the current best LB of $22$. No need to branch further from this subproblem.
+# - **Step 3: right subproblem,** the root problem with $y \geq 3$. Its relaxation has optimum $\left(3, 3\right)$ with value $24$. This is also feasible for the ILO problem, so it improves the best LB to $24$, and we can replace the previous best solution with the solution $\left(3, 3\right)$. No need to branch further from this subproblem.
+# - **Step 4: left subproblem is suboptimal.** Its value of $22$ is below the new best LB of $24$, so the solution $\left(4, 2\right)$ is no longer the best one.
+# - **Step 5: optimum.** The pool is now empty (no promising (sub)problems left to explore), so we are done, and the current best solution of $\left(3,3\right)$ with profit $24$ must be the optimal ILO solution.
 #
-# Since the pool is now empty (no promising (sub)problems left to explore), we are done, and the current best solution of $\left(3,3\right)$ with profit $24$ must be the optimal ILO solution.
-#
+# The figure below shows these steps as a branch-and-bound tree. Each node is a (sub)problem: its header gives the step in which its LO relaxation is solved, the objective value, and whether that value is a UB or a LB, and the line below gives the relaxation's optimal solution $(x, y)$. The labels on the edges are the constraints added by branching.
+
+# %% tags=["hide-input"]
+# (x, y) center, header text, solution text, header color, body color
+tree_nodes = {
+    "root": (5.0, 5.0, "Step 1: 24.8 (UB)", "3.6, 2.8", "#5b9bd5", "#d6dce5"),
+    "left": (2.2, 2.4, "Step 2: 22 (LB)", "4, 2", "#70ad47", "#d9e7cf"),
+    "right": (7.8, 2.4, "Step 3: 24 (LB)", "3, 3", "#70ad47", "#d9e7cf"),
+}
+# later steps, shown in a box below the node they concern
+tree_status = {
+    "left": ("Step 4: 22 < 24 (subopt)", "#e00000"),
+    "right": ("Step 5: optimum", "#375623"),
+}
+box_width, box_height = 3.6, 0.55
+
+fig, ax = plt.subplots(figsize=(8, 4.6))
+for child, branch_label in [("left", r"$y \leq 2$"), ("right", r"$y \geq 3$")]:
+    x_from, y_from = tree_nodes["root"][:2]
+    x_to, y_to = tree_nodes[child][:2]
+    y_from -= 1.5 * box_height
+    y_to += 0.5 * box_height
+    ax.plot([x_from, x_to], [y_from, y_to], color="#5b9bd5", lw=1)
+    ax.text(
+        (x_from + x_to) / 2 + (0.6 if x_to > x_from else -0.6),
+        (y_from + y_to) / 2,
+        branch_label,
+        ha="center",
+        va="center",
+        fontsize=11,
+    )
+for node, (x_c, y_c, header, body, dark, light) in tree_nodes.items():
+    boxes = [(header, dark, "white", "bold"), (body, light, "black", "normal")]
+    if node in tree_status:
+        status, status_color = tree_status[node]
+        boxes.append((status, status_color, "white", "bold"))
+    for row, (text, face, text_color, font_weight) in enumerate(boxes):
+        y_row = y_c - row * (box_height + 0.08)
+        ax.add_patch(
+            Rectangle(
+                (x_c - box_width / 2, y_row - box_height / 2),
+                box_width,
+                box_height,
+                facecolor=face,
+                edgecolor="none",
+            )
+        )
+        ax.text(
+            x_c,
+            y_row,
+            text,
+            ha="center",
+            va="center",
+            color=text_color,
+            fontweight=font_weight,
+            fontsize=11,
+        )
+ax.text(
+    5.0,
+    0.45,
+    "UB = upper bound (follows from LO relaxation)\n"
+    "LB = lower bound (if ILO solution is found)\n"
+    "subopt = suboptimal solution",
+    ha="center",
+    va="top",
+    fontsize=9,
+    bbox={"facecolor": "white", "edgecolor": "black"},
+)
+ax.set_xlim(0, 10)
+ax.set_ylim(-0.6, 5.4)
+ax.axis("off")
+plt.show()
+
+# %% [markdown]
 # In this example, we needed only three LO relaxations, rather than checking every possible integer combination. Modern integer-optimization solvers use this basic branch-and-bound idea, often enhanced with additional techniques. More on this later.
 
 # %% [markdown]
