@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Set cover and covering problems, and their main practical use, shift scheduling."
+# thumbnail: null
+# ---
 # # Lecture 9: Set Covering and Shift Scheduling
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture9_covering.ipynb)

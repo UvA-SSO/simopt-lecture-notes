@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "A recap of variability and probability, as preparation for simulation."
+# thumbnail: null
+# ---
 # # Lecture 12: Variability (Recap)
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_variability-recap.ipynb)

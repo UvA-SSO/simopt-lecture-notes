@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "The transportation and transshipment problems: shipping goods between sources and destinations, possibly through intermediate nodes, at minimum cost."
+# thumbnail: null
+# ---
 # # Lecture 9: Transportation and Transshipment
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture9_transportation.ipynb)

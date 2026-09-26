@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Business analytics in context, how it relates to data science, and how a real-life problem becomes a mathematical model."
+# thumbnail: null
+# ---
 # # Lecture 8: Introduction to Business Analytics
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_introduction.ipynb)

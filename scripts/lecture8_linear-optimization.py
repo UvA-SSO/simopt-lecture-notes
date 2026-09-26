@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Linear optimization introduced through a product-mix example: the modeling approach, solving it with pulp, a graphical and an algebraic view, and the three possible outcomes of a solve."
+# thumbnail: null
+# ---
 # # Lecture 8: Linear Optimization
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_linear-optimization.ipynb)

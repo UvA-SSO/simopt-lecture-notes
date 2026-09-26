@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Combinatorial optimization: algorithms for the shortest path and maximum flow problems, and heuristics for the traveling salesman problem."
+# thumbnail: null
+# ---
 # # Lecture 11: Algorithms and Heuristics
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture11_algorithms-heuristics.ipynb)
@@ -196,7 +200,7 @@ print("shortest distance A to F:", shortest_path.objective.value())
 # :::{figure} images/lecture11_fig7.2.png
 # :label: fig-shortest-path-exercise
 #
-# A directed graph with V = {A, B, C, D, E} and distances along the arcs.
+# [](#ex-7-1): a directed graph with V = {A, B, C, D, E} and distances along the arcs.
 # :::
 
 # %% [markdown]
@@ -396,7 +400,7 @@ print("maximum flow:", max_flow.objective.value())
 # :::{figure} images/lecture11_fig7.4.png
 # :label: fig-max-flow-exercise
 #
-# An undirected graph with capacities.
+# [](#ex-7-3): an undirected graph with capacities.
 # :::
 #
 # > **Erratum applied (p. 113):** the numbers along the edges of this graph are distances,

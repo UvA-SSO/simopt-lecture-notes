@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Homework exercises for Lecture 10 on modeling tools and solvers."
+# thumbnail: null
+# ---
 # # Lecture 10: Exercises
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture10_exercises.ipynb)

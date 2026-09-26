@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Homework exercises for Lecture 11 on algorithms, heuristics and complexity."
+# thumbnail: null
+# ---
 # # Lecture 11: Exercises
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture11_exercises.ipynb)
@@ -45,7 +49,7 @@
 # :::{figure} images/lecture11_hw1-ex1-graph.png
 # :label: fig-hw-11-1
 #
-# Directed graph for Exercise 1.
+# Directed graph of [](#hw-11-1), with travel times in hours along the arcs.
 # :::
 #
 # a. Solve this using Dijkstra's algorithm.
@@ -130,7 +134,7 @@
 # :::{figure} images/lecture11_hw1-ex2-graph.png
 # :label: fig-hw-11-2
 #
-# The directed graph with capacities.
+# Solution of [](#hw-11-2), part a: the directed graph with capacities.
 # :::
 #
 # b. Three augmenting paths suffice (different orders also work): $A \to B \to E$ with
@@ -176,7 +180,7 @@
 # :::{figure} images/lecture11_hw1-ex3-graph.png
 # :label: fig-hw-11-3
 #
-# Directed graph for Exercise 3.
+# Directed graph of [](#hw-11-3), with travel costs along the arcs.
 # :::
 #
 # a. Find the cheapest path from A to E using Dijkstra's algorithm. Show your steps.
@@ -241,7 +245,7 @@
 # :::{figure} images/lecture11_hw1-ex4-graph.png
 # :label: fig-hw-11-4
 #
-# Directed graph for Exercise 4.
+# Directed graph of [](#hw-11-4), with capacities along the arcs.
 # :::
 #
 # a. Use the Ford-Fulkerson algorithm to find the optimal solution.
@@ -297,7 +301,7 @@
 # :::{figure} images/lecture11_hw1-ex5-graph.png
 # :label: fig-hw-11-5
 #
-# The directed graph with capacities.
+# Solution of [](#hw-11-5), part a: the directed graph with capacities.
 # :::
 #
 # b. Let $x_{ij}$ be the flow on arc $(i, j)$. Then

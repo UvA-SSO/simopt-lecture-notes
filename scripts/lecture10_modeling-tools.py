@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Multi-period inventory planning and robust regression as optimization models, and the solvers and modeling tools such as pulp that solve them."
+# thumbnail: null
+# ---
 # # Lecture 10: Modeling Tools and Solvers
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture10_modeling-tools.ipynb)

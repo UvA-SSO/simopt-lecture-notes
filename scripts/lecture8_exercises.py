@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Homework exercises and further exercises for Lecture 8 on linear and integer optimization."
+# thumbnail: null
+# ---
 # # Lecture 8: Exercises
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_exercises.ipynb)
@@ -160,7 +164,7 @@ plt.show()
 # :::{figure} #hw-8-1b
 # :label: fig-hw-8-1b
 #
-# The feasible region of part a, with the objective line $x + y = 7.5$ through the optimum
+# Solution of [](#hw-8-1), part b: the feasible region of part a, with the objective line $x + y = 7.5$ through the optimum
 # $(5, 2.5)$.
 # :::
 #
@@ -185,7 +189,7 @@ plt.show()
 # :::{figure} #hw-8-1c
 # :label: fig-hw-8-1c
 #
-# With $y$ integer and $x$ continuous, the feasible solutions of part c lie on the
+# Solution of [](#hw-8-1), part c: with $y$ integer and $x$ continuous, the feasible solutions lie on the
 # horizontal segments. The objective line $x + y = 7$ touches them in $(5, 2)$ and
 # $(4, 3)$.
 # :::
@@ -325,7 +329,7 @@ plt.show()
 # :::{figure} #hw-8-2b
 # :label: fig-hw-8-2b
 #
-# The feasible region of part a, with the objective line $1.5x + y = 6.25$ through the
+# Solution of [](#hw-8-2), part b: the feasible region of part a, with the objective line $1.5x + y = 6.25$ through the
 # optimum $(2.5, 2.5)$.
 # :::
 #
@@ -381,7 +385,7 @@ plt.show()
 #    :::{figure} #hw-8-2d
 #    :label: fig-hw-8-2d
 #
-#    The two cases of part d. Left: $z = 0$, the region of part b with $x \le 2$ added.
+#    Solution of [](#hw-8-2), part d: the two cases. Left: $z = 0$, the region of part b with $x \le 2$ added.
 #    Right: $z > 0$, so $x = 2$, and the remaining problem in $y$ and $z$.
 #    :::
 # ::::
@@ -472,7 +476,7 @@ plt.show()
 # :::{figure} images/lecture8_hw1-ex3c.png
 # :label: fig-hw-8-3c
 #
-# Branch-and-bound tree for part c (UB = upper bound from the LO relaxation, LB = lower
+# Solution of [](#hw-8-3), part c: branch-and-bound tree (UB = upper bound from the LO relaxation, LB = lower
 # bound from a feasible integer solution). The infeasible subproblem of step 12 has no
 # solution; its second line shows the values fixed by branching.
 # :::
@@ -568,7 +572,7 @@ plt.show()
 # :::{figure} #hw-8-4b
 # :label: fig-hw-8-4b
 #
-# The feasible region of part a, with the objective line through the LO optimum
+# Solution of [](#hw-8-4), part b: the feasible region of part a, with the objective line through the LO optimum
 # $(16/7, 20/7)$ and the feasible integer points used in part c.
 # :::
 #

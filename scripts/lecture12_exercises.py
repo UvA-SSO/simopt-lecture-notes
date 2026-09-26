@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Homework exercises for Lecture 12 on variability and simulation."
+# thumbnail: null
+# ---
 # # Lecture 12: Exercises
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_exercises.ipynb)

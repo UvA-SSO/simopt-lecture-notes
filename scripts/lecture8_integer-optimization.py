@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Integer linear optimization: why integer problems are harder, how branch and bound solves them, the knapsack problem, and the general form of LO problems."
+# thumbnail: null
+# ---
 # # Lecture 8: Integer Optimization
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture8_integer-optimization.ipynb)

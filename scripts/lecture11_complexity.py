@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Why some optimization problems (shortest path, maximum flow, LO) can be solved quickly while others (TSP, ILO in general) apparently cannot, and what that means in practice."
+# thumbnail: null
+# ---
 # # Lecture 11: Complexity
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture11_complexity.ipynb)

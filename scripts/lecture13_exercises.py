@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Homework exercises for Lecture 13 on simulation optimization."
+# thumbnail: null
+# ---
 # # Lecture 13: Exercises
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_exercises.ipynb)

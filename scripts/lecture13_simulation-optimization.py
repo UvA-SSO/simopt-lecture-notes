@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Optimization with random elements: comparing scenarios by simulation, ranking and selection, local search, and gradient methods."
+# thumbnail: null
+# ---
 # # Lecture 13: Simulation Optimization
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_simulation-optimization.ipynb)

@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Overview of Lecture 9: more real-life problems cast as (integer) linear optimization, and the modeling tricks that make this possible."
+# thumbnail: null
+# ---
 # # Lecture 9: Applications of (Integer) Linear Optimization
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture9_introduction.ipynb)

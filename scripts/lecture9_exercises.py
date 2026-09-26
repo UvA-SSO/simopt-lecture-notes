@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Homework exercises and further exercises for Lecture 9 on transportation, covering and scheduling problems."
+# thumbnail: null
+# ---
 # # Lecture 9: Exercises
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture9_exercises.ipynb)
@@ -190,7 +194,7 @@
 # :::{figure} images/lecture9_hw1-ex3-diagram.png
 # :label: fig-hw-9-3
 #
-# A transportation problem with 3 sources (supply 30, 10, 10) and 2 destinations (demand
+# [](#hw-9-3): a transportation problem with 3 sources (supply 30, 10, 10) and 2 destinations (demand
 # 25, 25); arc labels are the costs per unit shipped.
 # :::
 #

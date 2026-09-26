@@ -85,6 +85,20 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   notebooks/scripts `lectureN_topic-slug.ipynb` / `.py` (e.g.
   `lecture8_introduction.py`, `lecture8_linear-optimization.py`), with a short
   kebab-case slug for the topic.
+- Every notebook's first markdown cell starts with a frontmatter block, before
+  the H1 title and the Colab badge:
+  ```python
+  # %% [markdown]
+  # ---
+  # description: "One plain sentence saying what the notebook covers."
+  # thumbnail: null
+  # ---
+  # # Lecture 8: Integer Optimization
+  ```
+  The hover card for a link to another page shows that page's `description`
+  and `thumbnail`. Without `thumbnail: null`, mystmd picks the first image on
+  the page (the Colab badge) as thumbnail, and the card shows only a large
+  orange badge.
 - `project.toc` in `myst.yml` groups topic notebooks under a `title`-only parent
   entry per lecture (no `file`, just `children`) so the left-hand nav shows
   "Lecture N" as an expandable entry listing its topic notebooks — see below.

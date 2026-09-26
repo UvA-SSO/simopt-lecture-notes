@@ -13,6 +13,10 @@
 # ---
 
 # %% [markdown]
+# ---
+# description: "Monte Carlo simulation and discrete-event simulation, for evaluating models whose output depends on random inputs."
+# thumbnail: null
+# ---
 # # Lecture 12: Simulation
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_simulation.ipynb)
