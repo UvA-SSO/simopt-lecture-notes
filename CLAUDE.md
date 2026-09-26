@@ -183,6 +183,21 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   rev `v0.6.9`) rewrites it to `# | label: x`, which breaks the label. Also
   don't put a `caption` in the cell metadata: mystmd then renders the caption
   above the plot.
+- A figure caption that belongs to an exercise starts with a cross-reference
+  to it, e.g. `Solution of [](#hw-8-1), part b: ...` or
+  `Directed graph of [](#hw-11-1), ...` (rendered as the auto-numbered
+  "Exercise 1"; never hard-code the number).
+- New generated figures use plotly (`plotly.graph_objects`), not matplotlib,
+  so they work in the site's light and dark theme and show hover labels (the
+  lecture 8 notebooks are the reference): transparent `paper_bgcolor` and
+  `plot_bgcolor`, grey (`#888888`) text, grid and objective lines, colours
+  that read on both backgrounds (no black or white markers), legend below the
+  plot, `fig.show(config={"displayModeBar": False})`, hover text on the points
+  that matter (coordinates and objective value, or a tree node's step). Plotly
+  output here does not render LaTeX: use Unicode (`≤`, `x₃`) in labels. Give
+  box-and-text drawings such as branch-and-bound trees a fixed `width` so the
+  text stays inside the boxes on narrow screens. Older notebooks (lecture 10,
+  12) still use matplotlib.
 - Put all `import` statements for a notebook in its **first** code cell. `isort`
   runs with `--float-to-top` and will relocate any `import` found in a later
   cell up to the first one on the next pre-commit run, which silently breaks

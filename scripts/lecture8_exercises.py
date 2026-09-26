@@ -67,75 +67,141 @@
 #
 
 # %% tags=["remove-cell"]
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+# Plot style that reads well on both the light and the dark site theme:
+# transparent background, grey text and grid lines.
+GREY = "#888888"
+PLOT_LAYOUT = {
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {"color": GREY, "size": 13},
+    "margin": {"l": 60, "r": 20, "t": 30, "b": 50},
+    "legend": {
+        "bgcolor": "rgba(0,0,0,0)",
+        "orientation": "h",
+        "yanchor": "top",
+        "y": -0.18,
+    },
+    "hoverlabel": {"font": {"size": 13}},
+}
+AXIS_STYLE = {
+    "gridcolor": "rgba(128,128,128,0.25)",
+    "zerolinecolor": "rgba(128,128,128,0.5)",
+}
+PLOT_CONFIG = {"displayModeBar": False}
+LINE_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c"]
 
 
-def draw_line(ax, a, b, c, xlim, **style):
-    """Draw the line a x + b y = c over the horizontal range xlim."""
+def region(corners, objective, name="corner point"):
+    """Shaded feasible region; hovering a corner shows its objective value."""
+    xs = [x for x, _ in corners]
+    ys = [y for _, y in corners]
+    fill = go.Scatter(
+        x=xs,
+        y=ys,
+        fill="toself",
+        fillcolor="rgba(31,119,180,0.15)",
+        mode="none",
+        name="feasible region",
+        hoverinfo="skip",
+    )
+    points = go.Scatter(
+        x=xs,
+        y=ys,
+        customdata=[objective(x, y) for x, y in corners],
+        mode="markers",
+        marker={"color": "rgba(31,119,180,0.6)", "size": 8},
+        name=name,
+        hovertemplate="(%{x:.3~f}, %{y:.3~f})<br>objective %{customdata:.3~f}"
+        "<extra></extra>",
+    )
+    return [fill, points]
+
+
+def line(a, b, c, xlim, ylim, name, color, dash=None):
+    """The line a x + b y = c within the plotted area."""
     if b == 0:
-        ax.axvline(c / a, **style)
+        xs, ys = [c / a, c / a], list(ylim)
     else:
-        xs = [xlim[0], xlim[1]]
-        ax.plot(xs, [(c - a * x) / b for x in xs], **style)
+        xs = list(xlim)
+        ys = [(c - a * x) / b for x in xs]
+    return go.Scatter(
+        x=xs,
+        y=ys,
+        mode="lines",
+        line={"color": color, "dash": dash},
+        name=name,
+        hoverinfo="skip",
+    )
 
 
-def draw_region(ax, corners, xlim, ylim, xlabel="$x$", ylabel="$y$"):
-    """Shade the feasible region with the given corner points."""
-    ax.add_patch(Polygon(corners, alpha=0.15, label="feasible region"))
-    ax.set_xlim(*xlim)
-    ax.set_ylim(*ylim)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+def point(x, y, name, hover, color="#d62728", symbol="star", size=18):
+    """A highlighted point with its own hover text."""
+    return go.Scatter(
+        x=[x],
+        y=[y],
+        mode="markers",
+        marker={"color": color, "size": size, "symbol": symbol},
+        name=name,
+        hovertemplate=hover + "<extra></extra>",
+    )
+
+
+def show_region(fig, xlim, ylim, xtitle="x", ytitle="y", height=520):
+    fig.update_layout(**PLOT_LAYOUT, height=height)
+    fig.update_xaxes(range=list(xlim), title=xtitle, **AXIS_STYLE)
+    fig.update_yaxes(range=list(ylim), title=ytitle, **AXIS_STYLE)
+    fig.show(config=PLOT_CONFIG)
 
 
 # %% tags=["remove-cell"] label="hw-8-1b"
-fig, ax = plt.subplots(figsize=(5, 4))
-lim_x, lim_y = (0.0, 8.0), (0.0, 5.5)
-draw_region(ax, [(0, 0), (5, 0), (5, 2.5), (3, 3.5), (0, 3.5)], lim_x, lim_y)
-draw_line(ax, 1, 0, 5, lim_x, color="C0", label=r"$x \leq 5$")
-draw_line(ax, 0, 1, 3.5, lim_x, color="C1", label=r"$y \leq 3.5$")
-draw_line(ax, 1, 2, 10, lim_x, color="C2", label=r"$x + 2y \leq 10$")
-draw_line(ax, 1, 1, 7.5, lim_x, color="k", ls="--", label="$x + y = 7.5$")
-ax.plot(5, 2.5, "C3*", markersize=14, zorder=4, clip_on=False, label="optimum")
-ax.legend(loc="upper right", fontsize=8)
-plt.show()
+lim_x, lim_y = (-0.2, 8.0), (-0.2, 5.5)
+fig = go.Figure(
+    region([(0, 0), (5, 0), (5, 2.5), (3, 3.5), (0, 3.5)], lambda x, y: x + y)
+)
+fig.add_trace(line(1, 0, 5, lim_x, lim_y, "x ≤ 5", LINE_COLORS[0]))
+fig.add_trace(line(0, 1, 3.5, lim_x, lim_y, "y ≤ 3.5", LINE_COLORS[1]))
+fig.add_trace(line(1, 2, 10, lim_x, lim_y, "x + 2y ≤ 10", LINE_COLORS[2]))
+fig.add_trace(line(1, 1, 7.5, lim_x, lim_y, "x + y = 7.5", GREY, "dash"))
+fig.add_trace(point(5, 2.5, "optimum", "optimum (5, 2.5)<br>objective 7.5"))
+show_region(fig, lim_x, lim_y)
 
 # %% tags=["remove-cell"] label="hw-8-1c"
-fig, ax = plt.subplots(figsize=(5, 4))
-draw_region(ax, [(0, 0), (5, 0), (5, 2.5), (3, 3.5), (0, 3.5)], lim_x, lim_y)
+fig = go.Figure(
+    region([(0, 0), (5, 0), (5, 2.5), (3, 3.5), (0, 3.5)], lambda x, y: x + y)
+)
 for level in range(4):
     x_max = min(5, 10 - 2 * level)
-    segment_label = "feasible ($y$ integer)" if level == 0 else None
-    ax.plot(
-        [0, x_max],
-        [level, level],
-        color="C2",
-        lw=3,
-        label=segment_label,
-        clip_on=False,
+    fig.add_trace(
+        go.Scatter(
+            x=[0, x_max],
+            y=[level, level],
+            mode="lines",
+            line={"color": LINE_COLORS[2], "width": 5},
+            name="feasible (y integer)",
+            legendgroup="segments",
+            showlegend=level == 0,
+            hovertemplate=f"y = {level}, 0 ≤ x ≤ {x_max}<br>"
+            f"best objective {x_max + level}<extra></extra>",
+        )
     )
-draw_line(ax, 1, 1, 7, lim_x, color="k", ls="--", label="$x + y = 7$")
-ax.plot(
-    5,
-    2.5,
-    "C3*",
-    markersize=14,
-    zorder=4,
-    clip_on=False,
-    label="LO relaxation optimum",
+fig.add_trace(line(1, 1, 7, lim_x, lim_y, "x + y = 7", GREY, "dash"))
+fig.add_trace(
+    point(5, 2.5, "LO relaxation optimum", "LO relaxation optimum (5, 2.5)")
 )
-ax.plot(
-    [5, 4],
-    [2, 3],
-    "ko",
-    markersize=8,
-    zorder=4,
-    clip_on=False,
-    label="optimal solutions",
+fig.add_trace(
+    go.Scatter(
+        x=[5, 4],
+        y=[2, 3],
+        mode="markers",
+        marker={"color": "#9467bd", "size": 15, "symbol": "diamond"},
+        name="optimal solutions",
+        hovertemplate="optimal (%{x}, %{y})<br>objective 7<extra></extra>",
+    )
 )
-ax.legend(loc="upper right", fontsize=8)
-plt.show()
+show_region(fig, lim_x, lim_y)
 
 # %% [markdown]
 #
@@ -166,6 +232,7 @@ plt.show()
 #
 # Solution of [](#hw-8-1), part b: the feasible region of part a, with the objective line $x + y = 7.5$ through the optimum
 # $(5, 2.5)$.
+# Hover over a corner point to see its objective value.
 # :::
 #
 # c. Only $y$ has to be integer; $x$ may still take any value. We use
@@ -192,6 +259,7 @@ plt.show()
 # Solution of [](#hw-8-1), part c: with $y$ integer and $x$ continuous, the feasible solutions lie on the
 # horizontal segments. The objective line $x + y = 7$ touches them in $(5, 2)$ and
 # $(4, 3)$.
+# Hover over a segment or point for its objective value.
 # :::
 #
 # d. Let binary $z = 1$ if the exchange is used, 0 otherwise. The ILO becomes
@@ -243,64 +311,62 @@ plt.show()
 #
 
 # %% tags=["remove-cell"] label="hw-8-2b"
-fig, ax = plt.subplots(figsize=(5, 4))
-lim_x, lim_y = (0.0, 5.5), (0.0, 8.0)
-draw_region(ax, [(0, 0), (3.75, 0), (2.5, 2.5), (0, 5)], lim_x, lim_y)
-draw_line(ax, 1, 1, 5, lim_x, color="C0", label=r"$x + y \leq 5$ (flour)")
-draw_line(ax, 2, 1, 7.5, lim_x, color="C1", label=r"$2x + y \leq 7.5$ (yeast)")
-draw_line(
-    ax, 1.5, 1, 6.25, lim_x, color="k", ls="--", label="$1.5x + y = 6.25$"
+lim_x, lim_y = (-0.2, 5.5), (-0.2, 8.0)
+fig = go.Figure(
+    region([(0, 0), (3.75, 0), (2.5, 2.5), (0, 5)], lambda x, y: 1.5 * x + y)
 )
-ax.plot(
-    2.5, 2.5, "C3*", markersize=14, zorder=4, clip_on=False, label="optimum"
+fig.add_trace(line(1, 1, 5, lim_x, lim_y, "x + y ≤ 5 (flour)", LINE_COLORS[0]))
+fig.add_trace(
+    line(2, 1, 7.5, lim_x, lim_y, "2x + y ≤ 7.5 (yeast)", LINE_COLORS[1])
 )
-ax.legend(loc="upper right", fontsize=8)
-plt.show()
+fig.add_trace(
+    line(1.5, 1, 6.25, lim_x, lim_y, "1.5x + y = 6.25", GREY, "dash")
+)
+fig.add_trace(
+    point(2.5, 2.5, "optimum", "optimum (2.5, 2.5)<br>objective 6.25")
+)
+show_region(fig, lim_x, lim_y)
 
 # %% tags=["remove-cell"] label="hw-8-2d"
-fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(10, 4))
-draw_region(ax_left, [(0, 0), (2, 0), (2, 3), (0, 5)], lim_x, lim_y)
-draw_line(ax_left, 1, 1, 5, lim_x, color="C0", label=r"$x + y \leq 5$")
-draw_line(ax_left, 2, 1, 7.5, lim_x, color="C1", label=r"$2x + y \leq 7.5$")
-draw_line(ax_left, 1, 0, 2, lim_x, color="C2", label=r"$x \leq 2$")
-draw_line(
-    ax_left, 1.5, 1, 6, lim_x, color="k", ls="--", label="$1.5x + y = 6$"
+fig = make_subplots(
+    rows=1,
+    cols=2,
+    subplot_titles=("case z = 0", "case z > 0, so x = 2"),
+    horizontal_spacing=0.12,
 )
-ax_left.plot(
-    2, 3, "C3*", markersize=14, zorder=4, clip_on=False, label="optimum"
-)
-ax_left.set_title("case $z = 0$")
-ax_left.legend(loc="upper right", fontsize=8)
-
-lim_y_case, lim_z_case = (0.0, 4.0), (0.0, 3.0)
-draw_region(
-    ax_right,
+left = region([(0, 0), (2, 0), (2, 3), (0, 5)], lambda x, y: 1.5 * x + y)
+left += [
+    line(1, 1, 5, lim_x, lim_y, "x + y ≤ 5", LINE_COLORS[0]),
+    line(2, 1, 7.5, lim_x, lim_y, "2x + y ≤ 7.5", LINE_COLORS[1]),
+    line(1, 0, 2, lim_x, lim_y, "x ≤ 2", LINE_COLORS[2]),
+    line(1.5, 1, 6, lim_x, lim_y, "1.5x + y = 6", GREY, "dash"),
+    point(2, 3, "optimum", "optimum (x, y) = (2, 3)<br>profit 6"),
+]
+lim_y_case, lim_z_case = (-0.1, 4.0), (-0.1, 3.0)
+right = region(
     [(0, 0), (3, 0), (2.5, 0.5), (0, 1.75)],
-    lim_y_case,
-    lim_z_case,
-    xlabel="$y$",
-    ylabel="$z$",
+    lambda y, z: 3 + y + 0.5 * z,
+    name="corner point (y, z)",
 )
-draw_line(ax_right, 1, 1, 3, lim_y_case, color="C0", label=r"$y + z \leq 3$")
-draw_line(
-    ax_right, 1, 2, 3.5, lim_y_case, color="C1", label=r"$y + 2z \leq 3.5$"
-)
-draw_line(
-    ax_right,
-    1,
-    0.5,
-    3,
-    lim_y_case,
-    color="k",
-    ls="--",
-    label="$3 + y + 0.5z = 6$",
-)
-ax_right.plot(
-    3, 0, "C3*", markersize=14, zorder=4, clip_on=False, label="optimum"
-)
-ax_right.set_title("case $z > 0$, so $x = 2$")
-ax_right.legend(loc="upper right", fontsize=8)
-plt.show()
+right += [
+    line(1, 1, 3, lim_y_case, lim_z_case, "y + z ≤ 3", LINE_COLORS[0]),
+    line(1, 2, 3.5, lim_y_case, lim_z_case, "y + 2z ≤ 3.5", LINE_COLORS[1]),
+    line(1, 0.5, 3, lim_y_case, lim_z_case, "3 + y + 0.5z = 6", GREY, "dash"),
+    point(3, 0, "optimum", "optimum (y, z) = (3, 0)<br>profit 6"),
+]
+for trace in left:
+    fig.add_trace(trace, row=1, col=1)
+for trace in right:
+    trace.showlegend = False
+    fig.add_trace(trace, row=1, col=2)
+fig.update_layout(**PLOT_LAYOUT, height=540)
+fig.update_layout(margin={"t": 60})
+fig.update_xaxes(range=list(lim_x), title="x", row=1, col=1, **AXIS_STYLE)
+fig.update_yaxes(range=list(lim_y), title="y", row=1, col=1, **AXIS_STYLE)
+fig.update_xaxes(range=list(lim_y_case), title="y", row=1, col=2, **AXIS_STYLE)
+fig.update_yaxes(range=list(lim_z_case), title="z", row=1, col=2, **AXIS_STYLE)
+fig.update_annotations(font={"color": GREY})
+fig.show(config=PLOT_CONFIG)
 
 # %% [markdown]
 #
@@ -331,6 +397,7 @@ plt.show()
 #
 # Solution of [](#hw-8-2), part b: the feasible region of part a, with the objective line $1.5x + y = 6.25$ through the
 # optimum $(2.5, 2.5)$.
+# Hover over a corner point to see its objective value.
 # :::
 #
 # c. The objective function is $p_A x + p_B y$.
@@ -387,6 +454,7 @@ plt.show()
 #
 #    Solution of [](#hw-8-2), part d: the two cases. Left: $z = 0$, the region of part b with $x \le 2$ added.
 #    Right: $z > 0$, so $x = 2$, and the remaining problem in $y$ and $z$.
+#    Hover over a corner point to see its objective value.
 #    :::
 # ::::
 
@@ -410,6 +478,229 @@ plt.show()
 #    constraint. What is the optimal solution?
 # :::
 #
+
+# %% tags=["remove-cell"] label="hw-8-3c"
+# header and body colors per node type, and colors of the status boxes
+NODE_COLORS = {
+    "UB": ("#5b9bd5", "#d6dce5"),
+    "LB": ("#70ad47", "#d9e7cf"),
+    "infeasible": ("#e00000", "#fbd5b5"),
+}
+STATUS_COLORS = {"pruned": "#e00000", "optimum": "#375623"}
+BB_LEGEND = (
+    "UB = upper bound (follows from LO relaxation)<br>"
+    "LB = lower bound (if ILO solution is found)<br>"
+    "subopt = suboptimal solution"
+)
+
+
+def draw_bb_tree(
+    nodes,
+    edges,
+    status,
+    legend_xy,
+    xlim,
+    ylim,
+    width,
+    height,
+    box_width=3.6,
+    font_size=14,
+):
+    """Draw a branch-and-bound tree; hovering a node shows its details.
+
+    nodes: name -> (x, y, header, solution, node type, hover text)
+    edges: (parent, child, branching constraint) tuples
+    status: name -> (text, status type) for a box below the node
+    """
+    box_height, gap = 0.55, 0.08
+    tree = go.Figure()
+    for parent, child, branch_label in edges:
+        x_from, y_from = nodes[parent][:2]
+        x_to, y_to = nodes[child][:2]
+        y_from -= 1.5 * box_height + gap
+        y_to += 0.5 * box_height
+        tree.add_shape(
+            type="line",
+            x0=x_from,
+            y0=y_from,
+            x1=x_to,
+            y1=y_to,
+            line={"color": "#5b9bd5", "width": 1.5},
+        )
+        shift = 0.8 if x_to > x_from else -0.8
+        tree.add_annotation(
+            x=(x_from + x_to) / 2 + shift,
+            y=(y_from + y_to) / 2,
+            text=branch_label,
+            showarrow=False,
+            font={"color": GREY, "size": font_size},
+        )
+    for node, (x_c, y_c, header, body, node_type, _) in nodes.items():
+        dark, light = NODE_COLORS[node_type]
+        boxes = [(f"<b>{header}</b>", dark, "white"), (body, light, "black")]
+        if node in status:
+            text, status_type = status[node]
+            boxes.append(
+                (f"<b>{text}</b>", STATUS_COLORS[status_type], "white")
+            )
+        for row, (text, face, text_color) in enumerate(boxes):
+            y_row = y_c - row * (box_height + gap)
+            tree.add_shape(
+                type="rect",
+                x0=x_c - box_width / 2,
+                y0=y_row - box_height / 2,
+                x1=x_c + box_width / 2,
+                y1=y_row + box_height / 2,
+                fillcolor=face,
+                line={"width": 0},
+            )
+            tree.add_annotation(
+                x=x_c,
+                y=y_row,
+                text=text,
+                showarrow=False,
+                font={"color": text_color, "size": font_size},
+            )
+    # invisible markers on the nodes carry the hover text
+    tree.add_trace(
+        go.Scatter(
+            x=[node[0] for node in nodes.values()],
+            y=[node[1] - box_height / 2 for node in nodes.values()],
+            text=[node[5] for node in nodes.values()],
+            mode="markers",
+            marker={"size": 60, "color": "rgba(0,0,0,0)"},
+            hovertemplate="%{text}<extra></extra>",
+            showlegend=False,
+        )
+    )
+    tree.add_annotation(
+        x=legend_xy[0],
+        y=legend_xy[1],
+        text=BB_LEGEND,
+        showarrow=False,
+        align="left",
+        yanchor="top",
+        bordercolor=GREY,
+        borderpad=6,
+        font={"color": GREY, "size": 12},
+    )
+    # a fixed width keeps the text inside the boxes on narrow screens
+    tree.update_layout(**PLOT_LAYOUT, width=width, height=height)
+    tree.update_layout(autosize=False, hovermode="closest")
+    tree.update_layout(margin={"l": 0, "r": 0, "t": 0, "b": 0})
+    tree.update_xaxes(range=list(xlim), visible=False, fixedrange=True)
+    tree.update_yaxes(range=list(ylim), visible=False, fixedrange=True)
+    tree.show(config=PLOT_CONFIG)
+
+
+draw_bb_tree(
+    nodes={
+        "s1": (
+            6.1,
+            7.5,
+            "Step 1: 14.75 (UB)",
+            "1, 0, 1, 0.75",
+            "UB",
+            "Root problem: items 3 and 1, and 3/4 of item 4.<br>"
+            "Value 14.75. Branch on x₄.",
+        ),
+        "s2": (
+            2.4,
+            5.0,
+            "Step 2: 12 (LB)",
+            "1, 1, 1, 0",
+            "LB",
+            "x₄ = 0: items 3, 1 and 2 fit. Value 12, integer: LB 12.<br>"
+            "Suboptimal once LB 13 is found (step 6).",
+        ),
+        "s3": (
+            9.8,
+            5.0,
+            "Step 3: 14.5 (UB)",
+            "0.5, 0, 1, 1",
+            "UB",
+            "x₄ = 1: items 4 and 3, and half of item 1.<br>"
+            "Value 14.5 > 12: branch on x₁.",
+        ),
+        "s4": (
+            4.8,
+            2.5,
+            "Step 4: 13.5 (UB)",
+            "0, 0.5, 1, 1",
+            "UB",
+            "x₄ = 1, x₁ = 0: items 4 and 3, and half of item 2.<br>"
+            "Value 13.5 > 12: branch on x₂.",
+        ),
+        "s9": (
+            14.4,
+            2.5,
+            "Step 9: 14 (UB)",
+            "1, 0, 0.75, 1",
+            "UB",
+            "x₄ = 1, x₁ = 1: items 4 and 1, and 3/4 of item 3.<br>"
+            "Value 14 > 13: branch on x₃.",
+        ),
+        "s5": (
+            2.4,
+            0.0,
+            "Step 5: 13 (LB)",
+            "0, 0, 1, 1",
+            "LB",
+            "x₄ = 1, x₁ = 0, x₂ = 0: items 4 and 3. Value 13.<br>"
+            "Integer: new best LB 13, and the optimum (step 13).",
+        ),
+        "s7": (
+            7.2,
+            0.0,
+            "Step 7: 12 (UB)",
+            "0, 1, 0.75, 1",
+            "UB",
+            "x₄ = 1, x₁ = 0, x₂ = 1: items 4 and 2, and 3/4 of item 3.<br>"
+            "Value 12 < 13: eliminated (step 8).",
+        ),
+        "s10": (
+            12.0,
+            0.0,
+            "Step 10: 9 (LB)",
+            "1, 1, 0, 1",
+            "LB",
+            "x₄ = 1, x₁ = 1, x₃ = 0: items 4, 1 and 2. Value 9.<br>"
+            "Integer, but 9 < 13: suboptimal (step 11).",
+        ),
+        "s12": (
+            16.8,
+            0.0,
+            "Step 12: infeasible",
+            "x₁ = x₃ = x₄ = 1",
+            "infeasible",
+            "x₄ = 1, x₁ = 1, x₃ = 1: these items weigh 10 kg > 9 kg.<br>"
+            "Infeasible: eliminated.",
+        ),
+    },
+    edges=[
+        ("s1", "s2", "x₄ = 0"),
+        ("s1", "s3", "x₄ = 1"),
+        ("s3", "s4", "x₁ = 0"),
+        ("s3", "s9", "x₁ = 1"),
+        ("s4", "s5", "x₂ = 0"),
+        ("s4", "s7", "x₂ = 1"),
+        ("s9", "s10", "x₃ = 0"),
+        ("s9", "s12", "x₃ = 1"),
+    ],
+    status={
+        "s2": ("Step 6: 12 < 13 (subopt)", "pruned"),
+        "s5": ("Step 13: optimum", "optimum"),
+        "s7": ("Step 8: 12 (UB) < 13 (LB)", "pruned"),
+        "s10": ("Step 11: 9 < 13 (subopt)", "pruned"),
+    },
+    legend_xy=(16.2, 8.0),
+    xlim=(0, 19.2),
+    ylim=(-1.9, 8.0),
+    width=860,
+    height=520,
+    box_width=4.4,
+    font_size=12,
+)
 
 # %% [markdown]
 #
@@ -473,12 +764,13 @@ plt.show()
 #    - **Step 13: optimum.** The pool is empty, so the best solution found,
 #      $(0, 0, 1, 1)$ with reward 13 from step 5, is optimal. This matches part a.
 #
-# :::{figure} images/lecture8_hw1-ex3c.png
+# :::{figure} #hw-8-3c
 # :label: fig-hw-8-3c
 #
 # Solution of [](#hw-8-3), part c: branch-and-bound tree (UB = upper bound from the LO relaxation, LB = lower
 # bound from a feasible integer solution). The infeasible subproblem of step 12 has no
-# solution; its second line shows the values fixed by branching.
+# solution; its second line shows the variables fixed to 1. Hover over a node for
+# the details of that step.
 # :::
 #
 # d. Add the constraint $4x_1 + 8x_2 + 2x_3 + 10x_4 \le 12$ to the model of part a. An
@@ -511,40 +803,50 @@ plt.show()
 #
 
 # %% tags=["remove-cell"] label="hw-8-4b"
-fig, ax = plt.subplots(figsize=(5, 4))
-lim_x, lim_y = (0.0, 4.5), (0.0, 5.0)
-draw_region(ax, [(0, 0), (3, 0), (16 / 7, 20 / 7), (0, 4)], lim_x, lim_y)
-draw_line(ax, 4, 1, 12, lim_x, color="C0", label=r"$4x + y \leq 12$")
-draw_line(ax, 2, 4, 16, lim_x, color="C1", label=r"$2x + 4y \leq 16$")
-draw_line(ax, 1, 1, 36 / 7, lim_x, color="k", ls="--", label="$x + y = 36/7$")
+lim_x, lim_y = (-0.2, 4.5), (-0.2, 5.0)
+fig = go.Figure(
+    region([(0, 0), (3, 0), (16 / 7, 20 / 7), (0, 4)], lambda x, y: x + y)
+)
+fig.add_trace(line(4, 1, 12, lim_x, lim_y, "4x + y ≤ 12", LINE_COLORS[0]))
+fig.add_trace(line(2, 4, 16, lim_x, lim_y, "2x + 4y ≤ 16", LINE_COLORS[1]))
+fig.add_trace(line(1, 1, 36 / 7, lim_x, lim_y, "x + y = 36/7", GREY, "dash"))
 int_points = [
     (i, j)
     for i in range(5)
     for j in range(6)
     if 4 * i + j <= 12 and 2 * i + 4 * j <= 16
 ]
-ax.scatter(
-    [i for i, _ in int_points],
-    [j for _, j in int_points],
-    color="C2",
-    zorder=3,
-    label="integer feasible points",
-    clip_on=False,
+fig.add_trace(
+    go.Scatter(
+        x=[i for i, _ in int_points],
+        y=[j for _, j in int_points],
+        customdata=[i + j for i, j in int_points],
+        mode="markers",
+        marker={"color": LINE_COLORS[2], "size": 9},
+        name="integer feasible points",
+        hovertemplate="(%{x}, %{y})<br>objective %{customdata}<extra></extra>",
+    )
 )
-ax.plot(
-    16 / 7,
-    20 / 7,
-    "C3*",
-    markersize=14,
-    zorder=4,
-    clip_on=False,
-    label="LO optimum",
+fig.add_trace(
+    point(
+        16 / 7,
+        20 / 7,
+        "LO optimum",
+        "LO optimum (16/7, 20/7)<br>objective 36/7 ≈ 5.14",
+    )
 )
-ax.plot(
-    2, 3, "ko", markersize=8, zorder=4, clip_on=False, label="integer optimum"
+fig.add_trace(
+    point(
+        2,
+        3,
+        "integer optimum",
+        "integer optimum (2, 3)<br>objective 5",
+        color="#9467bd",
+        symbol="diamond",
+        size=15,
+    )
 )
-ax.legend(loc="upper right", fontsize=8)
-plt.show()
+show_region(fig, lim_x, lim_y)
 
 # %% [markdown]
 #
@@ -574,6 +876,7 @@ plt.show()
 #
 # Solution of [](#hw-8-4), part b: the feasible region of part a, with the objective line through the LO optimum
 # $(16/7, 20/7)$ and the feasible integer points used in part c.
+# Hover over a point to see its objective value.
 # :::
 #
 # c. Add the constraints $x, y \in \{0, 1, 2, \dots\}$. The LO optimum of part b is an

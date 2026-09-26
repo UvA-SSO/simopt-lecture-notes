@@ -63,10 +63,8 @@
 # Let pulp solve the integer version:
 
 # %%
-import matplotlib.pyplot as plt
-import numpy as np
+import plotly.graph_objects as go
 import pulp
-from matplotlib.patches import Rectangle
 
 profit = {"bookcase": 3, "desk": 5}
 # resource_use[res][p]: units of resource res per unit of product p
@@ -93,70 +91,120 @@ print("optimal profit:", int_mix.objective.value())
 # %% [markdown]
 # The picture below shows why rounding is unreliable: the LP-relaxation optimum (the star)
 # does not sit on the integer grid, and the nearest lattice points are not necessarily
-# feasible or optimal. The ILO optimum (the black dot) is the best *feasible* grid point,
+# feasible or optimal. The ILO optimum (the diamond) is the best *feasible* grid point,
 # which can be several steps away from the naive rounding of the relaxation.
 
 # %% tags=["remove-cell"] label="lattice-plot"
-x_grid = np.linspace(0, 6, 200)
-plt.figure(figsize=(5, 5))
-plt.plot(
-    x_grid,
-    (12 - x_grid) / 3,
-    color="C0",
-    label=r"$x + 3y \leq 12$ (oak panels)",
-)
-plt.plot(
-    x_grid,
-    10 - 2 * x_grid,
-    color="C1",
-    label=r"$2x + y \leq 10$ (assembly hours)",
-)
-y_upper = np.minimum((12 - x_grid) / 3, 10 - 2 * x_grid)
-plt.fill_between(
-    x_grid,
-    0,
-    y_upper,
-    where=(y_upper >= 0),
-    alpha=0.15,
-    label="feasible region",
-)
+# Plot style that reads well on both the light and the dark site theme:
+# transparent background, grey text and grid lines.
+GREY = "#888888"
+PLOT_LAYOUT = {
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {"color": GREY, "size": 13},
+    "margin": {"l": 60, "r": 20, "t": 20, "b": 50},
+    "legend": {
+        "bgcolor": "rgba(0,0,0,0)",
+        "orientation": "h",
+        "yanchor": "top",
+        "y": -0.18,
+    },
+    "hoverlabel": {"font": {"size": 13}},
+}
+AXIS_STYLE = {
+    "gridcolor": "rgba(128,128,128,0.25)",
+    "zerolinecolor": "rgba(128,128,128,0.5)",
+}
+PLOT_CONFIG = {"displayModeBar": False}
 
-xs, ys = np.meshgrid(range(7), range(5))
-feasible = (xs + 3 * ys <= 12) & (2 * xs + ys <= 10)
-plt.scatter(
-    xs[feasible],
-    ys[feasible],
-    color="C2",
-    zorder=3,
-    label="integer feasible points",
+lattice = go.Figure()
+lattice.add_trace(
+    go.Scatter(
+        x=[0, 5, 3.6, 0],
+        y=[0, 0, 2.8, 4],
+        fill="toself",
+        fillcolor="rgba(31,119,180,0.15)",
+        mode="none",
+        name="feasible region",
+        hoverinfo="skip",
+    )
 )
-plt.scatter(
-    xs[~feasible],
-    ys[~feasible],
-    color="lightgrey",
-    zorder=2,
-    label="integer infeasible points",
+lattice.add_trace(
+    go.Scatter(
+        x=[0, 6],
+        y=[4, 2],
+        mode="lines",
+        line={"color": "#1f77b4"},
+        name="x + 3y ≤ 12 (oak panels)",
+        hoverinfo="skip",
+    )
 )
-
-plt.plot(
-    3.6, 2.8, "C3*", markersize=14, zorder=4, label="LP relaxation optimum"
+lattice.add_trace(
+    go.Scatter(
+        x=[2.75, 5],
+        y=[4.5, 0],
+        mode="lines",
+        line={"color": "#ff7f0e"},
+        name="2x + y ≤ 10 (assembly hours)",
+        hoverinfo="skip",
+    )
+)
+grid = [(x, y) for x in range(7) for y in range(5)]
+feasible_pts = [(x, y) for x, y in grid if x + 3 * y <= 12 and 2 * x + y <= 10]
+infeasible_pts = [pt for pt in grid if pt not in feasible_pts]
+lattice.add_trace(
+    go.Scatter(
+        x=[x for x, _ in feasible_pts],
+        y=[y for _, y in feasible_pts],
+        customdata=[3 * x + 5 * y for x, y in feasible_pts],
+        mode="markers",
+        marker={"color": "#2ca02c", "size": 9},
+        name="integer feasible points",
+        hovertemplate="(%{x}, %{y})<br>profit %{customdata}<extra></extra>",
+    )
+)
+lattice.add_trace(
+    go.Scatter(
+        x=[x for x, _ in infeasible_pts],
+        y=[y for _, y in infeasible_pts],
+        mode="markers",
+        marker={"color": "rgba(128,128,128,0.45)", "size": 9},
+        name="integer infeasible points",
+        hovertemplate="(%{x}, %{y})<br>infeasible<extra></extra>",
+    )
+)
+lattice.add_trace(
+    go.Scatter(
+        x=[3.6],
+        y=[2.8],
+        mode="markers",
+        marker={"color": "#d62728", "size": 18, "symbol": "star"},
+        name="LO relaxation optimum",
+        hovertemplate="LO relaxation optimum (3.6, 2.8)<br>profit 24.8"
+        "<extra></extra>",
+    )
 )
 x_int, y_int = dec_vars["bookcase"].value(), dec_vars["desk"].value()
-plt.plot(x_int, y_int, "ko", markersize=8, zorder=4, label="ILO optimum")
-
-plt.xlim(0, 6)
-plt.ylim(0, 4.5)
-plt.xlabel("bookcases $x$")
-plt.ylabel("desks $y$")
-plt.legend(loc="upper right", fontsize=7)
-plt.title("Feasible region with integer lattice points")
-plt.show()
+lattice.add_trace(
+    go.Scatter(
+        x=[x_int],
+        y=[y_int],
+        mode="markers",
+        marker={"color": "#9467bd", "size": 15, "symbol": "diamond"},
+        name="ILO optimum",
+        hovertemplate="ILO optimum (%{x}, %{y})<br>profit 24<extra></extra>",
+    )
+)
+lattice.update_layout(**PLOT_LAYOUT, height=560)
+lattice.update_xaxes(range=[-0.2, 6.2], title="bookcases x", **AXIS_STYLE)
+lattice.update_yaxes(range=[-0.2, 4.7], title="desks y", **AXIS_STYLE)
+lattice.show(config=PLOT_CONFIG)
 
 # %% [markdown]
 # :::{figure} #lattice-plot
 # :label: fig-lattice
 #
-# Feasible region of the integer product-mix problem with its integer points, the optimum of the LO relaxation (star) and the ILO optimum (black dot).
+# Feasible region of the integer product-mix problem with its integer points, the optimum of the LO relaxation (star) and the ILO optimum (diamond). Hover over a point to see its coordinates and profit.
 # :::
 
 # %% [markdown]
@@ -231,89 +279,145 @@ NODE_COLORS = {
 }
 STATUS_COLORS = {"pruned": "#e00000", "optimum": "#375623"}
 BB_LEGEND = (
-    "UB = upper bound (follows from LO relaxation)\n"
-    "LB = lower bound (if ILO solution is found)\n"
+    "UB = upper bound (follows from LO relaxation)<br>"
+    "LB = lower bound (if ILO solution is found)<br>"
     "subopt = suboptimal solution"
 )
 
 
 def draw_bb_tree(
-    nodes, edges, status, legend_xy, xlim, ylim, figsize, box_width=3.6
+    nodes,
+    edges,
+    status,
+    legend_xy,
+    xlim,
+    ylim,
+    width,
+    height,
+    box_width=3.6,
+    font_size=14,
 ):
-    """Draw a branch-and-bound tree.
+    """Draw a branch-and-bound tree; hovering a node shows its details.
 
-    nodes: name -> (x, y, header, solution, node type)
+    nodes: name -> (x, y, header, solution, node type, hover text)
     edges: (parent, child, branching constraint) tuples
     status: name -> (text, status type) for a box below the node
     """
     box_height, gap = 0.55, 0.08
-    fig, ax = plt.subplots(figsize=figsize)
+    tree = go.Figure()
     for parent, child, branch_label in edges:
         x_from, y_from = nodes[parent][:2]
         x_to, y_to = nodes[child][:2]
         y_from -= 1.5 * box_height + gap
         y_to += 0.5 * box_height
-        ax.plot([x_from, x_to], [y_from, y_to], color="#5b9bd5", lw=1)
-        shift = 0.7 if x_to > x_from else -0.7
-        ax.text(
-            (x_from + x_to) / 2 + shift,
-            (y_from + y_to) / 2,
-            branch_label,
-            ha="center",
-            va="center",
-            fontsize=11,
+        tree.add_shape(
+            type="line",
+            x0=x_from,
+            y0=y_from,
+            x1=x_to,
+            y1=y_to,
+            line={"color": "#5b9bd5", "width": 1.5},
         )
-    for node, (x_c, y_c, header, body, node_type) in nodes.items():
+        shift = 0.8 if x_to > x_from else -0.8
+        tree.add_annotation(
+            x=(x_from + x_to) / 2 + shift,
+            y=(y_from + y_to) / 2,
+            text=branch_label,
+            showarrow=False,
+            font={"color": GREY, "size": font_size},
+        )
+    for node, (x_c, y_c, header, body, node_type, _) in nodes.items():
         dark, light = NODE_COLORS[node_type]
-        boxes = [(header, dark, "white", "bold"), (body, light, "black", "")]
+        boxes = [(f"<b>{header}</b>", dark, "white"), (body, light, "black")]
         if node in status:
             text, status_type = status[node]
-            boxes.append((text, STATUS_COLORS[status_type], "white", "bold"))
-        for row, (text, face, text_color, font_weight) in enumerate(boxes):
+            boxes.append(
+                (f"<b>{text}</b>", STATUS_COLORS[status_type], "white")
+            )
+        for row, (text, face, text_color) in enumerate(boxes):
             y_row = y_c - row * (box_height + gap)
-            ax.add_patch(
-                Rectangle(
-                    (x_c - box_width / 2, y_row - box_height / 2),
-                    box_width,
-                    box_height,
-                    facecolor=face,
-                    edgecolor="none",
-                )
+            tree.add_shape(
+                type="rect",
+                x0=x_c - box_width / 2,
+                y0=y_row - box_height / 2,
+                x1=x_c + box_width / 2,
+                y1=y_row + box_height / 2,
+                fillcolor=face,
+                line={"width": 0},
             )
-            ax.text(
-                x_c,
-                y_row,
-                text,
-                ha="center",
-                va="center",
-                color=text_color,
-                fontweight=font_weight or "normal",
-                fontsize=11,
+            tree.add_annotation(
+                x=x_c,
+                y=y_row,
+                text=text,
+                showarrow=False,
+                font={"color": text_color, "size": font_size},
             )
-    ax.text(
-        *legend_xy,
-        BB_LEGEND,
-        ha="center",
-        va="top",
-        fontsize=9,
-        bbox={"facecolor": "white", "edgecolor": "black"},
+    # invisible markers on the nodes carry the hover text
+    tree.add_trace(
+        go.Scatter(
+            x=[node[0] for node in nodes.values()],
+            y=[node[1] - box_height / 2 for node in nodes.values()],
+            text=[node[5] for node in nodes.values()],
+            mode="markers",
+            marker={"size": 60, "color": "rgba(0,0,0,0)"},
+            hovertemplate="%{text}<extra></extra>",
+            showlegend=False,
+        )
     )
-    ax.set_xlim(*xlim)
-    ax.set_ylim(*ylim)
-    ax.axis("off")
-    plt.show()
+    tree.add_annotation(
+        x=legend_xy[0],
+        y=legend_xy[1],
+        text=BB_LEGEND,
+        showarrow=False,
+        align="left",
+        yanchor="top",
+        bordercolor=GREY,
+        borderpad=6,
+        font={"color": GREY, "size": 12},
+    )
+    # a fixed width keeps the text inside the boxes on narrow screens
+    tree.update_layout(**PLOT_LAYOUT, width=width, height=height)
+    tree.update_layout(autosize=False, hovermode="closest")
+    tree.update_layout(margin={"l": 0, "r": 0, "t": 0, "b": 0})
+    tree.update_xaxes(range=list(xlim), visible=False, fixedrange=True)
+    tree.update_yaxes(range=list(ylim), visible=False, fixedrange=True)
+    tree.show(config=PLOT_CONFIG)
 
 
 # %% tags=["remove-cell"] label="bb-product-mix"
 draw_bb_tree(
     nodes={
-        "root": (5.0, 5.0, "Step 1: 24.8 (UB)", "3.6, 2.8", "UB"),
-        "left": (2.2, 2.4, "Step 2: 22 (LB)", "4, 2", "LB"),
-        "right": (7.8, 2.4, "Step 3: 24 (LB)", "3, 3", "LB"),
+        "root": (
+            5.0,
+            5.0,
+            "Step 1: 24.8 (UB)",
+            "3.6, 2.8",
+            "UB",
+            "Root problem: LO relaxation (3.6, 2.8), value 24.8.<br>"
+            "Not integer, so branch on y = 2.8.",
+        ),
+        "left": (
+            2.2,
+            2.4,
+            "Step 2: 22 (LB)",
+            "4, 2",
+            "LB",
+            "Subproblem y ≤ 2: optimum (4, 2), value 22.<br>"
+            "Integer, so the first LB. Later suboptimal (step 4).",
+        ),
+        "right": (
+            7.8,
+            2.4,
+            "Step 3: 24 (LB)",
+            "3, 3",
+            "LB",
+            "Subproblem y ≥ 3: optimum (3, 3), value 24.<br>"
+            "Integer and better than 22: the optimum (step 5).",
+        ),
     },
     edges=[
-        ("root", "left", r"$y \leq 2$"),
-        ("root", "right", r"$y \geq 3$"),
+        ("root", "left", "y ≤ 2"),
+        ("root", "right", "y ≥ 3"),
     ],
     status={
         "left": ("Step 4: 22 < 24 (subopt)", "pruned"),
@@ -322,7 +426,8 @@ draw_bb_tree(
     legend_xy=(5.0, 0.45),
     xlim=(0, 10),
     ylim=(-0.6, 5.4),
-    figsize=(8, 4.6),
+    width=640,
+    height=420,
 )
 
 # %% [markdown]
@@ -330,6 +435,7 @@ draw_bb_tree(
 # :label: fig-bb-product-mix
 #
 # Branch-and-bound tree for the integer product-mix problem (UB = upper bound from the LO relaxation, LB = lower bound from a feasible integer solution).
+# Hover over a node for the details of that step.
 # :::
 
 # %% [markdown]
@@ -440,17 +546,57 @@ print("total reward:", knapsack.objective.value())
 # %% tags=["remove-cell"] label="bb-knapsack"
 draw_bb_tree(
     nodes={
-        "root": (7.2, 5.0, "Step 1: 32 (UB)", "1, 1, 0.8, 0", "UB"),
-        "x3=0": (2.5, 2.6, "Step 2: 29 (LB)", "1, 1, 0, 1", "LB"),
-        "x3=1": (10.2, 2.6, "Step 3: 31 (UB)", "1, 2/3, 1, 0", "UB"),
-        "x2=0": (7.9, 0.2, "Step 4: 27.5 (UB)", "1, 0, 1, 0.5", "UB"),
-        "x2=1": (12.5, 0.2, "Step 6: 19 (LB)", "0, 1, 1, 0", "LB"),
+        "root": (
+            7.2,
+            5.0,
+            "Step 1: 32 (UB)",
+            "1, 1, 0.8, 0",
+            "UB",
+            "Root problem: items 1 and 2, and 4/5 of item 3.<br>"
+            "Value 32. Branch on x₃ = 0.8.",
+        ),
+        "x3=0": (
+            2.5,
+            2.6,
+            "Step 2: 29 (LB)",
+            "1, 1, 0, 1",
+            "LB",
+            "x₃ = 0: items 1, 2 and 4 fit exactly. Value 29.<br>"
+            "Integer: the best LB, and the optimum (step 8).",
+        ),
+        "x3=1": (
+            10.2,
+            2.6,
+            "Step 3: 31 (UB)",
+            "1, 2/3, 1, 0",
+            "UB",
+            "x₃ = 1: items 3 and 1, and 2/3 of item 2. Value 31.<br>"
+            "31 > 29, so branch on x₂.",
+        ),
+        "x2=0": (
+            7.9,
+            0.2,
+            "Step 4: 27.5 (UB)",
+            "1, 0, 1, 0.5",
+            "UB",
+            "x₃ = 1, x₂ = 0: items 3 and 1, and half of item 4.<br>"
+            "Value 27.5 < 29: eliminated (step 5).",
+        ),
+        "x2=1": (
+            12.5,
+            0.2,
+            "Step 6: 19 (LB)",
+            "0, 1, 1, 0",
+            "LB",
+            "x₃ = 1, x₂ = 1: items 3 and 2 fill the knapsack.<br>"
+            "Value 19 < 29: suboptimal (step 7).",
+        ),
     },
     edges=[
-        ("root", "x3=0", "$x_3 = 0$"),
-        ("root", "x3=1", "$x_3 = 1$"),
-        ("x3=1", "x2=0", "$x_2 = 0$"),
-        ("x3=1", "x2=1", "$x_2 = 1$"),
+        ("root", "x3=0", "x₃ = 0"),
+        ("root", "x3=1", "x₃ = 1"),
+        ("x3=1", "x2=0", "x₂ = 0"),
+        ("x3=1", "x2=1", "x₂ = 1"),
     ],
     status={
         "x3=0": ("Step 8: optimum", "optimum"),
@@ -460,7 +606,8 @@ draw_bb_tree(
     legend_xy=(2.5, 0.6),
     xlim=(0, 15),
     ylim=(-1.4, 5.4),
-    figsize=(11, 5),
+    width=800,
+    height=460,
     box_width=4.5,
 )
 
@@ -469,6 +616,7 @@ draw_bb_tree(
 # :label: fig-bb-knapsack
 #
 # Branch-and-bound tree for the knapsack example (UB = upper bound from the LO relaxation, LB = lower bound from a feasible integer solution).
+# Hover over a node for the details of that step.
 # :::
 
 # %% [markdown]
