@@ -187,17 +187,27 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   to it, e.g. `Solution of [](#hw-8-1), part b: ...` or
   `Directed graph of [](#hw-11-1), ...` (rendered as the auto-numbered
   "Exercise 1"; never hard-code the number).
-- New generated figures use plotly (`plotly.graph_objects`), not matplotlib,
-  so they work in the site's light and dark theme and show hover labels (the
-  lecture 8 notebooks are the reference): transparent `paper_bgcolor` and
-  `plot_bgcolor`, grey (`#888888`) text, grid and objective lines, colours
-  that read on both backgrounds (no black or white markers), legend below the
-  plot, `fig.show(config={"displayModeBar": False})`, hover text on the points
-  that matter (coordinates and objective value, or a tree node's step). Plotly
-  output here does not render LaTeX: use Unicode (`≤`, `x₃`) in labels. Give
-  box-and-text drawings such as branch-and-bound trees a fixed `width` so the
-  text stays inside the boxes on narrow screens. Older notebooks (lecture 10,
-  12) still use matplotlib.
+- Figures must read well in the site's light and dark theme and on a phone
+  (the lecture 8 notebooks are the reference). Text in a figure that has no
+  coloured box of its own must have the same colour as the page text around
+  it, and no figure may need horizontal scrolling.
+  - Plots where hovering adds value (feasible regions: coordinates and
+    objective value of points) use plotly (`plotly.graph_objects`):
+    transparent `paper_bgcolor`/`plot_bgcolor`, font colour `#111827` (the
+    light-theme page text, used as fallback in Colab/local Jupyter),
+    `dragmode=False` and `fixedrange=True` on all axes (so a swipe scrolls the
+    page on a phone), legend below the plot, colours that read on both
+    backgrounds (no black or white markers), and
+    `fig.show(config={"displayModeBar": False})`. On the site, `custom.css`
+    (set as `site.options.style` in `myst.yml`) recolours plotly's tick
+    labels, axis titles, legend and annotations to the theme's
+    `--myst-color-text`, and grid lines to `--myst-color-border`. Plotly output
+    here does not render LaTeX: use Unicode (`≤`, `x₃`) in labels.
+  - Box-and-text diagrams such as branch-and-bound trees are static
+    matplotlib images that scale with the screen (`draw_bb_tree`): transparent
+    figure background, every text on its own box (branch labels in white
+    boxes), and legends moved into the caption as page text.
+  - Older notebooks (lecture 10, 12) still use plain matplotlib.
 - Put all `import` statements for a notebook in its **first** code cell. `isort`
   runs with `--float-to-top` and will relocate any `import` found in a later
   cell up to the first one on the next pre-commit run, which silently breaks

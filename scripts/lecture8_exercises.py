@@ -67,16 +67,22 @@
 #
 
 # %% tags=["remove-cell"]
+import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+from matplotlib.patches import Rectangle
 from plotly.subplots import make_subplots
 
-# Plot style that reads well on both the light and the dark site theme:
-# transparent background, grey text and grid lines.
+# Plot style for the light and the dark site theme: transparent background;
+# on the site, custom.css gives the text and grid lines the page colours.
+# TEXT_COLOR is the fallback elsewhere (Colab, local Jupyter). Zooming and
+# panning are off, so a swipe over a figure scrolls the page on a phone.
 GREY = "#888888"
+TEXT_COLOR = "#111827"
 PLOT_LAYOUT = {
     "paper_bgcolor": "rgba(0,0,0,0)",
     "plot_bgcolor": "rgba(0,0,0,0)",
-    "font": {"color": GREY, "size": 13},
+    "font": {"color": TEXT_COLOR, "size": 13},
+    "dragmode": False,
     "margin": {"l": 60, "r": 20, "t": 30, "b": 50},
     "legend": {
         "bgcolor": "rgba(0,0,0,0)",
@@ -89,6 +95,7 @@ PLOT_LAYOUT = {
 AXIS_STYLE = {
     "gridcolor": "rgba(128,128,128,0.25)",
     "zerolinecolor": "rgba(128,128,128,0.5)",
+    "fixedrange": True,
 }
 PLOT_CONFIG = {"displayModeBar": False}
 LINE_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c"]
@@ -365,7 +372,7 @@ fig.update_xaxes(range=list(lim_x), title="x", row=1, col=1, **AXIS_STYLE)
 fig.update_yaxes(range=list(lim_y), title="y", row=1, col=1, **AXIS_STYLE)
 fig.update_xaxes(range=list(lim_y_case), title="y", row=1, col=2, **AXIS_STYLE)
 fig.update_yaxes(range=list(lim_z_case), title="z", row=1, col=2, **AXIS_STYLE)
-fig.update_annotations(font={"color": GREY})
+fig.update_annotations(font={"color": TEXT_COLOR})
 fig.show(config=PLOT_CONFIG)
 
 # %% [markdown]
@@ -487,110 +494,76 @@ NODE_COLORS = {
     "infeasible": ("#e00000", "#fbd5b5"),
 }
 STATUS_COLORS = {"pruned": "#e00000", "optimum": "#375623"}
-BB_LEGEND = (
-    "UB = upper bound (follows from LO relaxation)<br>"
-    "LB = lower bound (if ILO solution is found)<br>"
-    "subopt = suboptimal solution"
-)
+EDGE_COLOR = "#5b9bd5"
 
 
 def draw_bb_tree(
-    nodes,
-    edges,
-    status,
-    legend_xy,
-    xlim,
-    ylim,
-    width,
-    height,
-    box_width=3.6,
-    font_size=14,
+    nodes, edges, status, xlim, ylim, figsize, box_width=3.6, font_size=11
 ):
-    """Draw a branch-and-bound tree; hovering a node shows its details.
+    """Draw a branch-and-bound tree.
 
-    nodes: name -> (x, y, header, solution, node type, hover text)
+    nodes: name -> (x, y, header, solution, node type)
     edges: (parent, child, branching constraint) tuples
     status: name -> (text, status type) for a box below the node
+
+    The background is transparent and every text sits on its own box, so
+    the figure reads the same in the light and the dark site theme.
     """
     box_height, gap = 0.55, 0.08
-    tree = go.Figure()
+    fig, ax = plt.subplots(figsize=figsize, dpi=150)
+    fig.patch.set_alpha(0)
+    ax.patch.set_alpha(0)
     for parent, child, branch_label in edges:
         x_from, y_from = nodes[parent][:2]
         x_to, y_to = nodes[child][:2]
         y_from -= 1.5 * box_height + gap
         y_to += 0.5 * box_height
-        tree.add_shape(
-            type="line",
-            x0=x_from,
-            y0=y_from,
-            x1=x_to,
-            y1=y_to,
-            line={"color": "#5b9bd5", "width": 1.5},
+        ax.plot([x_from, x_to], [y_from, y_to], color=EDGE_COLOR, lw=1.2)
+        ax.text(
+            (x_from + x_to) / 2,
+            (y_from + y_to) / 2,
+            branch_label,
+            ha="center",
+            va="center",
+            fontsize=font_size,
+            color="#111827",
+            bbox={
+                "boxstyle": "round,pad=0.3",
+                "facecolor": "white",
+                "edgecolor": EDGE_COLOR,
+            },
         )
-        shift = 0.8 if x_to > x_from else -0.8
-        tree.add_annotation(
-            x=(x_from + x_to) / 2 + shift,
-            y=(y_from + y_to) / 2,
-            text=branch_label,
-            showarrow=False,
-            font={"color": GREY, "size": font_size},
-        )
-    for node, (x_c, y_c, header, body, node_type, _) in nodes.items():
+    for node, (x_c, y_c, header, body, node_type) in nodes.items():
         dark, light = NODE_COLORS[node_type]
-        boxes = [(f"<b>{header}</b>", dark, "white"), (body, light, "black")]
+        boxes = [(header, dark, "white", "bold"), (body, light, "black", "")]
         if node in status:
             text, status_type = status[node]
-            boxes.append(
-                (f"<b>{text}</b>", STATUS_COLORS[status_type], "white")
-            )
-        for row, (text, face, text_color) in enumerate(boxes):
+            boxes.append((text, STATUS_COLORS[status_type], "white", "bold"))
+        for row, (text, face, text_color, font_weight) in enumerate(boxes):
             y_row = y_c - row * (box_height + gap)
-            tree.add_shape(
-                type="rect",
-                x0=x_c - box_width / 2,
-                y0=y_row - box_height / 2,
-                x1=x_c + box_width / 2,
-                y1=y_row + box_height / 2,
-                fillcolor=face,
-                line={"width": 0},
+            ax.add_patch(
+                Rectangle(
+                    (x_c - box_width / 2, y_row - box_height / 2),
+                    box_width,
+                    box_height,
+                    facecolor=face,
+                    edgecolor="none",
+                )
             )
-            tree.add_annotation(
-                x=x_c,
-                y=y_row,
-                text=text,
-                showarrow=False,
-                font={"color": text_color, "size": font_size},
+            ax.text(
+                x_c,
+                y_row,
+                text,
+                ha="center",
+                va="center",
+                color=text_color,
+                fontweight=font_weight or "normal",
+                fontsize=font_size,
             )
-    # invisible markers on the nodes carry the hover text
-    tree.add_trace(
-        go.Scatter(
-            x=[node[0] for node in nodes.values()],
-            y=[node[1] - box_height / 2 for node in nodes.values()],
-            text=[node[5] for node in nodes.values()],
-            mode="markers",
-            marker={"size": 60, "color": "rgba(0,0,0,0)"},
-            hovertemplate="%{text}<extra></extra>",
-            showlegend=False,
-        )
-    )
-    tree.add_annotation(
-        x=legend_xy[0],
-        y=legend_xy[1],
-        text=BB_LEGEND,
-        showarrow=False,
-        align="left",
-        yanchor="top",
-        bordercolor=GREY,
-        borderpad=6,
-        font={"color": GREY, "size": 12},
-    )
-    # a fixed width keeps the text inside the boxes on narrow screens
-    tree.update_layout(**PLOT_LAYOUT, width=width, height=height)
-    tree.update_layout(autosize=False, hovermode="closest")
-    tree.update_layout(margin={"l": 0, "r": 0, "t": 0, "b": 0})
-    tree.update_xaxes(range=list(xlim), visible=False, fixedrange=True)
-    tree.update_yaxes(range=list(ylim), visible=False, fixedrange=True)
-    tree.show(config=PLOT_CONFIG)
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.axis("off")
+    plt.show()
 
 
 draw_bb_tree(
@@ -601,8 +574,6 @@ draw_bb_tree(
             "Step 1: 14.75 (UB)",
             "1, 0, 1, 0.75",
             "UB",
-            "Root problem: items 3 and 1, and 3/4 of item 4.<br>"
-            "Value 14.75. Branch on x₄.",
         ),
         "s2": (
             2.4,
@@ -610,8 +581,6 @@ draw_bb_tree(
             "Step 2: 12 (LB)",
             "1, 1, 1, 0",
             "LB",
-            "x₄ = 0: items 3, 1 and 2 fit. Value 12, integer: LB 12.<br>"
-            "Suboptimal once LB 13 is found (step 6).",
         ),
         "s3": (
             9.8,
@@ -619,8 +588,6 @@ draw_bb_tree(
             "Step 3: 14.5 (UB)",
             "0.5, 0, 1, 1",
             "UB",
-            "x₄ = 1: items 4 and 3, and half of item 1.<br>"
-            "Value 14.5 > 12: branch on x₁.",
         ),
         "s4": (
             4.8,
@@ -628,8 +595,6 @@ draw_bb_tree(
             "Step 4: 13.5 (UB)",
             "0, 0.5, 1, 1",
             "UB",
-            "x₄ = 1, x₁ = 0: items 4 and 3, and half of item 2.<br>"
-            "Value 13.5 > 12: branch on x₂.",
         ),
         "s9": (
             14.4,
@@ -637,8 +602,6 @@ draw_bb_tree(
             "Step 9: 14 (UB)",
             "1, 0, 0.75, 1",
             "UB",
-            "x₄ = 1, x₁ = 1: items 4 and 1, and 3/4 of item 3.<br>"
-            "Value 14 > 13: branch on x₃.",
         ),
         "s5": (
             2.4,
@@ -646,8 +609,6 @@ draw_bb_tree(
             "Step 5: 13 (LB)",
             "0, 0, 1, 1",
             "LB",
-            "x₄ = 1, x₁ = 0, x₂ = 0: items 4 and 3. Value 13.<br>"
-            "Integer: new best LB 13, and the optimum (step 13).",
         ),
         "s7": (
             7.2,
@@ -655,8 +616,6 @@ draw_bb_tree(
             "Step 7: 12 (UB)",
             "0, 1, 0.75, 1",
             "UB",
-            "x₄ = 1, x₁ = 0, x₂ = 1: items 4 and 2, and 3/4 of item 3.<br>"
-            "Value 12 < 13: eliminated (step 8).",
         ),
         "s10": (
             12.0,
@@ -664,28 +623,24 @@ draw_bb_tree(
             "Step 10: 9 (LB)",
             "1, 1, 0, 1",
             "LB",
-            "x₄ = 1, x₁ = 1, x₃ = 0: items 4, 1 and 2. Value 9.<br>"
-            "Integer, but 9 < 13: suboptimal (step 11).",
         ),
         "s12": (
             16.8,
             0.0,
             "Step 12: infeasible",
-            "x₁ = x₃ = x₄ = 1",
+            r"$x_1 = x_3 = x_4 = 1$",
             "infeasible",
-            "x₄ = 1, x₁ = 1, x₃ = 1: these items weigh 10 kg > 9 kg.<br>"
-            "Infeasible: eliminated.",
         ),
     },
     edges=[
-        ("s1", "s2", "x₄ = 0"),
-        ("s1", "s3", "x₄ = 1"),
-        ("s3", "s4", "x₁ = 0"),
-        ("s3", "s9", "x₁ = 1"),
-        ("s4", "s5", "x₂ = 0"),
-        ("s4", "s7", "x₂ = 1"),
-        ("s9", "s10", "x₃ = 0"),
-        ("s9", "s12", "x₃ = 1"),
+        ("s1", "s2", r"$x_4 = 0$"),
+        ("s1", "s3", r"$x_4 = 1$"),
+        ("s3", "s4", r"$x_1 = 0$"),
+        ("s3", "s9", r"$x_1 = 1$"),
+        ("s4", "s5", r"$x_2 = 0$"),
+        ("s4", "s7", r"$x_2 = 1$"),
+        ("s9", "s10", r"$x_3 = 0$"),
+        ("s9", "s12", r"$x_3 = 1$"),
     ],
     status={
         "s2": ("Step 6: 12 < 13 (subopt)", "pruned"),
@@ -693,13 +648,11 @@ draw_bb_tree(
         "s7": ("Step 8: 12 (UB) < 13 (LB)", "pruned"),
         "s10": ("Step 11: 9 < 13 (subopt)", "pruned"),
     },
-    legend_xy=(16.2, 8.0),
     xlim=(0, 19.2),
-    ylim=(-1.9, 8.0),
-    width=860,
-    height=520,
+    ylim=(-1.75, 7.9),
+    figsize=(12, 5.8),
     box_width=4.4,
-    font_size=12,
+    font_size=10,
 )
 
 # %% [markdown]
@@ -767,10 +720,10 @@ draw_bb_tree(
 # :::{figure} #hw-8-3c
 # :label: fig-hw-8-3c
 #
-# Solution of [](#hw-8-3), part c: branch-and-bound tree (UB = upper bound from the LO relaxation, LB = lower
-# bound from a feasible integer solution). The infeasible subproblem of step 12 has no
-# solution; its second line shows the variables fixed to 1. Hover over a node for
-# the details of that step.
+# Solution of [](#hw-8-3), part c: branch-and-bound tree (UB = upper bound from the LO
+# relaxation, LB = lower bound from a feasible integer solution, subopt = suboptimal
+# solution). The infeasible subproblem of step 12 has no solution; its second line shows
+# the variables fixed to 1.
 # :::
 #
 # d. Add the constraint $4x_1 + 8x_2 + 2x_3 + 10x_4 \le 12$ to the model of part a. An

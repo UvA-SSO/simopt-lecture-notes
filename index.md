@@ -46,7 +46,7 @@ The materials are organized by lecture, and each lecture is divided into topic-s
 
 Every notebook has an "Open in Colab" button at the top, which opens it directly in [Google Colab](https://colab.research.google.com/): a free, browser-based Jupyter environment that needs no local installation and already provides everything these notebooks need, including `pulp`. This allows you to run the notebooks without installing anything on your own machine. Use it to actively learn about the concepts: change parameters, add constraints, etc.
 
-You can also download the notebooks with the download button and run them locally in a local Python environment with required packages installed such as jupyter(lab) and PuLP.
+You can also download the notebooks with the download button and run them locally in a local Python environment with required packages installed such as jupyter(lab), PuLP, and plotly (used for the interactive figures).
 
 ## Tooling
 

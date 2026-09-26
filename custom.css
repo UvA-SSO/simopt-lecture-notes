@@ -1,0 +1,14 @@
+/* Interactive (plotly) figures: text and grid lines follow the page colours,
+   so they read the same as the surrounding text in the light and dark theme.
+   Plotly sets these colours as inline styles, hence !important. Hover labels
+   (.hoverlayer) have their own coloured background and are left alone. */
+.js-plotly-plot .main-svg .cartesianlayer text,
+.js-plotly-plot .main-svg .infolayer text {
+  fill: var(--myst-color-text) !important;
+}
+
+.js-plotly-plot .main-svg .gridlayer path,
+.js-plotly-plot .main-svg .zerolinelayer path {
+  stroke: var(--myst-color-border) !important;
+  stroke-opacity: 1 !important;
+}

@@ -65,5 +65,6 @@ site:
     logo: images/logo.png
     logo_text: SimOpt Lecture Notes
     favicon: images/logo.png
+    style: custom.css
   parts:
     footer: _footer.md
