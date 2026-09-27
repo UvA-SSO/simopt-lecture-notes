@@ -59,6 +59,8 @@ These notes use PuLP 3.3.2. The newer PuLP 4.0 has since been released, and code
 
 PuLP's own website and many examples online now show PuLP 4.0 code (for example `prob.add_variable(...)` to create variables), which does not work with version 3.3.2. When in doubt, follow the code in these notes.
 
+PuLP's website only documents the newest version. The documentation of version 3.3.2 is available [on GitHub](https://github.com/coin-or/pulp/tree/3.3.2/doc/source), including [case studies](https://github.com/coin-or/pulp/tree/3.3.2/doc/source/CaseStudies) such as a transportation problem. In Python, `help(pulp.LpVariable)` shows the documentation of the version you have installed, for any PuLP function or class.
+
 ## Tooling
 
 The simulation and optimization part of this course uses Python. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (see [Modeling Tools and Solvers](notebooks/lecture10_modeling-tools.ipynb)). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.
