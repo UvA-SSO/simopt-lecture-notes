@@ -25,7 +25,11 @@
 # This notebook covers the transportation problem and its generalization, the
 # transshipment problem: how to ship goods between sources and destinations, or through
 # intermediate nodes, at minimum cost. Both are LO problems, needing no integrality, and
-# the same shape reappears in many assignment problems.
+# the same shape reappears in many assignment problems. Like every application in this
+# lecture, the problem is introduced in the same steps: a practical motivation, the
+# generic model built up with the [four modeling
+# steps](lecture8_linear-optimization.ipynb#modeling-approach), the model for a concrete
+# example, its solution in pulp, and possible extensions.
 #
 # **Learning outcomes**
 #
@@ -40,25 +44,126 @@ import pulp
 # %% [markdown]
 # ## The Transportation Problem
 #
-# We must ship a single good from $n$ sources (supply $a_i$ at source $i$) to $m$
-# destinations (demand $b_j$ at destination $j$), at a cost $c_{ij}$ per unit shipped on
-# link $i \to j$. How much should we ship on each link so that every demand is met, no
-# supply is exceeded, and total cost is minimized?
+# ### Practical Motivation
+#
+# A company stores its product in a few warehouses and delivers it to many customers.
+# Every week, each customer orders a certain amount, each warehouse has a limited stock,
+# and shipping one unit from a warehouse to a customer has a cost that depends on the
+# distance between them. Which warehouse should deliver how much to which customer, so
+# that all orders are delivered at the lowest total transport cost? The same question
+# comes up for factories supplying distribution centers, power plants supplying cities,
+# and, as we will see, for assigning staff to tasks or students to rooms.
+
+# %% [markdown]
+# ### Modeling
+#
+# #### Problem Definition and Example
+#
+# A single good is shipped from $n$ sources to $m$ destinations. Source $i$ has a supply
+# of $a_i$ units, destination $j$ has a demand of $b_j$ units, and shipping one unit over
+# the link $i \to j$ costs $c_{ij}$. The problem is to find the cheapest way to ship the
+# goods such that every demand is met and no supply is exceeded.
+#
+# As an example, two warehouses W1 and W2 supply three stores S1, S2 and S3, with the
+# following transport costs per unit, supplies and demands:
+#
+# | source \ destination | S1 | S2 | S3 | supply $a_i$ |
+# |---|---|---|---|---|
+# | W1 | 4 | 6 | 8 | 30 |
+# | W2 | 5 | 3 | 4 | 25 |
+# | demand $b_j$ | 20 | 15 | 20 | |
+#
+# For example, shipping 10 units from W1 to S2 costs $10 \cdot 6 = 60$. Here the total
+# supply, 55, equals the total demand, so every warehouse has to be emptied.
+#
+# #### Decision Variables
+#
+# What we have to decide is how much to ship over each link, so we define one decision
+# variable per link:
+#
+# $$
+# x_{ij} = \text{number of units shipped from source } i \text{ to destination } j,
+# \quad i = 1, \dots, n,\ j = 1, \dots, m.
+# $$
+#
+# A good check for a choice of decision variables is whether their values tell you
+# everything you need: given all $x_{ij}$, we can compute the total cost and check
+# whether the supplies and demands are respected, so these variables suffice.
+#
+# #### Objective
+#
+# The cost of link $i \to j$ is $c_{ij} x_{ij}$, so we minimize the total cost
+#
+# $$
+# \sum_{i=1}^{n} \sum_{j=1}^{m} c_{ij} x_{ij}.
+# $$
+#
+# If a link $i \to j$ does not exist, we can still use this formulation by giving that
+# link a very large cost $c_{ij}$, so that the optimizer never uses it (or we simply leave
+# the variable out, as the pulp code below does).
+#
+# #### Constraints
+#
+# The total amount shipped out of source $i$ cannot exceed its supply:
+#
+# $$
+# \sum_{j=1}^{m} x_{ij} \le a_i, \quad i = 1, \dots, n.
+# $$
+#
+# We use "$\le$" rather than "$=$" because a source does not have to ship everything it
+# has. The total amount shipped into destination $j$ must cover its demand:
+#
+# $$
+# \sum_{i=1}^{n} x_{ij} \ge b_j, \quad j = 1, \dots, m.
+# $$
+#
+# Here "$=$" would also be correct, but it is not needed: shipping more than the demand
+# only adds cost, so a minimizing optimizer never does it. Finally, we cannot ship
+# negative amounts, so $x_{ij} \ge 0$. A feasible solution only exists if the total
+# supply is at least the total demand, $\sum_i a_i \ge \sum_j b_j$.
+#
+# #### Complete LO Model
 #
 # $$
 # \begin{aligned}
-# \text{minimize} \quad & \sum_{i=1}^{n} \sum_{j=1}^{m} c_{ij} x_{ij} \\
-# \text{subject to} \quad & \sum_{j=1}^{m} x_{ij} \le a_i \text{ for } i = 1, \dots, n; \\
-# & \sum_{i=1}^{n} x_{ij} \ge b_j \text{ for } j = 1, \dots, m; \\
-# & x_{ij} \ge 0 \text{ for all } i, j.
+# \min \quad & \sum_{i=1}^{n} \sum_{j=1}^{m} c_{ij} x_{ij} \\
+# \text{s.t.} \quad & \sum_{j=1}^{m} x_{ij} \le a_i, \quad i = 1, \dots, n \\
+# & \sum_{i=1}^{n} x_{ij} \ge b_j, \quad j = 1, \dots, m \\
+# & x_{ij} \ge 0, \quad i = 1, \dots, n,\ j = 1, \dots, m.
 # \end{aligned}
 # $$
 #
-# This is an LO problem (no integrality needed). If a link $i \to j$ does not exist, use a
-# very large $c_{ij}$. Many assignment problems, such as staff to tasks or students to
-# rooms, have this same shape.
+# This is an LO model: we did not require the $x_{ij}$ to be integer. That is no loss
+# here: when all supplies and demands are integer, the corner points of the feasible
+# region of a transportation problem are integer, so the LO optimum ships whole units
+# anyway.
+
+# %% [markdown]
+# ### Modeling the Example
 #
-# Two warehouses supply three stores:
+# Number the warehouses $i = 1, 2$ (W1, W2) and the stores $j = 1, 2, 3$ (S1, S2, S3).
+# Filling in the numbers from the table gives
+#
+# $$
+# \begin{aligned}
+# \min \quad & 4x_{11} + 6x_{12} + 8x_{13} + 5x_{21} + 3x_{22} + 4x_{23} \\
+# \text{s.t.} \quad & x_{11} + x_{12} + x_{13} \le 30 & \text{(supply W1)} \\
+# & x_{21} + x_{22} + x_{23} \le 25 & \text{(supply W2)} \\
+# & x_{11} + x_{21} \ge 20 & \text{(demand S1)} \\
+# & x_{12} + x_{22} \ge 15 & \text{(demand S2)} \\
+# & x_{13} + x_{23} \ge 20 & \text{(demand S3)} \\
+# & x_{ij} \ge 0, \quad i = 1, 2,\ j = 1, 2, 3.
+# \end{aligned}
+# $$
+
+# %% [markdown]
+# ### Solving the Example in pulp
+#
+# We keep the data separate from the model, as in [Separating Data from the
+# Model](lecture8_linear-optimization.ipynb). New here is that the decision variables
+# are indexed by two things, a source and a destination, so we key the dictionary `ship`
+# by `(source, destination)` tuples. The keys of `cost` also define which links exist:
+# a variable is only created for a link that has a cost.
 
 # %%
 supply = {"W1": 30, "W2": 25}
@@ -84,16 +189,27 @@ for j, req in demand.items():
     transport += pulp.lpSum(ship[i, j] for i in supply) >= req, f"demand_{j}"
 
 transport.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[transport.status])
 print("shipments:", {k: v.value() for k, v in ship.items() if v.value() > 0})
 print("total cost:", transport.objective.value())
 
 # %% [markdown]
-# (transshipment-problem)=
-# ### Transshipment
+# Each constraint gets a name (`supply_W1`, `demand_S3`, ...), which makes the printed
+# model and any solver messages readable. The optimal plan ships whole units, as
+# expected, and uses only four of the six links: W1 serves S1 and part of S2, and W2,
+# which is cheap for S2 and S3, serves the rest.
+
+# %% [markdown]
+# ### Extensions
 #
-# If goods can pass through intermediate nodes on the way from sources to destinations, we
-# have the *transshipment problem*. It is solved by adding, for every intermediate node $k$,
-# a flow-conservation constraint: what comes in must go out:
+# (transshipment-problem)=
+# #### Transshipment
+#
+# If goods can pass through intermediate nodes on the way from sources to destinations
+# (for example, a cross-dock or a distribution center), we have the *transshipment
+# problem*. The decision variables are again the amounts $x_{ij}$ on the links, now
+# including links into and out of intermediate nodes. For every intermediate node $k$ we
+# add a flow-conservation constraint: what comes in must go out:
 #
 # $$
 # \sum_{i} x_{ik} = \sum_{j} x_{kj}.
@@ -102,6 +218,13 @@ print("total cost:", transport.objective.value())
 # This extends to a full network by stacking several layers of intermediate nodes, and it
 # is the model behind the shortest-path and maximum-flow problems in
 # [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb).
+#
+# #### Fixed Costs per Link
+#
+# In practice, using a link at all can have a cost of its own, for example for a truck
+# that has to drive regardless of how full it is. Such a fixed cost is not linear in
+# $x_{ij}$, but it can be modeled with a binary variable per link; see [Big M and
+# Indicator Variables](lecture9_machine-scheduling.ipynb#big-m-indicator).
 
 # %% [markdown]
 # ## References
