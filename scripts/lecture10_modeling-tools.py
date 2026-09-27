@@ -23,9 +23,12 @@
 
 # %% [markdown]
 # This notebook has two halves. First, two more applications that need a modeling trick:
-# multi-period inventory planning and robust regression. Then the tooling: the solvers that
-# actually do the optimizing, and the modeling tools (algebraic modeling languages, and
-# pulp) that sit between your problem and a solver.
+# multi-period inventory planning and robust regression. They are introduced in the same
+# steps as the applications of [Lecture 9](lecture9_introduction.ipynb): practical
+# motivation, generic model, the model for an example, its solution in pulp, and
+# extensions. Then the tooling: the solvers that actually do the optimizing, and the
+# modeling tools (algebraic modeling languages, and pulp) that sit between your problem
+# and a solver.
 #
 # **Learning outcomes**
 #
@@ -44,28 +47,110 @@ import pulp
 # (production-inventory-model)=
 # ## Multi-Period Inventory Planning
 #
-# A system whose state is tracked over time is a multi-period model. The classic case
-# is inventory: we hold a single product, start with stock $s_0$, and for each period
-# $t = 1, \dots, T$ we know the demand $d_t$, the holding cost $h_t$ per unit left at the
-# end of the period, and the order cost $c_t$ per unit ordered. The decision is how much to
-# order each period, $x_t$; the resulting end-of-period stock is $s_t$. Stock evolves as
+# ### Practical Motivation
+#
+# A shop sells a product whose demand varies from week to week, and the purchase price
+# varies as well (because of supplier promotions, or seasonal prices). Ordering a lot
+# when the price is low saves money, but products that sit in stock cost money too:
+# storage space, capital, insurance. When should the shop order, and how much, to meet
+# all demand at the lowest total cost? This is an example of a **multi-period model**: a
+# model in which the state of a system (here, the stock) is tracked over time, and a
+# decision in one period affects all later periods.
+
+# %% [markdown]
+# ### Modeling
+#
+# #### Problem Definition and Example
+#
+# We hold a single product and plan for periods $t = 1, \dots, T$ (the time horizon). At
+# the start we have $s_0$ units in stock. For every period $t$ we know the demand $d_t$,
+# the order cost $c_t$ per unit ordered in period $t$, and the holding cost $h_t$ per unit
+# left in stock at the end of period $t$. An order arrives immediately. The problem is to
+# decide how much to order in each period, such that all demand is met from stock (no
+# backorders) at minimal total order and holding cost. The parameters $d_t$, $c_t$ and
+# $h_t$ typically come from a forecast (predictive analytics).
+#
+# As an example, take $T = 4$ periods with an initial stock of $s_0 = 6$ and
+#
+# | period $t$ | 1 | 2 | 3 | 4 |
+# |---|---|---|---|---|
+# | demand $d_t$ | 7 | 9 | 5 | 8 |
+# | order cost $c_t$ | 8 | 11 | 7 | 10 |
+# | holding cost $h_t$ | 1 | 1 | 1 | 1 |
+#
+# #### Decision Variables
+#
+# The decisions are the order quantities
 #
 # $$
-# s_t = s_{t-1} + x_t - d_t,
+# x_t = \text{number of units ordered in period } t, \quad t = 1, \dots, T.
 # $$
 #
-# and requiring $s_t \ge 0$ forbids backorders (all demand must be met). The LO model:
+# We also introduce the stock at the end of each period as a decision variable,
+#
+# $$
+# s_t = \text{number of units in stock at the end of period } t, \quad t = 1, \dots, T.
+# $$
+#
+# Strictly speaking, $s_t$ is not a free choice: once the orders are fixed, the stock
+# follows from them. We could substitute $s_t = s_0 + \sum_{k \le t} (x_k - d_k)$
+# everywhere, but that makes every constraint and the objective much longer. A variable
+# like $s_t$, which describes the state of the system in a period, is called a **state
+# variable**; it keeps a multi-period model short and readable.
+#
+# #### Objective
+#
+# In period $t$ we pay $c_t x_t$ for ordering and $h_t s_t$ for holding stock, so the
+# total cost is
+#
+# $$
+# \sum_{t=1}^{T} (c_t x_t + h_t s_t).
+# $$
+#
+# #### Constraints
+#
+# The stock at the end of period $t$ is the stock at the end of the previous period,
+# plus what is ordered, minus what is sold:
+#
+# $$
+# s_t = s_{t-1} + x_t - d_t, \quad t = 1, \dots, T.
+# $$
+#
+# This **balance constraint** links each period to the previous one; for $t = 1$,
+# $s_0$ is the given initial stock. Orders cannot be negative, $x_t \ge 0$. The
+# requirement $s_t \ge 0$ is what forbids backorders: if demand in period $t$ were not
+# met from stock, the balance constraint would give a negative $s_t$.
+#
+# #### Complete LO Model
 #
 # $$
 # \begin{aligned}
-# \text{minimize} \quad & \sum_{t=1}^{T} (c_t x_t + h_t s_t) \\
-# \text{subject to} \quad & s_t = s_{t-1} + x_t - d_t \text{ for } t = 1, \dots, T \\
-# & x_t, s_t \ge 0 \text{ for } t = 1, \dots, T.
+# \min \quad & \sum_{t=1}^{T} (c_t x_t + h_t s_t) \\
+# \text{s.t.} \quad & s_t = s_{t-1} + x_t - d_t, \quad t = 1, \dots, T \\
+# & x_t, s_t \ge 0, \quad t = 1, \dots, T.
 # \end{aligned}
 # $$
+
+# %% [markdown]
+# ### Modeling the Example
 #
-# The parameters $d_t, h_t, c_t$ typically come from a forecast. The model extends easily to
-# a maximum stock level, a production capacity, several products, or fixed order costs.
+# $$
+# \begin{aligned}
+# \min \quad & 8x_1 + 11x_2 + 7x_3 + 10x_4 + s_1 + s_2 + s_3 + s_4 \\
+# \text{s.t.} \quad & s_1 = 6 + x_1 - 7 \\
+# & s_2 = s_1 + x_2 - 9 \\
+# & s_3 = s_2 + x_3 - 5 \\
+# & s_4 = s_3 + x_4 - 8 \\
+# & x_1, x_2, x_3, x_4, s_1, s_2, s_3, s_4 \ge 0.
+# \end{aligned}
+# $$
+
+# %% [markdown]
+# ### Solving the Example in pulp
+#
+# The balance constraints are equalities, written with `==` in pulp. Python lists start
+# at index 0, so period $t$ is `t + 1` in the variable names, and the first period uses
+# the initial stock `s0` in place of the previous period's stock variable.
 
 # %%
 demand = [7, 9, 5, 8]
@@ -86,11 +171,31 @@ for t in periods:
     inventory += stock[t] == prev + order[t] - demand[t], f"balance_{t + 1}"
 
 inventory.solve(pulp.PULP_CBC_CMD(msg=False))
+print("status:", pulp.LpStatus[inventory.status])
 print("orders:", [order[t].value() for t in periods])
 print("end-of-period stock:", [stock[t].value() for t in periods])
 print("total cost:", inventory.objective.value())
 
 # %% [markdown]
+# The optimal plan orders only in the two cheap periods, 1 and 3. Ordering period 2's
+# demand in period 1 costs $8 + 1 = 9$ per unit (order plus one period of holding),
+# which is less than the 11 of ordering it in period 2; period 4's demand is ordered in
+# period 3 for the same reason.
+
+# %% [markdown]
+# ### Extensions
+#
+# The model extends easily; each of the following adds a constraint or an index, but no
+# new modeling trick:
+#
+# - **maximum stock level**: $s_t \le S$ for a storage capacity $S$;
+# - **production capacity**: $x_t \le P_t$ if the product is made rather than bought;
+# - **several products**: give every variable and parameter a product index, and add
+#   constraints for resources the products share, such as storage space.
+#
+# Fixed order costs, which are paid in every period in which something is ordered, do
+# need a new trick:
+#
 # :::{exercise}
 # :label: ex-6-19
 #
@@ -103,68 +208,180 @@ print("total cost:", inventory.objective.value())
 # %% [markdown]
 # ## Robust Regression
 #
-# Ordinary least-squares regression minimizes the sum of *squared* errors and is sensitive
-# to outliers, just as the mean is. Minimizing the sum of *absolute* errors instead gives a
-# robust fit, the line analogue of the median. Given points $(x_i, y_i)$, we want $a, b$
-# solving
+# ### Practical Motivation
+#
+# A factory wants to predict how long a production order will take from its size, to
+# promise delivery dates. It fits a line through the data of past orders. A few of those
+# orders took far longer than usual, for example because a machine broke down.
+# Ordinary least-squares (OLS) regression minimizes the sum of *squared* prediction
+# errors, so such outliers have a large influence and pull the line toward them, just as
+# a single extreme value pulls the mean. Minimizing the sum of *absolute* errors instead
+# gives a line that is far less sensitive to outliers, the line analogue of the median.
+# This is called **robust regression** (or least absolute deviation regression).
+
+# %% [markdown]
+# ### Modeling
+#
+# #### Problem Definition and Example
+#
+# Given $n$ data points $(x_i, y_i)$, $i = 1, \dots, n$, find the line $a + bx$ that
+# minimizes the sum of the absolute prediction errors $|y_i - (a + b x_i)|$.
+#
+# As an example, take the five data points
+#
+# | $i$ | 1 | 2 | 3 | 4 | 5 |
+# |---|---|---|---|---|---|
+# | $x_i$ | 2 | 4 | 6 | 8 | 10 |
+# | $y_i$ | 5 | 4 | 9 | 3 | 7 |
+#
+# #### Decision Variables
+#
+# We choose the line, so its intercept $a$ and slope $b$ are decision variables. Both
+# may be negative, so unlike in the previous models they have no sign constraint. It
+# helps to also introduce the prediction error of each data point as a variable,
 #
 # $$
-# \min \sum_i |y_i - (a + b x_i)|.
+# e_i = y_i - (a + b x_i), \quad i = 1, \dots, n.
 # $$
 #
-# The absolute value is nonlinear, but there is a standard trick: write each error as a
-# difference of two non-negative parts, $e_i = e_i^+ - e_i^-$, and put $e_i^+ + e_i^-$ in
-# the objective. Because we minimize their sum, at the optimum one of the two is always 0,
-# so $e_i^+ + e_i^- = |e_i|$:
+# #### Objective
+#
+# We want to minimize $\sum_{i=1}^{n} |e_i|$. The absolute value is not linear, so this
+# is not yet an LO model. There is a standard trick to fix this. Write each error as the
+# difference of two non-negative variables,
+#
+# $$
+# e_i = e_i^+ - e_i^-, \quad e_i^+, e_i^- \ge 0,
+# $$
+#
+# and replace $|e_i|$ by $e_i^+ + e_i^-$ in the objective, which is linear:
+#
+# $$
+# \min \sum_{i=1}^{n} (e_i^+ + e_i^-).
+# $$
+#
+# Why is this allowed? The same $e_i$ can be written as $e_i^+ - e_i^-$ in many ways,
+# for example $2 = 2 - 0 = 5 - 3$. But if both $e_i^+$ and $e_i^-$ were positive, we
+# could lower both by the same amount: $e_i$ stays the same and the objective goes down.
+# So at the optimum, at least one of the two is 0, and then $e_i^+ + e_i^- = |e_i|$. If
+# $e_i^+ > 0$, the data point lies $e_i^+$ above the line; if $e_i^- > 0$, it lies
+# $e_i^-$ below the line.
+#
+# #### Constraints
+#
+# The only constraints connect the errors to the line:
+#
+# $$
+# e_i^+ - e_i^- = y_i - (a + b x_i), \quad i = 1, \dots, n,
+# $$
+#
+# together with $e_i^+, e_i^- \ge 0$. The variables $a$ and $b$ are free.
+#
+# #### Complete LO Model
 #
 # $$
 # \begin{aligned}
-# \min \quad & \sum_i (e_i^+ + e_i^-) \\
-# \text{s.t.} \quad & y_i - (a + b x_i) = e_i^+ - e_i^- \text{ for all } i \\
-# & e_i^+, e_i^- \ge 0 \text{ for all } i.
+# \min \quad & \sum_{i=1}^{n} (e_i^+ + e_i^-) \\
+# \text{s.t.} \quad & e_i^+ - e_i^- = y_i - (a + b x_i), \quad i = 1, \dots, n \\
+# & e_i^+, e_i^- \ge 0, \quad i = 1, \dots, n.
 # \end{aligned}
 # $$
-#
-# The same $x = x^+ - x^-$ split linearizes any $|x|$ that appears (with a non-negative
-# coefficient) in an objective. Weighting the two parts differently,
-# $p \sum e_i^+ + (1 - p) \sum e_i^-$ with $0 < p < 1$, tilts the line toward the upper or
-# lower points: this is quantile regression ([](#fig-quantile-regression)).
 
 # %% [markdown]
-# :::{figure} images/lecture9_fig6.11.png
-# :label: fig-quantile-regression
+# ### Modeling the Example
 #
-# Quantile regression: the fitted line for different quantile levels $p$.
-# :::
+# $$
+# \begin{aligned}
+# \min \quad & \sum_{i=1}^{5} (e_i^+ + e_i^-) \\
+# \text{s.t.} \quad & e_1^+ - e_1^- = 5 - (a + 2b) \\
+# & e_2^+ - e_2^- = 4 - (a + 4b) \\
+# & e_3^+ - e_3^- = 9 - (a + 6b) \\
+# & e_4^+ - e_4^- = 3 - (a + 8b) \\
+# & e_5^+ - e_5^- = 7 - (a + 10b) \\
+# & e_i^+, e_i^- \ge 0, \quad i = 1, \dots, 5.
+# \end{aligned}
+# $$
+
+# %% [markdown]
+# ### Solving the Example in pulp
+#
+# A variable without `lowBound` is free in pulp (its bounds default to $-\infty$ and
+# $\infty$), which is what we need for the intercept and the slope. The data points are
+# stored as numpy arrays, which pulp's expressions accept like ordinary numbers.
 
 # %%
 xs = np.array([2, 4, 6, 8, 10])
 ys = np.array([5, 4, 9, 3, 7])
+points = range(len(xs))
 
-fit = pulp.LpProblem(name="robust_regression", sense=pulp.LpMinimize)
-a = pulp.LpVariable(name="a")  # free (default bounds -inf..inf)
+robust_regression = pulp.LpProblem(
+    name="robust_regression", sense=pulp.LpMinimize
+)
+intercept = pulp.LpVariable(name="a")
 slope = pulp.LpVariable(name="b")
-e_pos = [pulp.LpVariable(name=f"ep_{k}", lowBound=0) for k in range(len(xs))]
-e_neg = [pulp.LpVariable(name=f"en_{k}", lowBound=0) for k in range(len(xs))]
+e_pos = [pulp.LpVariable(name=f"ep_{k + 1}", lowBound=0) for k in points]
+e_neg = [pulp.LpVariable(name=f"en_{k + 1}", lowBound=0) for k in points]
 
-fit += pulp.lpSum(e_pos[k] + e_neg[k] for k in range(len(xs)))
-for k in range(len(xs)):
-    fit += ys[k] - (a + slope * xs[k]) == e_pos[k] - e_neg[k]
+robust_regression += pulp.lpSum(e_pos[k] + e_neg[k] for k in points)
+for k in points:
+    prediction = intercept + slope * xs[k]
+    robust_regression += ys[k] - prediction == e_pos[k] - e_neg[k]
 
-fit.solve(pulp.PULP_CBC_CMD(msg=False))
-a_hat, b_hat = a.value(), slope.value()
-print(f"robust line: y = {a_hat:.2f} + {b_hat:.2f} x")
+robust_regression.solve(pulp.PULP_CBC_CMD(msg=False))
+a_hat, b_hat = intercept.value(), slope.value()
+print("status:", pulp.LpStatus[robust_regression.status])
+print(f"line: y = {a_hat:.2f} + {b_hat:.2f} x")
+print("sum of absolute errors:", robust_regression.objective.value())
 
+# %% tags=["remove-cell"] label="robust-fit"
 plt.figure(figsize=(5, 3.5))
 plt.scatter(xs, ys)
 grid = np.linspace(xs.min(), xs.max(), 50)
 plt.plot(grid, a_hat + b_hat * grid, color="grey")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("Least-absolute-deviation fit")
 plt.show()
 
 # %% [markdown]
+# :::{figure} #robust-fit
+# :label: fig-robust-fit
+#
+# The five data points of the example and the line $y = 4.5 + 0.25x$ that minimizes the
+# sum of absolute errors.
+# :::
+#
+# The optimal line passes exactly through the first and the last data point. That is no
+# coincidence: as in every LO problem, there is an optimal solution in a corner point,
+# and for this model that means a line through (at least) two of the data points.
+
+# %% [markdown]
+# ### Extensions
+#
+# #### Quantile Regression
+#
+# Weighting the two parts of the error differently,
+# $\min\, p \sum_i e_i^+ + (1 - p) \sum_i e_i^-$ with $0 < p < 1$, tilts the line toward
+# the upper or lower points: this is quantile regression ([](#fig-quantile-regression)).
+# With $p = 0.5$ it is the robust regression above; with $p = 0.9$, about 90% of the data
+# points lie below the line, which is useful for promising delivery times that are met
+# in 90% of the cases.
+#
+# :::{figure} images/lecture9_fig6.11.png
+# :label: fig-quantile-regression
+#
+# Quantile regression: the fitted line for different quantile levels $p$.
+# :::
+#
+# #### Absolute Values in Other Models
+#
+# The same $x = x^+ - x^-$ split linearizes any $|x|$ that appears in an objective that
+# is minimized with a non-negative coefficient (or maximized with a non-positive one).
+# The trick also works when the absolute value is a *penalty* rather than the whole
+# objective. For the product-mix problem, suppose we dislike making the two products in
+# very different quantities and add $-|x - y|$ to the profit. Introduce
+# $\delta^+, \delta^- \ge 0$ with $x - y = \delta^+ - \delta^-$ and subtract
+# $\delta^+ + \delta^-$ from the objective.
+#
 # :::{exercise}
 # :label: ex-6-16
 #
@@ -181,11 +398,6 @@ plt.show()
 # minimize the sum of absolute differences between staffing and demand. Formulate as an LO
 # and solve with pulp.
 # :::
-#
-# The trick also works when the absolute value is a *penalty* rather than the whole
-# objective. For the product-mix problem, suppose we dislike making the two products in very
-# different quantities and add $-|x - y|$ to the profit. Introduce $\delta^+, \delta^- \ge 0$
-# with $x - y = \delta^+ - \delta^-$ and subtract $\delta^+ + \delta^-$ from the objective.
 
 # %% [markdown]
 # ## Solvers
