@@ -51,13 +51,13 @@ You can also download the notebooks with the download button and run them locall
 (pulp-version)=
 ### PuLP version
 
-These notes use PuLP 3.3.2. The newer PuLP 4.0 has since been released, and code written for it differs from the code in these notes, so make sure you work with version 3.3.2:
+These notes use PuLP 3.3.2. The newer PuLP 4.0 has since been released, and the code in these notes does not run on it (for example, `pulp.LpVariable(...)` and `pulp.PULP_CBC_CMD(...)` no longer exist in 4.0), so make sure you work with version 3.3.2:
 
 - In Google Colab, you do not need to install anything: Colab already provides PuLP 3.3.2, including the CBC solver.
 - Locally, install it with `pip install pulp==3.3.2`. This includes the CBC solver. If you already installed PuLP 4.0, the same command switches you back to 3.3.2.
 - Check which version you have with `import pulp; print(pulp.__version__)`.
 
-PuLP's own website and many examples online now show PuLP 4.0 code (for example `prob.add_variable(...)` to create variables), which does not work with version 3.3.2. When in doubt, follow the code in these notes.
+PuLP's own website and many examples online now show PuLP 4.0 code. Much of it also runs on version 3.3.2, which already includes the new ways of writing a model, such as `prob.add_variable(...)` to create variables. Two things differ: reading the result of a solve (in 4.0, `stats = prob.solve()` and `stats.status_str` instead of `pulp.LpStatus[prob.status]`), and the solver (4.0 uses `pulp.COIN_CMD(...)`, which needs a separate CBC installation that Colab does not have). When in doubt, follow the code in these notes.
 
 PuLP's website only documents the newest version. The documentation of version 3.3.2 is available [on GitHub](https://github.com/coin-or/pulp/tree/3.3.2/doc/source), including [case studies](https://github.com/coin-or/pulp/tree/3.3.2/doc/source/CaseStudies) such as a transportation problem. In Python, `help(pulp.LpVariable)` shows the documentation of the version you have installed, for any PuLP function or class.
 

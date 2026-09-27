@@ -255,11 +255,16 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   (`x`, `y`) belong only in the direct, hardcoded version that mirrors the math.
 - PuLP version: this course uses PuLP 3.3.2 (pinned as `pulp==3.3.2` in
   `pyproject.toml`), the version Google Colab provides and the one the notes
-  were taught with. PuLP 4.0 changed the API (e.g. `prob.add_variable(...)`
-  instead of `pulp.LpVariable(...)`, `PULP_CBC_CMD` removed). Don't use the
-  4.0 API and don't "fix" the 4.0 `DeprecationWarning`s that 3.3.2 raises
+  were taught with. PuLP 4.0 removes what the notes use
+  (`pulp.LpVariable(...)`, `LpVariable.dicts`, `PULP_CBC_CMD`) and changes how
+  a solve result is read (`stats = prob.solve()`, `stats.status_str`). 3.3.2
+  already includes 4.0's modelling methods (`prob.add_variable(...)`,
+  `prob.add_variable_dicts(...)`), but keep the notes' style as taught
+  (`pulp.LpVariable`, `pulp.LpStatus[prob.status]`, `PULP_CBC_CMD`) for this
+  course, and don't "fix" the 4.0 `DeprecationWarning`s that 3.3.2 raises
   (they are hidden by the default Jupyter/Colab warning filters). Migrating
-  to 4.0 is planned for after the course. `index.md` has a "PuLP version"
+  to 4.0 is planned for after the course (guide: `doc/source/guides/
+  how_to_migrate_to_v4.rst` at the `4.0.0` tag of github.com/coin-or/pulp). `index.md` has a "PuLP version"
   section (`(pulp-version)=`) telling students how to install 3.3.2.
 - Solve every pulp model with the CBC solver bundled in the PuLP 3.3.2
   wheel, through `PULP_CBC_CMD`:
