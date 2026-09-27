@@ -36,8 +36,8 @@
 #
 # - recognize and formulate the transportation and transshipment problems;
 # - formulate set cover, set covering, and shift-scheduling problems as ILO models;
-# - model fixed costs and either/or conditions with big-M constraints and binary indicator
-#   variables, and formulate a single-machine scheduling problem as an ILO model.
+# - formulate a single-machine scheduling problem as an ILO model, and model fixed costs
+#   and either/or conditions with big-M constraints and binary indicator variables.
 
 # %% [markdown]
 # ## Applications in This Lecture
@@ -46,8 +46,19 @@
 #   between sources and destinations, or through intermediate nodes, at minimum cost.
 # - [Set Covering and Shift Scheduling](lecture9_covering.ipynb): choosing the cheapest
 #   set of shifts (or facilities) that between them cover every point that needs covering.
-# - [Machine Scheduling](lecture9_machine-scheduling.ipynb): the modeling tricks (big-M,
-#   disjunctive constraints) that build up to scheduling jobs on a single machine.
+# - [Machine Scheduling](lecture9_machine-scheduling.ipynb): scheduling jobs on a single
+#   machine, and the modeling tricks (big M, disjunctive constraints) that this needs.
 #
 # [Exercises](lecture9_exercises.ipynb) collects the larger, independent exercises for all
 # three.
+#
+# Every application is introduced in the same steps, which you can also follow when you
+# model a problem of your own:
+#
+# 1. a practical motivation;
+# 2. the modeling: a problem definition with generic notation and a concrete example,
+#    followed by the decision variables, the objective, the constraints and the complete
+#    (I)LO model, all in generic notation;
+# 3. the model for the example, written out with its numbers;
+# 4. solving the example in pulp;
+# 5. possible extensions.
