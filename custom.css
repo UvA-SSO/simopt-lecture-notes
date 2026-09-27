@@ -17,3 +17,16 @@
 .dark .js-plotly-plot .main-svg .js-fill {
   fill-opacity: 0.35 !important;
 }
+
+/* Link hover cards: the card is rendered outside the page content and its
+   title inherits the text colour, which is black in the dark theme. Give the
+   card (title and description) the page text colour, and in the dark theme a
+   border, since the drop shadow is not visible there. */
+.hover-card-content,
+.hover-card-content .prose {
+  color: var(--myst-color-text);
+}
+
+.dark .hover-card-content {
+  border: 1px solid var(--myst-color-border);
+}
