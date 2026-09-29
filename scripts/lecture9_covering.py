@@ -98,7 +98,7 @@ import pulp
 #
 # Every element $u$ must be in at least one of the sets taken. The number of sets taken
 # that contain $u$ is $\sum_{i=1}^{n} a_{iu} x_i$, because only the sets with
-# $a_{iu} = 1$ count. So, for every $u \in U$,
+# $a_{iu} = 1$ count. In particular, $a_{iu} x_i$ is either 0 or 1 and it is only 1 if $a_{iu} x_i = 1$: We take set $i$ which contains element $u$. So, for every $u \in U$,
 #
 # $$
 # \sum_{i=1}^{n} a_{iu} x_i \ge 1.
@@ -345,7 +345,7 @@ print("total cost:", roster.objective.value())
 # Requiring $b_u$ staff in every interval can be expensive when a single peak interval
 # forces extra shifts. An alternative is to allow under- and overstaffing and penalize
 # both in the objective. This needs the modeling trick for absolute values from
-# [Robust Regression](lecture10_modeling-tools.ipynb) and is an exercise there.
+# [Robust Regression](lecture10_modeling-tools.ipynb).
 #
 # #### Interactions Between Intervals
 #

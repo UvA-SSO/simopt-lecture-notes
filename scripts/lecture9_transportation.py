@@ -118,7 +118,7 @@ import pulp
 # $$
 #
 # Here "$=$" would also be correct, but it is not needed: shipping more than the demand
-# only adds cost, so a minimizing optimizer never does it. Finally, we cannot ship
+# only adds cost (assuming they are $>0$), so a minimizing optimizer never does it. Finally, we cannot ship
 # negative amounts, so $x_{ij} \ge 0$. A feasible solution only exists if the total
 # supply is at least the total demand, $\sum_i a_i \ge \sum_j b_j$.
 #
@@ -135,7 +135,7 @@ import pulp
 #
 # This is an LO model: we did not require the $x_{ij}$ to be integer. That is no loss
 # here: when all supplies and demands are integer, the corner points of the feasible
-# region of a transportation problem are integer, so the LO optimum ships whole units
+# region of a transportation problem are integer, so the LO optimum found with the simplex method ships whole units
 # anyway.
 
 # %% [markdown]
@@ -218,13 +218,6 @@ print("total cost:", transport.objective.value())
 # This extends to a full network by stacking several layers of intermediate nodes, and it
 # is the model behind the shortest-path and maximum-flow problems in
 # [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb).
-#
-# #### Fixed Costs per Link
-#
-# In practice, using a link at all can have a cost of its own, for example for a truck
-# that has to drive regardless of how full it is. Such a fixed cost is not linear in
-# $x_{ij}$, but it can be modeled with a binary variable per link; see [Big M and
-# Indicator Variables](lecture9_machine-scheduling.ipynb#big-m-indicator).
 
 # %% [markdown]
 # ## References

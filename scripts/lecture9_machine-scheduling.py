@@ -26,7 +26,7 @@
 # scheduling is different: two of its requirements, that jobs do not overlap and that
 # lateness is only penalized when a job is actually late, are not linear at first
 # sight. We model the problem in the same steps as the other applications in this
-# lecture, and introduce the *tricks* that make it linear where the model needs them.
+# lecture, and introduce the *tricks* that make it linear.
 # After the model, we look at these tricks in general: binary variables combined with a
 # big M turn either/or choices, fixed costs and conditional constraints into linear
 # constraints.
