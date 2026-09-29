@@ -146,11 +146,11 @@
 # %% [markdown]
 # ### Solving the Example in pulp
 #
-# The binary variables (`cat="Binary"`) are the same as in the [knapsack
+# The binary variables (`cat="Binary"`) are similarly setup as in the [knapsack
 # problem](lecture8_integer-optimization.ipynb). New is the derived index set: the data
 # is stored as the sets themselves (a Python `set` per base), and the sum
 # $\sum_{i \in I_u} x_i$ becomes a sum over only those bases whose set contains $u$,
-# written with an `if` inside the generator. We do not have to build $I_u$ separately.
+# written with an `if` inside the generator. We do not necessarily have to build $I_u$ separately.
 
 # %%
 import pulp
