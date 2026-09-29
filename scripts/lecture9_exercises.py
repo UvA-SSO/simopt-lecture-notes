@@ -93,7 +93,7 @@
 #    \text{s.t.} \quad & x_{11} + x_{12} \le 20 & \text{(hours worker 1)} \\
 #    & x_{21} + x_{22} \le 20 & \text{(hours worker 2)} \\
 #    & x_{31} + x_{32} \le 5 & \text{(hours worker 3)} \\
-#    & 0.1x_{11} + 2x_{21} + 5x_{31} \ge 30 & \text{(task 1)} \\
+#    & 0.1x_{11} + 2x_{21} + 5x_{31} \ge 30 & \text{(task 1)} \quad (\ast) \\
 #    & 10x_{12} + 2x_{22} + 8x_{32} \ge 40 & \text{(task 2)} \\
 #    & x_{ij} \ge 0, \quad i = 1, 2, 3,\ j = 1, 2.
 #    \end{aligned}
@@ -101,8 +101,7 @@
 #
 #    The objective is the total number of hours worked. The first three constraints make
 #    sure no worker works more than their available hours, and the last two that each
-#    task gets at least its required effective hours. We call the task-1 constraint $(\ast)$
-#    below.
+#    task gets at least its required effective hours.
 #
 # b. The restriction is $x_{12} \le 5$.
 #
@@ -546,7 +545,7 @@ plt.show()
 # :::
 
 # %% [markdown]
-# :::{exercise}
+# ::::{exercise}
 # :label: hw-9-6
 #
 # A company ships a product from two warehouses, A and B, to three customers, C1, C2 and C3. The supply of each warehouse, the demand of each customer and the transport cost per unit are given in the code below. The transportation model is
@@ -561,6 +560,18 @@ plt.show()
 # $$
 #
 # with $x_{ij}$ the number of units shipped from warehouse $i$ to customer $j$, $c_{ij}$ the cost per unit, $a_i$ the supply and $b_j$ the demand.
+#
+# :::{tip} Useful pulp Constructs
+# The following pulp constructs from the lecture notes may be useful:
+#
+# - `pulp.LpMinimize` and `pulp.LpMaximize` for the `sense` of a problem;
+# - `pulp.LpVariable(name="...", lowBound=0)` for a continuous decision variable, and
+#   `pulp.LpVariable(name="...", cat="Binary")` for a binary one;
+# - `pulp.lpSum(...)` for the sum of a generator expression;
+# - `problem += expression` to set the objective, and
+#   `problem += constraint, "name"` to add a named constraint;
+# - `problem.solve(pulp.PULP_CBC_CMD(msg=False))` to solve with the CBC solver.
+# :::
 #
 # a. Complete the code by replacing each `...`, so that it solves this model and prints the status, the positive shipments and the total cost.
 #
@@ -602,18 +613,7 @@ plt.show()
 # b. Warehouse B can ship at most 10 units to customer C2. Change the code of part a to take this into account.
 #
 # c. Start again from the code of part a. Using a warehouse costs a fixed amount per day, on top of the transport costs: 100 for A and 150 for B. A warehouse that is not used costs nothing, but cannot ship anything. Change the code so that it finds the cheapest plan, including the choice of which warehouses to use. Motivate your changes.
-#
-# The following pulp constructs from the lecture notes may be useful:
-#
-# - `pulp.LpMinimize` and `pulp.LpMaximize` for the `sense` of a problem;
-# - `pulp.LpVariable(name="...", lowBound=0)` for a continuous decision variable, and
-#   `pulp.LpVariable(name="...", cat="Binary")` for a binary one;
-# - `pulp.lpSum(...)` for the sum of a generator expression, such as
-#   `pulp.lpSum(ship[i, j] for j in demand)`;
-# - `problem += expression` to set the objective, and
-#   `problem += constraint, "name"` to add a named constraint;
-# - `problem.solve(pulp.PULP_CBC_CMD(msg=False))` to solve with the CBC solver.
-# :::
+# ::::
 
 # %% [markdown]
 # ::::{solution} hw-9-6
