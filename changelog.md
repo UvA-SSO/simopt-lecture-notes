@@ -4,6 +4,14 @@ The lecture notes are updated during the course. This page lists what changed in
 
 Small fixes (typos, formatting) are grouped into a single line. Each entry links to the full list of changes on GitHub.
 
+## 2026-09-29 11:10
+
+- The Lecture 9 applications ([Transportation and Transshipment](notebooks/lecture9_transportation.ipynb), [Set Covering and Shift Scheduling](notebooks/lecture9_covering.ipynb), [Machine Scheduling](notebooks/lecture9_machine-scheduling.ipynb)) and the Lecture 10 applications ([inventory planning and robust regression](notebooks/lecture10_modeling-tools.ipynb)) now follow the same steps as the slides: practical motivation, the general model built up step by step, the example model written out, and the solution in pulp, followed by extensions.
+- [Machine Scheduling](notebooks/lecture9_machine-scheduling.ipynb) first builds the scheduling model, introducing order variables and big M where the model needs them, and then treats big M, conditional and either/or constraints in general in a separate section.
+- [Integer Optimization](notebooks/lecture8_integer-optimization.ipynb): the knapsack problem is introduced in the same way as the other applications, followed by branch and bound for the knapsack example in its own section. The integer lattice plot now shows the optimal-profit line.
+- The [Lecture 9 homework exercises](notebooks/lecture9_exercises.ipynb) are reworked: every decision variable is defined explicitly, the exercise 3 network is redrawn, the couples exercise has numbers, and the pulp code exercise has hints. The class-scheduling exercise and the further exercises are removed.
+- [Full diff on GitHub](https://github.com/UvA-SSO/simopt-lecture-notes/compare/2026-09-27-0840...2026-09-29-1110)
+
 ## 2026-09-27 08:40
 
 - Solving models with pulp works in Google Colab again. Since 24 September, the solve cells failed there with a CBC error; they now use `pulp.PULP_CBC_CMD(msg=False)` again, as before.
