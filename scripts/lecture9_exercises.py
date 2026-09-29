@@ -46,6 +46,8 @@
 # ## Homework Exercises
 
 # %% [markdown]
+# ### Exercise 1
+#
 # :::{exercise}
 # :label: hw-9-1
 #
@@ -148,6 +150,8 @@
 # :::
 
 # %% [markdown]
+# ### Exercise 2
+#
 # :::{exercise}
 # :label: hw-9-2
 #
@@ -315,6 +319,8 @@ ax.axis("off")
 plt.show()
 
 # %% [markdown]
+# ### Exercise 3
+#
 # ::::{exercise}
 # :label: hw-9-3
 #
@@ -405,6 +411,8 @@ plt.show()
 # :::
 
 # %% [markdown]
+# ### Exercise 4
+#
 # :::{exercise}
 # :label: hw-9-4
 #
@@ -474,6 +482,8 @@ plt.show()
 # :::
 
 # %% [markdown]
+# ### Exercise 5
+#
 # :::{exercise}
 # :label: hw-9-5
 #
@@ -545,6 +555,8 @@ plt.show()
 # :::
 
 # %% [markdown]
+# ### Exercise 6
+#
 # ::::{exercise}
 # :label: hw-9-6
 #
