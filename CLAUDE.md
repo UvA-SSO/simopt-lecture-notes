@@ -223,7 +223,8 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
     figure background, every text on its own box (branch labels in white
     boxes), and legends moved into the caption as page text.
   - Older notebooks (lecture 10, 12) still use plain matplotlib.
-- Put all `import` statements for a notebook in its **first** code cell. `isort`
+- Put all `import` statements for a notebook at the top of its **first** code cell
+  (the first cell that actually runs code, not a separate import-only cell). `isort`
   runs with `--float-to-top` and will relocate any `import` found in a later
   cell up to the first one on the next pre-commit run, which silently breaks
   cell boundaries/comments placed next to it if it isn't already there.
