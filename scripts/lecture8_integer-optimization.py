@@ -155,6 +155,17 @@ lattice.add_trace(
         hoverinfo="skip",
     )
 )
+int_profit = int_mix.objective.value()
+lattice.add_trace(
+    go.Scatter(
+        x=[0, 6.2],
+        y=[int_profit / 5, (int_profit - 3 * 6.2) / 5],
+        mode="lines",
+        line={"color": GREY, "dash": "dash"},
+        name=f"3x + 5y = {int_profit:g} (optimal profit)",
+        hoverinfo="skip",
+    )
+)
 grid = [(x, y) for x in range(7) for y in range(5)]
 feasible_pts = [(x, y) for x, y in grid if x + 3 * y <= 12 and 2 * x + y <= 10]
 infeasible_pts = [pt for pt in grid if pt not in feasible_pts]
@@ -214,7 +225,7 @@ lattice.show(config=PLOT_CONFIG)
 # :::{figure} #lattice-plot
 # :label: fig-lattice
 #
-# Feasible region of the integer product-mix problem with its integer points, the optimum of the LO relaxation (star) and the ILO optimum (diamond). Hover over a point to see its coordinates and profit.
+# Feasible region of the integer product-mix problem with its integer points, the optimum of the LO relaxation (star) and the ILO optimum (diamond). The dashed line contains all points with the optimal integer profit 24: no integer feasible point lies above it, while the LO optimum does. Hover over a point to see its coordinates and profit.
 # :::
 
 # %% [markdown]

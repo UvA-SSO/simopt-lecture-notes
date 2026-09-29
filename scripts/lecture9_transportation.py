@@ -36,10 +36,8 @@
 # On completion of this notebook, you will be able to:
 #
 # - recognize and formulate the transportation problem;
+# - use decision variables with multiple indices, such as $x_{ij}$, in a model and in pulp;
 # - extend a transportation model to transshipment with flow-conservation constraints.
-
-# %%
-import pulp
 
 # %% [markdown]
 # ## The Transportation Problem
@@ -166,6 +164,8 @@ import pulp
 # a variable is only created for a link that has a cost.
 
 # %%
+import pulp
+
 supply = {"W1": 30, "W2": 25}
 demand = {"S1": 20, "S2": 15, "S3": 20}
 cost = {

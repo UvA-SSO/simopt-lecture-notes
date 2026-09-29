@@ -21,9 +21,6 @@
 #
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_simulation-optimization.ipynb)
 
-# %%
-import numpy as np
-
 # %% [markdown]
 # Up to now we considered optimization problems that involved no randomness. However, few problems in practice are completely predictable. Although sometimes replacing random variables by constants can give a decent approximation, it can also result in very wrong results, as we saw in the [project planning example](lecture8_linear-optimization.ipynb#project-planning).
 #
@@ -98,6 +95,8 @@ import numpy as np
 # **Worked example: two order quantities, with and without CRN.** A shop is deciding between ordering 8 or 12 units of a product; demand is Poisson with mean 10, sold at €5 and bought at €3 per unit, with unsold units worthless. We compare the two order quantities' profit both with independent demand draws and with CRN (the same demand realizations feeding both):
 
 # %%
+import numpy as np
+
 rng_crn = np.random.default_rng(7)
 n_crn = 5000
 price_crn, cost_crn = 5, 3

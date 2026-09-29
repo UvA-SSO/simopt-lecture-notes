@@ -40,9 +40,6 @@
 #   variable and a big M;
 # - model fixed costs and conditional constraints with binary indicator variables.
 
-# %%
-import pulp
-
 # %% [markdown]
 # (machine-scheduling)=
 # ## Single-Machine Scheduling
@@ -208,18 +205,22 @@ import pulp
 # %% [markdown]
 # ### Solving the Example in pulp
 #
-# Three things in the code below are new. The release dates are not added as separate
-# constraints but as lower bounds of the start-time variables (`lowBound=release[i]`),
-# which means the same to the solver. The order variables are binary
-# (`cat="Binary"`). And the big M is computed from the data instead of typed in, so it
-# stays large enough when the data changes.
+# The jobs are named `"J1"`, `"J2"` and `"J3"`, like the warehouses and stores in the
+# [transportation problem](lecture9_transportation.ipynb), so that `duration["J2"]` reads
+# as "the duration of job 2" and cannot be mistaken for a list position. Two things in
+# the code are new. The release dates are not added as separate constraints but as lower
+# bounds of the start-time variables (`lowBound=release[i]`), which means the same to the
+# solver. And the big M is computed from the data instead of typed in, so it stays large
+# enough when the data changes.
 
 # %%
-jobs = [1, 2, 3]
-duration = {1: 6, 2: 4, 3: 5}
-release = {1: 0, 2: 2, 3: 1}
-due = {1: 8, 2: 7, 3: 12}
-tardiness_cost = {1: 1, 2: 1, 3: 1}
+import pulp
+
+jobs = ["J1", "J2", "J3"]
+duration = {"J1": 6, "J2": 4, "J3": 5}
+release = {"J1": 0, "J2": 2, "J3": 1}
+due = {"J1": 8, "J2": 7, "J3": 12}
+tardiness_cost = {"J1": 1, "J2": 1, "J3": 1}
 big_m = max(release.values()) + sum(duration.values())
 
 single_machine = pulp.LpProblem(name="single_machine", sense=pulp.LpMinimize)
@@ -255,7 +256,7 @@ print("processing order:", order)
 print("total weighted tardiness:", single_machine.objective.value())
 
 # %% [markdown]
-# The optimal order is 1, 2, 3, with a total weighted tardiness of 6: jobs 2 and 3 are
+# The optimal order is J1, J2, J3, with a total weighted tardiness of 6: jobs 2 and 3 are
 # each 3 time units late. That is better than the order 1, 3, 2 from the example above,
 # which had tardiness 8.
 
@@ -284,18 +285,20 @@ print("total weighted tardiness:", single_machine.objective.value())
 # ### Big M and Indicator Variables
 #
 # Suppose a cost is incurred only when an activity is *used* at all, regardless of how
-# much. Take the [transportation problem](lecture9_transportation.ipynb) with an extra
-# fixed cost $K$ for every link that carries any flow. Introduce a binary $y_{ij}$
-# meaning "link $i \to j$ is used", add $K \sum_{i,j} y_{ij}$ to the objective, and tie
-# $y_{ij}$ to $x_{ij}$ with a big M, a constant larger than any $x_{ij}$ could ever be:
+# much. Take the [product-mix problem](lecture8_linear-optimization.ipynb) with $x$
+# bookcases and $y$ desks, and suppose that making any desks at all requires a special
+# tool with a fixed cost $K$, however many desks are made. Introduce a binary $z$
+# meaning "desks are made", subtract $K z$ from the profit $3x + 5y$, and tie $z$ to $y$
+# with a big M, a constant at least as large as $y$ could ever be:
 #
 # $$
-# x_{ij} \le M\, y_{ij}.
+# y \le M z.
 # $$
 #
-# If $x_{ij} > 0$ then $y_{ij}$ is forced to 1. If $x_{ij} = 0$ then $y_{ij}$ could be 0
-# or 1, but since $K > 0$ and we are minimizing, the optimizer sets it to 0. So
-# effectively $y_{ij} = 1 \Leftrightarrow x_{ij} > 0$. A binary variable used this way,
+# If $y > 0$ then $z$ is forced to 1. If $y = 0$ then $z$ could be 0 or 1, but since
+# $K > 0$ and we are maximizing profit, the optimizer sets it to 0. So effectively
+# $z = 1 \Leftrightarrow y > 0$. Here $M = 4$ is large enough: the oak-panel constraint
+# $x + 3y \le 12$ already gives $y \le 4$. A binary variable used this way,
 # to indicate whether something happens, is called an **indicator variable**.
 #
 # ### Conditional Constraints

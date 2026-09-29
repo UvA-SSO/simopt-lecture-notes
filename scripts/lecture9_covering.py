@@ -38,9 +38,6 @@
 # - explain why the integrality constraints cannot be dropped in a set cover problem;
 # - formulate shift-scheduling problems as covering problems and solve them with pulp.
 
-# %%
-import pulp
-
 # %% [markdown]
 # ## The Set Cover Problem
 #
@@ -87,8 +84,16 @@ import pulp
 # \quad i = 1, \dots, n.
 # $$
 #
-# Which set contains which element is data, not a decision. To write it as numbers, let
-# $a_{iu} = 1$ if $u \in S_i$ and $a_{iu} = 0$ otherwise.
+# Which set contains which element is data, not a decision. For the constraints it is
+# handy to turn this data around: for every element $u$, let
+#
+# $$
+# I_u = \{\, i \in \{1, \dots, n\} \mid u \in S_i \,\}
+# $$
+#
+# be the index set of the sets that contain $u$. In the example, location 1 is reached
+# by B1 and B5, so $I_1 = \{1, 5\}$. An index set derived from the data like this is a
+# common way to sum over only the terms that matter.
 #
 # #### Objective
 #
@@ -97,11 +102,11 @@ import pulp
 # #### Constraints
 #
 # Every element $u$ must be in at least one of the sets taken. The number of sets taken
-# that contain $u$ is $\sum_{i=1}^{n} a_{iu} x_i$, because only the sets with
-# $a_{iu} = 1$ count. In particular, $a_{iu} x_i$ is either 0 or 1 and it is only 1 if $a_{iu} x_i = 1$: We take set $i$ which contains element $u$. So, for every $u \in U$,
+# that contain $u$ is $\sum_{i \in I_u} x_i$, since only the sets in $I_u$ contain $u$.
+# So, for every $u \in U$,
 #
 # $$
-# \sum_{i=1}^{n} a_{iu} x_i \ge 1.
+# \sum_{i \in I_u} x_i \ge 1.
 # $$
 #
 # We use "$\ge 1$" and not "$= 1$": an element may well be covered twice (two bases
@@ -114,7 +119,7 @@ import pulp
 # $$
 # \begin{aligned}
 # \min \quad & \sum_{i=1}^{n} x_i \\
-# \text{s.t.} \quad & \sum_{i=1}^{n} a_{iu} x_i \ge 1, \quad u \in U \\
+# \text{s.t.} \quad & \sum_{i \in I_u} x_i \ge 1, \quad u \in U \\
 # & x_i \in \{0, 1\}, \quad i = 1, \dots, n.
 # \end{aligned}
 # $$
@@ -141,12 +146,15 @@ import pulp
 # %% [markdown]
 # ### Solving the Example in pulp
 #
-# Two things are new in pulp. First, `cat="Binary"` makes a variable binary. Second, the
-# data is stored as the sets themselves (a Python `set` per base) instead of the
-# numbers $a_{iu}$: the sum $\sum_i a_{iu} x_i$ becomes a sum over only those bases whose
-# set contains $u$, written with an `if` inside the generator.
+# The binary variables (`cat="Binary"`) are the same as in the [knapsack
+# problem](lecture8_integer-optimization.ipynb). New is the derived index set: the data
+# is stored as the sets themselves (a Python `set` per base), and the sum
+# $\sum_{i \in I_u} x_i$ becomes a sum over only those bases whose set contains $u$,
+# written with an `if` inside the generator. We do not have to build $I_u$ separately.
 
 # %%
+import pulp
+
 covers = {
     "B1": {1, 2, 3},
     "B2": {2, 3, 4},
@@ -196,7 +204,7 @@ print("bases:", [s for s in covers if pick[s].value() == 1])
 # $$
 # \begin{aligned}
 # \min \quad & \sum_{i=1}^{n} c_i x_i \\
-# \text{s.t.} \quad & \sum_{i=1}^{n} a_{iu} x_i \ge b_u, \quad u \in U \\
+# \text{s.t.} \quad & \sum_{i \in I_u} x_i \ge b_u, \quad u \in U \\
 # & x_i \in \{0, 1, 2, \dots\}, \quad i = 1, \dots, n.
 # \end{aligned}
 # $$
@@ -226,8 +234,8 @@ print("bases:", [s for s in covers if pick[s].value() == 1])
 # Shift scheduling is a covering problem. Split the day into time intervals
 # $U = \{1, \dots, m\}$, and let $b_u$ be the required staffing in interval $u$. Each of
 # the $n$ shift types $i$ works a set $S_i \subseteq U$ of intervals and costs $c_i$ per
-# worker. As before, $a_{iu} = 1$ if shift type $i$ works in interval $u$ and $0$
-# otherwise. The problem is to find the cheapest number of workers per shift type such
+# worker. As before, $I_u = \{\, i \in \{1, \dots, n\} \mid u \in S_i \,\}$ is the
+# index set of the shift types that work in interval $u$. The problem is to find the cheapest number of workers per shift type such
 # that every interval has at least its required staffing.
 #
 # As an example, a small shop is open from 8:00 to 12:00 (four one-hour intervals) and
@@ -260,10 +268,10 @@ print("bases:", [s for s in covers if pick[s].value() == 1])
 # #### Constraints
 #
 # The number of workers present in interval $u$ is the sum of the workers on all shift
-# types that work in $u$, which must be at least the requirement:
+# types in $I_u$, which must be at least the requirement:
 #
 # $$
-# \sum_{i=1}^{n} a_{iu} x_i \ge b_u, \quad u \in U.
+# \sum_{i \in I_u} x_i \ge b_u, \quad u \in U.
 # $$
 #
 # Overstaffing is allowed ("$\ge$"): with fixed shift lengths it is often unavoidable,
@@ -274,7 +282,7 @@ print("bases:", [s for s in covers if pick[s].value() == 1])
 # $$
 # \begin{aligned}
 # \min \quad & \sum_{i=1}^{n} c_i x_i \\
-# \text{s.t.} \quad & \sum_{i=1}^{n} a_{iu} x_i \ge b_u, \quad u \in U \\
+# \text{s.t.} \quad & \sum_{i \in I_u} x_i \ge b_u, \quad u \in U \\
 # & x_i \in \{0, 1, 2, \dots\}, \quad i = 1, \dots, n.
 # \end{aligned}
 # $$

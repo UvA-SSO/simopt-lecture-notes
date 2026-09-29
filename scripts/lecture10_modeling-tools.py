@@ -38,11 +38,6 @@
 # - formulate a robust regression problem as an LO model;
 # - describe the roles of solvers versus modeling tools, and choose between them.
 
-# %%
-import matplotlib.pyplot as plt
-import numpy as np
-import pulp
-
 # %% [markdown]
 # (production-inventory-model)=
 # ## Multi-Period Inventory Planning
@@ -153,6 +148,10 @@ import pulp
 # the initial stock `s0` in place of the previous period's stock variable.
 
 # %%
+import matplotlib.pyplot as plt
+import numpy as np
+import pulp
+
 demand = [7, 9, 5, 8]
 holding = [1, 1, 1, 1]
 order_cost = [8, 11, 7, 10]
