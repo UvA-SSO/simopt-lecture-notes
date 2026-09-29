@@ -95,7 +95,7 @@ print("optimal profit:", int_mix.objective.value())
 # feasible or optimal. The ILO optimum (the diamond) is the best *feasible* grid point,
 # which can be several steps away from the naive rounding of the relaxation.
 
-# %% tags=["remove-cell"] label="lattice-plot"
+# %% label="lattice-plot" tags=["remove-cell"]
 # Plot style for the light and the dark site theme: transparent background;
 # on the site, custom.css gives the text and grid lines the page colours.
 # TEXT_COLOR is the fallback elsewhere (Colab, local Jupyter). Zooming and
@@ -360,7 +360,7 @@ def draw_bb_tree(
     plt.show()
 
 
-# %% tags=["remove-cell"] label="bb-product-mix"
+# %% label="bb-product-mix" tags=["remove-cell"]
 draw_bb_tree(
     nodes={
         "root": (
@@ -417,16 +417,15 @@ draw_bb_tree(
 # %% [markdown]
 # ## The Knapsack Problem
 #
+# Let us now illustrate branch and bound on an archetypical ILO problem called the knapsack problem. We will first give a practical motivation for this problem, then we will model the problem as an ILO problem. The ILO problem will be made concrete for a small example, which is then solved in pulp. We finish with some extensions.
+#
 # ### Practical Motivation
 #
 # A transport company has one truck left for tomorrow and more shipment requests than
 # the truck can carry. Each shipment earns a known revenue and has a known weight, and
 # the truck has a maximum load. Which shipments should it accept to earn as much as
 # possible? The same question comes up when choosing which projects to fund from a fixed
-# budget, which pieces to cut from a steel plate, or which items to pack for a trip. It
-# is known as the **knapsack problem**, the archetypal binary ILO problem. Its simple
-# structure also makes it a good problem to see [branch and bound](#branch-and-bound)
-# at work, which we do after modeling and solving it with pulp.
+# budget, which pieces to cut from a steel plate, or which items to pack for a trip.
 
 # %% [markdown]
 # ### Modeling
@@ -604,7 +603,7 @@ print("total reward:", knapsack.objective.value())
 #
 # The figure below shows the branch-and-bound tree.
 
-# %% tags=["remove-cell"] label="bb-knapsack"
+# %% label="bb-knapsack" tags=["remove-cell"]
 draw_bb_tree(
     nodes={
         "root": (
