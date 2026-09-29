@@ -345,8 +345,7 @@ print("total cost:", roster.objective.value())
 # #### More Realistic Shifts
 #
 # Real instances have many more intervals (for example, half hours over a whole day)
-# and many more shift types, with different lengths, start times and breaks. The
-# [call-center exercise](lecture9_exercises.ipynb#ex-6-13) is such an instance.
+# and many more shift types, with different lengths, start times and breaks.
 #
 # #### Not Meeting Every Requirement
 #

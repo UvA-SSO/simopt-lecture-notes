@@ -392,10 +392,10 @@ plt.show()
 # :::{exercise}
 # :label: ex-6-17
 #
-# Take [the call-center staffing exercise](lecture9_exercises.ipynb#ex-6-13) with
-# only 8-hour shifts. Instead of requiring the staffing level to be met in every interval,
-# minimize the sum of absolute differences between staffing and demand. Formulate as an LO
-# and solve with pulp.
+# Take [the shift-scheduling example](lecture9_covering.ipynb#shift-scheduling).
+# Instead of requiring the staffing level to be met in every interval, minimize the sum of
+# absolute differences between staffing and requirement. Formulate as an ILO and solve
+# with pulp.
 # :::
 
 # %% [markdown]
@@ -552,7 +552,7 @@ print(
 # :::{exercise}
 # :label: ex-10-2
 #
-# Warm start [the shift-scheduling exercise](lecture9_exercises.ipynb#ex-6-13) from
+# Warm start [the shift-scheduling example](lecture9_covering.ipynb#shift-scheduling) from
 # the previous day's optimal schedule when one interval's demand changes slightly. Compare
 # the number of explored nodes (from the `msg=True` log) with and without the warm start.
 # :::
