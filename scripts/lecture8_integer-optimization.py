@@ -417,31 +417,99 @@ draw_bb_tree(
 # %% [markdown]
 # ## The Knapsack Problem
 #
-# The archetypal binary ILO problem is the **knapsack problem**: from a set of items, each with
-# a *reward* and a *weight*, choose a subset of maximum total reward whose total weight fits
-# a given capacity. Applications include which items to load in a truck, cutting stock in a steel
-# plant, and simple forms of portfolio selection.
+# ### Practical Motivation
 #
-# The knapsack problem is interesting in its own right, and its simple structure also makes it a good problem to see branch and bound at work. We first solve an instance with pulp and then solve the same instance by hand with branch and bound.
+# A transport company has one truck left for tomorrow and more shipment requests than
+# the truck can carry. Each shipment earns a known revenue and has a known weight, and
+# the truck has a maximum load. Which shipments should it accept to earn as much as
+# possible? The same question comes up when choosing which projects to fund from a fixed
+# budget, which pieces to cut from a steel plate, or which items to pack for a trip. It
+# is known as the **knapsack problem**, the archetypal binary ILO problem. Its simple
+# structure also makes it a good problem to see [branch and bound](#branch-and-bound)
+# at work, which we do after modeling and solving it with pulp.
+
+# %% [markdown]
+# ### Modeling
 #
-# Let us consider a concrete example with $n=4$ numbered items:
+# #### Problem Definition and Example
+#
+# There are $n$ items. Item $i$ has a *reward* $r_i$ and a *weight* $w_i$, and the
+# knapsack has a *capacity* $C$. The problem is to choose a subset of the items with
+# maximum total reward whose total weight does not exceed the capacity.
+#
+# As an example, take $n = 4$ items and capacity $C = 8$:
 #
 # | item $i$     | 1  | 2 | 3  | 4 |
 # |--------------|----|---|----|---|
 # | reward $r_i$ | 15 | 9 | 10 | 5 |
 # | weight $w_i$ | 1  | 3 | 5  | 4 |
 #
-# In here, the reward and weight of the $i$th item is denoted by $r_i$ and $w_i$, respectively. The capacity $C = 8$. Furthermore, define the binary decision variable $x_i$ as 1 if we take item $i$ and 0 otherwise. The ILO problem can then be stated as follows:
+# For example, taking items 2 and 3 gives a total reward of $9 + 10 = 19$ and a total
+# weight of $3 + 5 = 8$, which fits exactly. Adding item 1 as well would give a weight of
+# 9, which does not fit.
+#
+# #### Decision Variables
+#
+# For every item we decide whether to take it or not. An item cannot be taken in part,
+# so we use a binary decision variable per item:
+#
+# $$
+# x_i =
+# \begin{cases}
+# 1 & \text{if item } i \text{ is taken,} \\
+# 0 & \text{otherwise,}
+# \end{cases}
+# \quad i = 1, \dots, n.
+# $$
+#
+# #### Objective
+#
+# Item $i$ adds $r_i$ to the reward if it is taken ($x_i = 1$) and nothing if it is not
+# ($x_i = 0$), so the total reward is $r_i x_i$ summed over all items. We maximize
+#
+# $$
+# \sum_{i=1}^{n} r_i x_i.
+# $$
+#
+# #### Constraints
+#
+# In the same way, the total weight of the items taken is $\sum_{i=1}^{n} w_i x_i$,
+# which may not exceed the capacity:
+#
+# $$
+# \sum_{i=1}^{n} w_i x_i \le C.
+# $$
+#
+# Finally, $x_i \in \{0, 1\}$ for all $i$.
+#
+# #### Complete ILO Model
 #
 # $$
 # \begin{aligned}
-# \text{maximize} \quad & \sum_{i=1}^n r_i x_i \\
-# \text{subject to} \quad & \sum_{i=1}^n w_i x_i \le C \\
-# & x_i \in \{0, 1\} \text{ for all } i.
+# \max \quad & \sum_{i=1}^{n} r_i x_i \\
+# \text{s.t.} \quad & \sum_{i=1}^{n} w_i x_i \le C \\
+# & x_i \in \{0, 1\}, \quad i = 1, \dots, n.
 # \end{aligned}
 # $$
+
+# %% [markdown]
+# ### Modeling the Example
 #
-# This problem can be solved in pulp as follows.
+# $$
+# \begin{aligned}
+# \max \quad & 15x_1 + 9x_2 + 10x_3 + 5x_4 \\
+# \text{s.t.} \quad & x_1 + 3x_2 + 5x_3 + 4x_4 \le 8 \\
+# & x_1, x_2, x_3, x_4 \in \{0, 1\}.
+# \end{aligned}
+# $$
+
+# %% [markdown]
+# ### Solving the Example in pulp
+#
+# The only change from an LO model in pulp is `cat="Binary"` for the decision variables.
+# The items are numbered, so we store the data in lists and the variables in a list
+# `take`, where `take[i]` is $x_{i+1}$ (Python counts from 0). Printing the model is a
+# quick way to check that it matches the model above.
 
 # %%
 # data
@@ -456,7 +524,9 @@ take = [
     pulp.LpVariable(name=f"x_{i + 1}", cat="Binary") for i in range(n_items)
 ]
 knapsack += pulp.lpSum(reward[i] * take[i] for i in range(n_items))
-knapsack += pulp.lpSum(weight[i] * take[i] for i in range(n_items)) <= capacity
+total_weight = pulp.lpSum(weight[i] * take[i] for i in range(n_items))
+knapsack += total_weight <= capacity, "capacity"
+print(knapsack)
 
 # solve and print solution
 knapsack.solve(pulp.PULP_CBC_CMD(msg=False))
@@ -464,6 +534,9 @@ print("take items:", [i + 1 for i in range(n_items) if take[i].value() == 1])
 print("total reward:", knapsack.objective.value())
 
 # %% [markdown]
+# The optimal choice is items 1, 2 and 4, with a total reward of 29 and a total weight
+# of 8.
+#
 # :::{exercise}
 # :label: ex-6-10
 #
@@ -473,10 +546,32 @@ print("total reward:", knapsack.objective.value())
 # :::
 
 # %% [markdown]
+# ### Extensions
+#
+# #### Several Copies per Item
+#
+# If up to $u_i$ copies of item $i$ are available, $x_i$ becomes the number of copies
+# taken: replace $x_i \in \{0, 1\}$ by $x_i \in \{0, 1, \dots, u_i\}$, an integer
+# variable with upper bound $u_i$. The objective and the capacity constraint stay the
+# same.
+#
+# #### Several Knapsacks
+#
+# With several knapsacks $k = 1, \dots, K$ (for example, several trucks) with capacities
+# $C_k$, the decision is which item goes into which knapsack. Use a binary $x_{ik}$ that
+# is 1 if item $i$ goes into knapsack $k$, require $\sum_k x_{ik} \le 1$ so that every
+# item is used at most once, and give every knapsack its own capacity constraint
+# $\sum_i w_i x_{ik} \le C_k$.
+
+# %% [markdown]
+# ## Branch and Bound for the Knapsack Example
+#
+# We now solve the same example by hand with branch and bound.
+#
 # (knapsack-lo-relaxation)=
 # ### Solving the LO Relaxation
 #
-# Now let us solve our example with the branch and bound method. Every step of branch and bound solves an LO relaxation, so we first need to know how to do that. For the knapsack problem this turns out to be easy, and no LO solver is needed.
+# Every step of branch and bound solves an LO relaxation, so we first need to know how to do that. For the knapsack problem this turns out to be easy, and no LO solver is needed.
 #
 # In the LO relaxation, $x_i \in \{0, 1\}$ becomes $0 \leq x_i \leq 1$: we may take any fraction of an item, and a fraction $x_i$ of item $i$ gives reward $r_i x_i$ and uses capacity $w_i x_i$. Each unit of capacity should then go to the item that gives the most reward per unit of weight. So we sort the items in decreasing order of their **reward-to-weight ratio** $r_i / w_i$ and fill the knapsack in that order, taking each item completely as long as it fits. The first item that no longer fits completely is taken for the fraction that fills the remaining capacity, and all later items are left out. As a result, at most one variable in the optimal solution of the LO relaxation is fractional.
 #
@@ -494,7 +589,7 @@ print("total reward:", knapsack.objective.value())
 # In branch and bound, some variables are fixed to 0 or 1 in a subproblem. The same rule then still applies: items fixed to 1 are packed first, items fixed to 0 are left out, and the remaining items fill the remaining capacity in decreasing order of ratio. If the items fixed to 1 already exceed the capacity, the subproblem is infeasible.
 
 # %% [markdown]
-# ### Branch and Bound for the Knapsack Problem
+# ### Branch and Bound Steps
 #
 # With the LO relaxation in hand, we solve our example with branch and bound. Since the LO relaxation has at most one fractional variable, there is only one variable to branch on in each step, and branching on a binary variable means fixing it to 0 in one subproblem and to 1 in the other. We use the same step numbering as before:
 #

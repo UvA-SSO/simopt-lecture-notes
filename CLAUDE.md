@@ -240,7 +240,8 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   variables, define the objective, define the constraints) is the same for every
   optimization problem in this course. State that generality explicitly the first
   time it appears rather than re-deriving "the" approach fresh in each notebook.
-- Every application problem in Lectures 9 and 10 (and any new one) follows the
+- Every application problem in Lectures 9 and 10, the knapsack problem in
+  `lecture8_integer-optimization` (and any new one) follows the
   template from the Lecture 9 slides ("Approach to applications"), with these
   fixed headings under `## <Problem name>`: `### Practical Motivation`;
   `### Modeling` with `#### Problem Definition and Example` (generic notation
@@ -253,7 +254,8 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   choice where it is made (why `≥` and not `=`, why an extra variable), and
   introduce a trick (big M, the `e⁺ - e⁻` split) where the model first needs
   it, generalizing it in a separate `##` section afterwards if needed (see
-  `lecture9_machine-scheduling`). Lectures 8 and 11 intentionally keep their
+  `lecture9_machine-scheduling`; for knapsack, branch and bound follows as
+  its own `##` section). The rest of Lectures 8 and 11 intentionally keeps its
   own structure.
 - When introducing a new way of formulating a model in pulp, show a minimal
   direct implementation first, with the problem's numbers hardcoded into the
