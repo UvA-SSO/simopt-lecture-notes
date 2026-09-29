@@ -18,7 +18,8 @@ Dependencies are managed with `uv` (see `uv.lock`); Python `3.12` is pinned in
 ```sh
 uv sync                                        # install dependencies into .venv
 uv run jupyter book start --execute            # build, execute, and serve locally (reads myst.yml)
-uv run jupyter book build --execute --html     # one-shot build (used for verification)
+uv run jupyter book build --execute --site     # one-shot build (used for verification)
+uv run jupyter book build --execute --html     # static HTML export (slow, see below)
 uv run pre-commit run --all-files              # run all lint/format/sync hooks
 ```
 
@@ -32,7 +33,14 @@ There are no automated tests in this repo; a clean `--execute` build (or, if the
 network policy blocks `api.mystmd.org`'s template fetch, extracting and running each
 script's code cells directly with `uv run python`) is the closest thing to one.
 
-**Always clean up background build processes after checking a build.** `jupyter book
+**Verify with `--site`, not `--html`.** `jupyter book build --execute --site` builds
+the page content (`_build/site/content/<page>.json`, with every heading, directive and
+cross-reference) in about 10 s and exits on its own. Check a page by reading its JSON
+(e.g. the `mdast` headings and `exercise` nodes). Only use `--html` when the static HTML
+itself is needed: it adds a theme server and a render of every page on top, takes
+several times longer, and leaves processes running.
+
+**Always clean up background build processes after an `--html` build.** `jupyter book
 build --execute --html` starts a Jupyter server and then a local site server that keep
 running in the background even after the build itself has finished (they don't exit on
 their own, and a `timeout` wrapper only kills the outer `timeout`/`uv run` process, not
