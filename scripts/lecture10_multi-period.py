@@ -25,13 +25,10 @@
 # This notebook covers multi-period inventory planning: deciding how much to order in
 # each period so that all demand is met at the lowest total order and holding cost. It
 # is our first multi-period model, in which a decision in one period affects all later
-# periods, and it needs a new kind of variable, the state variable, to keep the model
-# short. Like the applications of [Lecture 9](lecture9_introduction.ipynb), the problem
+# periods, and it needs a new kind of variable, the state variable tracked over time. Like the applications of [Lecture 9](lecture9_introduction.ipynb), the problem
 # is introduced in the same steps: a practical motivation, the generic model built up
 # with the [four modeling steps](lecture8_linear-optimization.ipynb#modeling-approach),
-# the model for a concrete example, its solution in pulp, and possible extensions. The
-# next application, [Robust Regression](lecture10_robust-regression.ipynb), needs a
-# different trick.
+# the model for a concrete example, its solution in pulp, and possible extensions.
 #
 # **Learning outcomes**
 #
@@ -108,7 +105,7 @@
 # #### Constraints
 #
 # The stock at the end of period $t$ is the stock at the end of the previous period,
-# plus what is ordered, minus what is sold:
+# plus what is ordered for period $t$ (assuming it arrives at start of that period), minus what is sold during that period:
 #
 # $$
 # s_t = s_{t-1} + x_t - d_t, \quad t = 1, \dots, T.
@@ -216,4 +213,3 @@ print("total cost:", inventory.objective.value())
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. §6.3 (multi-period).
 #   Spreadsheet material replaced with pulp.
-# - `Course Materials/pulp_tutorial.py` (this course's PuLP tutorial, by Joost Berkhout).
