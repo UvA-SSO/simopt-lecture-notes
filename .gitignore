@@ -12,3 +12,4 @@ __pycache__/
 # Course construction files (not for sharing on Github)
 /Course Materials/
 cbc.log
+gurobi.log

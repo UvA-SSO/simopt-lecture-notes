@@ -71,6 +71,87 @@
 # | $x_i$ | 2 | 4 | 6 | 8 | 10 |
 # | $y_i$ | 5 | 4 | 9 | 3 | 7 |
 #
+# which we store as numpy arrays and plot in [](#fig-regression-data).
+
+# %%
+import numpy as np
+import plotly.graph_objects as go
+import pulp
+
+xs = np.array([2, 4, 6, 8, 10])
+ys = np.array([5, 4, 9, 3, 7])
+points = range(len(xs))
+
+# %% tags=["hide-input"]
+TEXT_COLOR = "#111827"
+PLOT_LAYOUT = {
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {"color": TEXT_COLOR, "size": 13},
+    "margin": {"l": 50, "r": 20, "t": 20, "b": 50},
+    "height": 380,
+    "legend": {
+        "bgcolor": "rgba(0,0,0,0)",
+        "orientation": "h",
+        "yanchor": "top",
+        "y": -0.2,
+    },
+}
+AXIS_STYLE = {
+    "gridcolor": "rgba(128,128,128,0.25)",
+    "zerolinecolor": "rgba(128,128,128,0.5)",
+}
+# static pictures: no hover, zoom or drag
+PLOT_CONFIG = {"displayModeBar": False, "staticPlot": True}
+X_RANGE = [-0.5, 11]
+SUBSCRIPT = "₀₁₂₃₄₅₆₇₈₉"
+
+
+def data_figure() -> go.Figure:
+    """The example data points, with the axes used in every plot."""
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=xs,
+            y=ys,
+            mode="markers",
+            marker={"size": 10, "color": "#1f77b4"},
+            name="data points",
+        )
+    )
+    fig.update_layout(**PLOT_LAYOUT)
+    fig.update_xaxes(title="x", range=X_RANGE, dtick=2, **AXIS_STYLE)
+    fig.update_yaxes(title="y", range=[0, 12], dtick=2, **AXIS_STYLE)
+    return fig
+
+
+def add_line(
+    fig: go.Figure, a: float, b: float, name: str, color: str, dash: str
+) -> None:
+    """Add the line a + bx over the plotted x range."""
+    line_x = np.array(X_RANGE)
+    fig.add_trace(
+        go.Scatter(
+            x=line_x,
+            y=a + b * line_x,
+            mode="lines",
+            line={"color": color, "dash": dash, "width": 2},
+            name=name,
+        )
+    )
+
+
+# %% tags=["remove-cell"] label="regression-data"
+data_figure().show(config=PLOT_CONFIG)
+
+# %% [markdown]
+# :::{figure} #regression-data
+# :label: fig-regression-data
+#
+# The five data points of the example.
+# :::
+
+# %% [markdown]
 # #### Decision Variables
 #
 # We choose the line, so its intercept $a$ and slope $b$ are decision variables. Both
@@ -104,6 +185,98 @@
 # $e_i^+ > 0$, the data point lies $e_i^+$ above the line; if $e_i^- > 0$, it lies
 # $e_i^-$ below the line.
 #
+# [](#fig-error-split) shows this for the example and the line with $a = 3$ and
+# $b = 0.5$, which is not the optimal one. The line crosses the $y$-axis at height
+# $a = 3$ and rises $b = 0.5$ for every unit that $x$ increases. Data points 1 and 3
+# lie above the line, with $e_1^+ = 1$ and $e_3^+ = 3$; data points 2, 4 and 5 lie
+# below it, with $e_2^- = 1$, $e_4^- = 4$ and $e_5^- = 1$. All other $e_i^+$ and
+# $e_i^-$ are 0, and the objective value of this line is $1 + 1 + 3 + 4 + 1 = 10$.
+
+# %% tags=["remove-cell"] label="error-split"
+trial_a, trial_b = 3, 0.5
+# label placement per data point (anchor, x shift, y shift), clear of the
+# line and the slope step
+LABEL_PLACE = {
+    0: ("right", -6, 0),
+    1: ("left", 6, 0),
+    2: ("left", 6, 0),
+    3: ("left", 6, 0),
+    4: ("center", 0, 30),
+}
+split = data_figure()
+add_line(split, trial_a, trial_b, "line a + bx", "#7f7f7f", "dash")
+for sign, color in [("+", "#ff7f0e"), ("-", "#9467bd")]:
+    seg_x: list[float | None] = []
+    seg_y: list[float | None] = []
+    for k in points:
+        on_line = trial_a + trial_b * xs[k]
+        error = ys[k] - on_line
+        if (error > 0) != (sign == "+") or error == 0:
+            continue
+        seg_x += [xs[k], xs[k], None]
+        seg_y += [on_line, ys[k], None]
+        label = f"e{SUBSCRIPT[k + 1]}{'⁺' if sign == '+' else '⁻'}"
+        anchor, x_shift, y_shift = LABEL_PLACE[k]
+        split.add_annotation(
+            x=xs[k],
+            y=(on_line + ys[k]) / 2,
+            text=f"{label} = {abs(error):g}",
+            xanchor=anchor,
+            xshift=x_shift,
+            yshift=y_shift,
+            showarrow=False,
+        )
+    split.add_trace(
+        go.Scatter(
+            x=seg_x,
+            y=seg_y,
+            mode="lines",
+            line={"color": color, "width": 3},
+            name="e⁺ (above the line)" if sign == "+" else "e⁻ (below)",
+        )
+    )
+# the intercept a, and the slope b as a step of 2 in x
+split.add_trace(
+    go.Scatter(
+        x=[0, 2, 2],
+        y=[trial_a, trial_a, trial_a + 2 * trial_b],
+        mode="lines+markers",
+        marker={"size": [8, 0, 0], "color": "#17becf"},
+        line={"color": "#17becf", "width": 2},
+        name="slope: +2 in x gives +2b in y",
+        showlegend=True,
+    )
+)
+split.add_annotation(
+    x=0,
+    y=trial_a,
+    text=f"a = {trial_a}",
+    xanchor="left",
+    xshift=4,
+    yshift=-14,
+    showarrow=False,
+)
+split.add_annotation(
+    x=2,
+    y=trial_a + trial_b,
+    text=f"2b = {2 * trial_b:g}",
+    xanchor="left",
+    xshift=4,
+    showarrow=False,
+)
+split.show(config=PLOT_CONFIG)
+
+# %% [markdown]
+# :::{figure} #error-split
+# :label: fig-error-split
+#
+# The data points of the example and the line $3 + 0.5x$ (not optimal). A data point
+# above the line has a positive error $e_i^+$, a data point below it a positive
+# $e_i^-$. The line starts at height $a = 3$ on the $y$-axis and rises by $2b = 1$ when
+# $x$ increases by 2.
+# :::
+
+# %% [markdown]
 # #### Constraints
 #
 # The only constraints connect the errors to the line:
@@ -144,17 +317,10 @@
 #
 # A variable without `lowBound` is free in pulp (its bounds default to $-\infty$ and
 # $\infty$), which is what we need for the intercept and the slope. The data points are
-# stored as numpy arrays, which pulp's expressions accept like ordinary numbers.
+# the numpy arrays `xs` and `ys` from above, which pulp's expressions accept like
+# ordinary numbers.
 
 # %%
-import matplotlib.pyplot as plt
-import numpy as np
-import pulp
-
-xs = np.array([2, 4, 6, 8, 10])
-ys = np.array([5, 4, 9, 3, 7])
-points = range(len(xs))
-
 robust_regression = pulp.LpProblem(
     name="robust_regression", sense=pulp.LpMinimize
 )
@@ -175,13 +341,9 @@ print(f"line: y = {a_hat:.2f} + {b_hat:.2f} x")
 print("sum of absolute errors:", robust_regression.objective.value())
 
 # %% tags=["remove-cell"] label="robust-fit"
-plt.figure(figsize=(5, 3.5))
-plt.scatter(xs, ys)
-grid = np.linspace(xs.min(), xs.max(), 50)
-plt.plot(grid, a_hat + b_hat * grid, color="grey")
-plt.xlabel("x")
-plt.ylabel("y")
-plt.show()
+fit = data_figure()
+add_line(fit, a_hat, b_hat, f"{a_hat:g} + {b_hat:g}x", "#7f7f7f", "solid")
+fit.show(config=PLOT_CONFIG)
 
 # %% [markdown]
 # :::{figure} #robust-fit
@@ -193,25 +355,75 @@ plt.show()
 #
 # The optimal line passes exactly through the first and the last data point. That is no
 # coincidence: as in every LO problem, there is an optimal solution in a corner point,
-# and for this model that means a line through (at least) two of the data points.
+# and for this model that means a line through (at least) two of the data points. Its
+# objective value is 8, lower than the 10 of the line in [](#fig-error-split).
 
 # %% [markdown]
 # ### Extensions
 #
 # #### Quantile Regression
 #
-# Weighting the two parts of the error differently,
-# $\min\, p \sum_i e_i^+ + (1 - p) \sum_i e_i^-$ with $0 < p < 1$, tilts the line toward
-# the upper or lower points: this is quantile regression ([](#fig-quantile-regression)).
-# With $p = 0.5$ it is the robust regression above; with $p = 0.9$, about 90% of the data
-# points lie below the line, which is useful for promising delivery times that are met
-# in 90% of the cases.
+# Weighting the two parts of the error differently tilts the line toward the upper or
+# lower points. For a quantile level $0 < p < 1$, the model becomes
 #
-# :::{figure} images/lecture9_fig6.11.png
-# :label: fig-quantile-regression
+# $$
+# \begin{aligned}
+# \min \quad & p \sum_{i=1}^{n} e_i^+ + (1 - p) \sum_{i=1}^{n} e_i^- \\
+# \text{s.t.} \quad & e_i^+ - e_i^- = y_i - (a + b x_i), \quad i = 1, \dots, n \\
+# & e_i^+, e_i^- \ge 0, \quad i = 1, \dots, n.
+# \end{aligned}
+# $$
 #
-# Quantile regression: the fitted line for different quantile levels $p$.
+# This is **quantile regression**. With $p = 0.5$, both parts get the same weight, which
+# gives the same optimal lines as robust regression (the objective is just halved).
+# With $p = 0.9$, a point above the line costs 9 times as much as a point below it, so
+# the line moves up until about 90% of the data points lie below it. This is useful for
+# promising delivery times that are met in 90% of the cases. Only the objective changes
+# in the pulp model:
+
+# %%
+quantile_line = {}
+for p in [0.5, 0.9]:
+    quantile_regression = pulp.LpProblem(
+        name="quantile_regression", sense=pulp.LpMinimize
+    )
+    intercept = pulp.LpVariable(name="a")
+    slope = pulp.LpVariable(name="b")
+    e_pos = [pulp.LpVariable(name=f"ep_{k + 1}", lowBound=0) for k in points]
+    e_neg = [pulp.LpVariable(name=f"en_{k + 1}", lowBound=0) for k in points]
+
+    above = pulp.lpSum(e_pos)
+    below = pulp.lpSum(e_neg)
+    quantile_regression += p * above + (1 - p) * below
+    for k in points:
+        prediction = intercept + slope * xs[k]
+        quantile_regression += ys[k] - prediction == e_pos[k] - e_neg[k]
+
+    quantile_regression.solve(pulp.PULP_CBC_CMD(msg=False))
+    quantile_line[p] = (intercept.value(), slope.value())
+    print(f"p = {p}: y = {intercept.value():.2f} + {slope.value():.2f} x")
+
+# %% tags=["remove-cell"] label="quantile-fit"
+quantile_fig = data_figure()
+styles = {0.5: ("#7f7f7f", "solid"), 0.9: ("#d62728", "dash")}
+for p, (a_p, b_p) in quantile_line.items():
+    color, dash = styles[p]
+    add_line(
+        quantile_fig, a_p, b_p, f"p = {p}: {a_p:g} + {b_p:g}x", color, dash
+    )
+quantile_fig.show(config=PLOT_CONFIG)
+
+# %% [markdown]
+# :::{figure} #quantile-fit
+# :label: fig-quantile-fit
+#
+# Quantile regression on the example data for $p = 0.5$ (the robust regression line)
+# and $p = 0.9$.
 # :::
+#
+# With only five data points, the $p = 0.9$ line passes through data points 1 and 3,
+# and the other three lie below it. With more data, roughly 10% of the points would lie
+# above the line.
 #
 # #### Absolute Values in Other Models
 #
