@@ -7,7 +7,7 @@ dependencies = [
     "jupyter-book>=2,<3",
     "jupytext>=1.16",
     "ipykernel>=6.29",
-    "pulp==3.3.2",
+    "pulp[highs]==3.3.2",
     "scipy>=1.13",
     "numpy>=1.26",
     "matplotlib>=3.9",

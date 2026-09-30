@@ -53,8 +53,8 @@ You can also download the notebooks with the download button and run them locall
 
 These notes use PuLP 3.3.2. The newer PuLP 4.0 has since been released, and the code in these notes does not run on it (for example, `pulp.LpVariable(...)` and `pulp.PULP_CBC_CMD(...)` no longer exist in 4.0), so make sure you work with version 3.3.2:
 
-- In Google Colab, you do not need to install anything: Colab already provides PuLP 3.3.2, including the CBC solver.
-- Locally, install it with `pip install pulp==3.3.2`. This includes the CBC solver. If you already installed PuLP 4.0, the same command switches you back to 3.3.2.
+- In Google Colab, you do not need to install anything: Colab already provides PuLP 3.3.2 with the CBC and HiGHS solvers.
+- Locally, install it with `pip install "pulp[highs]==3.3.2"`. This includes the CBC solver and adds the HiGHS solver, which [Solvers and How to Help Them](notebooks/lecture10_solvers.ipynb) shows how to use (`pip install pulp==3.3.2` gives you CBC only). If you already installed PuLP 4.0, the same command switches you back to 3.3.2.
 - Check which version you have with `import pulp; print(pulp.__version__)`.
 
 PuLP's own website and many examples online now show PuLP 4.0 code. Much of it also runs on version 3.3.2, which already includes the new ways of writing a model, such as `prob.add_variable(...)` to create variables. Two things differ: reading the result of a solve (in 4.0, `stats = prob.solve()` and `stats.status_str` instead of `pulp.LpStatus[prob.status]`), and the solver (4.0 uses `pulp.COIN_CMD(...)`, which needs a separate CBC installation that Colab does not have). When in doubt, follow the code in these notes.

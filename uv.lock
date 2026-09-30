@@ -410,6 +410,27 @@ wheels = [
 ]
 
 [[package]]
+name = "highspy"
+version = "1.13.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ea/d7/95a83d0191852e76a79e2cb7002fc3c4a4652dea886f830cc7c1a1957107/highspy-1.13.0.tar.gz", hash = "sha256:280c592b04e977482c40562d25b79f460a02cf9b4642a088cd67cd5143cb31b5", size = 1598889, upload-time = "2026-02-04T10:32:17.114Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9d/fe/74d31066baa1a60fd58cd2365b68ca2e41fba649f398c3ed3ee0ff06b565/highspy-1.13.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:1af333b6d1dfe5b3790b34e0fa23e87ee25a2f283f7b225d374140e2315ff102", size = 2247227, upload-time = "2026-02-04T10:30:53.403Z" },
+    { url = "https://files.pythonhosted.org/packages/10/a5/e9f0c0663472306580bab75f26f71cb75210cad9e7f1255c1d9d594a8765/highspy-1.13.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:9d8511b72ce142e957c06010d5a4f86e4d11fa06fdd53a0a5cb11a64f4e506c7", size = 2062486, upload-time = "2026-02-04T10:30:55.345Z" },
+    { url = "https://files.pythonhosted.org/packages/bd/1c/c0ec0ceda51fba6e51dfe9cf3183d43ffa58888b603fc371f15cf44ff8a9/highspy-1.13.0-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:8e7f414ca899b43baadb2a5b9a8b070185d790f53e40b4a12909b2b5a5e28b2f", size = 2327691, upload-time = "2026-02-04T10:30:56.801Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/53/e0d491cf62fe40664e0c8320a31bc7d44116903a25f20c623b9a6afcc1c4/highspy-1.13.0-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0a4d757d342092df023c75d3f07d1837d4629f157ed82892472a6a84dfb611fa", size = 2534949, upload-time = "2026-02-04T10:30:58.158Z" },
+    { url = "https://files.pythonhosted.org/packages/40/42/6429ee4c271cf504afd7a9ec24697ea66aaac02ba03d317affa8cb491515/highspy-1.13.0-cp312-cp312-manylinux_2_26_i686.manylinux_2_28_i686.whl", hash = "sha256:0b7e98f451ab74be5410116205b39c7aec565dfec2f3845c84a86dc708589724", size = 2703883, upload-time = "2026-02-04T10:30:59.662Z" },
+    { url = "https://files.pythonhosted.org/packages/87/08/bcfa220d31845d844aa71d8f3d861e51a11e56a9237c2623b4540a97696e/highspy-1.13.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:8bfd7c811bc1fae79d1d3459560638f499d54b3f41cc2c20681d6b554e17a8c9", size = 3389266, upload-time = "2026-02-04T10:31:01.547Z" },
+    { url = "https://files.pythonhosted.org/packages/27/03/7aef1772c2f3f23e625f3af8cccbfe9622cdab504e8be7712d4a00458c96/highspy-1.13.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:78108603427fe479afdf9c841ebce4746d9080d6fa20a981823296fdaaeb5c09", size = 3950759, upload-time = "2026-02-04T10:31:03.699Z" },
+    { url = "https://files.pythonhosted.org/packages/70/00/732b80b92798b33d448391551f4a9dc9847b139120ed1dc235b2e09fbf60/highspy-1.13.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:ec6955348e7d0d3850338b5781516f47f171034a671676e3061c65bee9aceef2", size = 3618296, upload-time = "2026-02-04T10:31:05.177Z" },
+    { url = "https://files.pythonhosted.org/packages/7f/c5/7ec260af4eca42ca6ffd89c0b2855eff29355f899b4159f963aa6f242be6/highspy-1.13.0-cp312-cp312-win32.whl", hash = "sha256:78b4083dbc1bfdf41d38ea4f6e67941e241f5e9c9fe7774ba82583f4df3444f4", size = 1885777, upload-time = "2026-02-04T10:31:06.671Z" },
+    { url = "https://files.pythonhosted.org/packages/20/83/625d553d11917f5daa38f660c674e8e7c9d86054bd04cd0bbecbc957a85a/highspy-1.13.0-cp312-cp312-win_amd64.whl", hash = "sha256:5b2f7f46af7a9e80b1e211e13cdb5ff3b8db1e4bacd6e9ddb9707ae1b8bfe4e2", size = 2229763, upload-time = "2026-02-04T10:31:08.637Z" },
+]
+
+[[package]]
 name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -767,7 +788,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "plotly" },
-    { name = "pulp" },
+    { name = "pulp", extra = ["highs"] },
     { name = "scipy" },
 ]
 
@@ -790,7 +811,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", specifier = ">=2.2" },
     { name = "plotly", specifier = ">=5.24" },
-    { name = "pulp", specifier = "==3.3.2" },
+    { name = "pulp", extras = ["highs"], specifier = "==3.3.2" },
     { name = "scipy", specifier = ">=1.13" },
 ]
 
@@ -1349,6 +1370,11 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/4e/70/69be07a67621ad804d6cf347965eb4e0d7786a97330d99c31d735aaa6c5a/pulp-3.3.2.tar.gz", hash = "sha256:d0904700c207ac11e25e3b1213b70eae1d6fb25faa719d75f3f15054901258c0", size = 16305346, upload-time = "2026-05-25T09:41:26.207Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dd/6e/d674f1dde91c71e2ac19e5e5cf1ee6d5845e3aefecd9c39ed9c4b0c9a696/pulp-3.3.2-py3-none-any.whl", hash = "sha256:631b166f72086971a9597f7a0233ababa99bb8d50a01cd543f7758be5a9f86c0", size = 16391742, upload-time = "2026-05-25T09:41:22.2Z" },
+]
+
+[package.optional-dependencies]
+highs = [
+    { name = "highspy" },
 ]
 
 [[package]]

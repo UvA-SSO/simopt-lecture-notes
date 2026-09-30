@@ -14,7 +14,7 @@
 
 # %% [markdown]
 # ---
-# description: "Which solvers exist, how to read a solver log (incumbent, best bound, gap), how to help a slow solve, and how GenAI is used in optimization."
+# description: "Which solvers exist, how to read a solver log (incumbent, best bound, gap), and how to help a slow solve."
 # thumbnail: null
 # ---
 # # Lecture 10: Solvers and How to Help Them
@@ -27,8 +27,7 @@
 # solver can run for minutes or hours, and it is useful to know what it is doing in the
 # meantime. This notebook first compares the solvers that are available, then shows how
 # to read the log that a solver writes while it works, and what you can do when a solve
-# takes too long. It ends with the ways in which generative AI (GenAI) is used in
-# optimization. The applications of this lecture are
+# takes too long. The applications of this lecture are
 # [Multi-Period Inventory Planning](lecture10_multi-period.ipynb) and
 # [Robust Regression](lecture10_robust-regression.ipynb).
 #
@@ -40,8 +39,7 @@
 # - read a solver log: find the incumbent, the best bound and the gap, and tell whether
 #   finding a good solution or proving its optimality is the hard part;
 # - help a slow solve with a time limit or gap tolerance, a warm start, or a tighter
-#   formulation;
-# - describe three ways in which GenAI is used in optimization.
+#   formulation.
 
 # %% [markdown]
 # ## Solvers
@@ -72,9 +70,14 @@
 # [Integer Optimization](lecture8_integer-optimization.ipynb#branch-and-bound)) wraps
 # around an LO solver, with many improvements on top: preprocessing that simplifies the
 # model before the search starts, extra constraints (cuts) that tighten the LO
-# relaxations, and heuristics that look for good integer solutions. ILO solver
-# performance has improved by a factor of roughly 1000 between 2000 and 2020 through
-# better algorithms alone, comparable to the hardware speed-up over the same period.
+# relaxations, and heuristics that look for good integer solutions. Together with faster
+# computers, this has made ILO solving many orders of magnitude faster. Linderoth (2017)
+# estimates that from 1988 to 2017 the ILO algorithms became about 150,000 times faster
+# and the computers about 17,000 times, so that a typical ILO that would have taken 124
+# years to solve in 1988 is solved in one second in 2017. Koch et al. (2022) ran the
+# solvers of 2001 and of 2020 on the same benchmark problems: over these two decades the
+# computers became about 20 times faster and the ILO algorithms about 50 times, a total
+# speedup of about 1000.
 #
 # pulp can call any installed solver without changing the model; only the `.solve(...)`
 # line changes. To see what is available here:
@@ -93,6 +96,22 @@ print(pulp.listSolvers(onlyAvailable=True))
 # submit it to the free [NEOS Server](https://neos-server.org/neos/), which hosts many
 # solvers including commercial ones. If the variable and constraint names might leak
 # information about your data, pulp can anonymize them on export with `rename=1`.
+#
+# ### Calling Another Solver
+#
+# The list above has two solvers: CBC, which comes with pulp, and HiGHS, an open-source
+# solver for LO and ILO (Huangfu & Hall, 2018). In Colab, both are available without
+# installing anything. On your own computer, `pip install "pulp[highs]==3.3.2"`
+# installs pulp together with HiGHS (the Python package `highspy`). To solve a model
+# with HiGHS, only the solver in the `.solve(...)` call changes:
+#
+# ```python
+# product_mix.solve(pulp.HiGHS(msg=False))
+# ```
+#
+# The options `msg`, `timeLimit` and `gapRel` work the same as for `PULP_CBC_CMD`. pulp
+# also has `pulp.HiGHS_CMD`, which calls a separate HiGHS program instead of the Python
+# package. That program is not installed by pip or in Colab, so use `pulp.HiGHS`.
 
 # %% [markdown]
 # ## Reading the Solve Log
@@ -188,29 +207,37 @@ print("total weighted tardiness:", schedule.objective.value())
 # Recall from [branch and bound](lecture8_integer-optimization.ipynb#branch-and-bound)
 # that the solver keeps two numbers during the search. For a minimization problem:
 #
-# - The **incumbent** is the best integer solution found so far. Its objective value is
-#   an upper bound on the optimal value: the optimum is at least as good. In the CBC log,
-#   every line `Integer solution of ... found` reports a new incumbent, and `best
-#   solution` in a progress line is the incumbent's value.
+# - The **incumbent** is the best integer solution found so far. Its objective value,
+#   the incumbent value, is an upper bound on the optimal value: the optimum is at least
+#   as good. In the CBC log, every line `Integer solution of ... found` reports a new
+#   incumbent, and `best solution` in a progress line is the incumbent value. (Solver
+#   logs often label the incumbent value just "incumbent"; Gurobi's log, for example,
+#   has a column `Incumbent`.)
 # - The **best bound** is a lower bound on the optimal value: no integer solution can be
 #   better. It is the smallest LO relaxation value among the nodes of the tree that are
 #   still open, and it can only go up during the search. CBC calls it `best possible`.
 #
-# The **gap** is the distance between the two, relative to the incumbent:
+# The **gap** is the distance between the two, relative to the incumbent value:
 #
 # $$
-# \text{gap} = \frac{\text{incumbent} - \text{best bound}}{|\text{incumbent}|}.
+# \text{gap} = \frac{\text{incumbent value} - \text{best bound}}{|\text{incumbent value}|}.
 # $$
 #
 # A gap of 0 means that the incumbent is proven optimal, and that is when the solver
 # stops. (Solvers differ slightly in what they divide by; CBC's summary line at the end of
 # a stopped run divides by the best bound.)
 #
-# In the log above, CBC finds an incumbent right away, before branching starts, with a
-# heuristic called the feasibility pump. At the root node the best bound is about 6,
-# while the incumbent is almost 80. The later incumbents are found during the search, and
+# In the log above, CBC finds an incumbent right away, with a heuristic called the
+# feasibility pump. This happens at the **root node**, the first node of the
+# branch-and-bound tree: the LO relaxation of the whole model, before any variable is
+# branched on. The line `Cbc0010I After 0 nodes` is a progress line at the root node,
+# with the incumbent value (`best solution`) and the best bound (`best possible`).
+# There, the best bound is still below 10, while the incumbent value is almost 80. CBC writes
+# such a progress line after every 1000 nodes of the tree (see `CbcModel.cpp` in the
+# CBC source code); this solve needs fewer than 1000 nodes, so there is only the one at
+# the root. The later incumbents are found during the search, and
 # the last one is the optimum. After that, CBC keeps working until the bound has come up
-# to the incumbent: the line `Search completed` is the moment optimality is proven.
+# to the incumbent value: the line `Search completed` is the moment optimality is proven.
 # [](#fig-progress-10) shows both numbers over time.
 
 
@@ -311,7 +338,7 @@ def plot_progress(log_text: str) -> go.Figure:
             y=incumbent_v + incumbent_v[-1:],
             mode="lines+markers",
             line={"shape": "hv", "color": "#1f77b4", "width": 2},
-            name="incumbent (upper bound)",
+            name="incumbent value (upper bound)",
         )
     )
     progress.add_trace(
@@ -338,9 +365,10 @@ plot_progress(schedule_log).show(config=PLOT_CONFIG)
 # :::{figure} #progress-10
 # :label: fig-progress-10
 #
-# Incumbent and best bound during the solve of the 10-job scheduling instance. CBC only
-# reports the best bound at the root node, every 1000 nodes, and at the end, so in
-# reality it rises in more steps than the plot shows.
+# Incumbent value and best bound during the solve of the 10-job scheduling instance. CBC
+# reports the best bound only in its progress lines (at the root node and after every
+# 1000 nodes) and at the end. This solve needs fewer than 1000 nodes, so the plot shows
+# the bound only at the root and at the end; in between, it rises in many smaller steps.
 # :::
 
 # %% [markdown]
@@ -399,9 +427,9 @@ plot_progress(schedule12_log).show(config=PLOT_CONFIG)
 # :::{figure} #progress-12
 # :label: fig-progress-12
 #
-# Incumbent and best bound for the 12-job instance, stopped after 5 seconds. The
+# Incumbent value and best bound for the 12-job instance, stopped after 5 seconds. The
 # incumbent improves quickly at first and then more slowly; the best bound stays far
-# below it.
+# below the incumbent value.
 # :::
 
 # %% [markdown]
@@ -452,6 +480,17 @@ plot_progress(schedule12_log).show(config=PLOT_CONFIG)
 # released. In pulp, `.setInitialValue(...)` sets a variable's starting value, and
 # `warmStart=True` passes these values to CBC. The starting solution must give a value to
 # every variable, including the binary order variables.
+#
+# :::{note} Warm starting on Windows
+# pulp passes the starting solution to CBC in a temporary file. On Windows, CBC cannot
+# open that file at the path pulp gives it, so it ignores the warm start without an
+# error: the log then has no line `Cbc0045I MIPStart provided solution`, and pulp warns
+# `When using CBC on Windows, warmStart requires keepFiles=True`. With `keepFiles=True`,
+# pulp writes its files to the current folder under a short name, which CBC does find:
+# use `pulp.PULP_CBC_CMD(msg=False, warmStart=True, keepFiles=True)`. The files (named
+# after the model, ending in `.mps`, `.mst` and `.sol`) then stay in that folder after
+# the solve. This is not needed in Colab, which runs on Linux.
+# :::
 
 # %%
 schedule, start, before, tardy = build_single_machine(n_jobs=10, seed=1)
@@ -489,12 +528,6 @@ print("total weighted tardiness:", schedule.objective.value())
 # changes, such as the simulation-optimization loop in
 # [Simulation Optimization](lecture13_simulation-optimization.ipynb).
 #
-# :::{note} Warm starting on Windows
-# On your own Windows computer, CBC can only read the starting solution if pulp keeps its
-# temporary files: use `pulp.PULP_CBC_CMD(msg=False, warmStart=True, keepFiles=True)`.
-# This is not needed in Colab.
-# :::
-#
 # ### A Tighter Formulation
 #
 # The most effective help is often a better model. The weak bound of the scheduling
@@ -512,7 +545,9 @@ print("total weighted tardiness:", schedule.objective.value())
 # Solve the scheduling instance with `build_single_machine` for 8, 10 and 12 jobs (seed
 # 1), with a time limit of 20 seconds. For each size, read from the log when the last
 # incumbent was found and whether optimality was proven. How does the share of the time
-# spent on proving change with the number of jobs?
+# spent on proving change with the number of jobs? Repeat this with `pulp.HiGHS`
+# instead of CBC. Which solver is faster for each size, and which one reaches the smaller
+# gap within 20 seconds?
 # :::
 #
 # :::{exercise}
@@ -523,53 +558,6 @@ print("total weighted tardiness:", schedule.objective.value())
 # the number of explored nodes (`Enumerated nodes` in the log) with and without the warm
 # start.
 # :::
-
-# %% [markdown]
-# ## GenAI and Optimization
-#
-# Large language models (LLMs), the models behind GenAI assistants such as ChatGPT or
-# Claude, are studied for optimization in roughly three ways.
-#
-# The first is to let the LLM generate solutions directly. Yang et al. (2024) describe the
-# problem and a few earlier solutions with their objective values in a prompt, ask the
-# LLM for a better solution, and repeat. On small traveling salesman problems this finds
-# solutions as good as some simple heuristics, but the authors do not aim to beat
-# dedicated solvers, and larger instances no longer fit in a prompt. Their main
-# application is a different one: improving the prompts themselves. Keep in mind what the
-# first part of this notebook showed: a solver gives an incumbent and a bound, so it can
-# tell you how good its solution is. An LLM only gives an incumbent, without any
-# guarantee.
-#
-# The second is to make the LLM part of an optimization method. Liu et al. (2024) use an
-# LLM inside an evolutionary algorithm (a heuristic from
-# [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb)), where the LLM
-# combines and changes solutions to create new ones. In adaptive large neighborhood
-# search (ALNS), a heuristic that repeatedly destroys part of a solution and repairs it,
-# an LLM can write the code of the repair step. Brouwer (2025) compares letting an LLM
-# write repair steps in one go with improving them over several rounds in an
-# evolutionary way, on a flow shop scheduling problem and a variant of the traveling
-# salesman problem; the evolutionary approach works best.
-#
-# The third is to let the LLM assist the people involved. OptiMUS
-# (AhmadiTeshnizi et al., 2024) assists the modeler: from a problem description in plain
-# language, it writes an LO or ILO model and the solver code, runs and debugs the code,
-# checks the solution, and improves the model and code where needed. Wasserkrug et al.
-# (2024) aim at the decision-maker, who usually has no optimization expert at hand. They
-# propose research towards a Decision Optimization CoPilot: an assistant that talks with
-# the decision-maker in plain language to understand the business problem, and then
-# formulates and solves the optimization model. Their experiments with ChatGPT show that
-# LLMs can already do part of this, but that much research is still needed.
-#
-# The third use is the one you will meet most yourself, when you ask an assistant to help
-# with a pulp model. It can be a useful pair-programmer if used carefully:
-#
-# - paste the actual code and the actual error or solver log, not a paraphrase;
-# - always re-check a suggested model against your original formulation: it can flip a
-#   constraint's direction, quietly redefine a variable, or shift an index range, and pulp
-#   will build and solve the wrong model without complaint;
-# - `print(problem)` before and after any suggested change shows exactly what moved;
-# - for an `"Infeasible"` or `"Unbounded"` status, give it the full model text and ask it to
-#   find the conflicting or missing constraint.
 
 # %% [markdown]
 # (modeling-tools)=
@@ -589,21 +577,16 @@ print("total weighted tardiness:", schedule.objective.value())
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. §6.6 "Modeling Tools".
 #   AMPL and spreadsheet material replaced with pulp.
-# - AhmadiTeshnizi, A., Gao, W., & Udell, M. (2024). OptiMUS: Scalable optimization
-#   modeling with (MI)LP solvers and large language models. arXiv:2402.10172.
-#   https://arxiv.org/abs/2402.10172
-# - Brouwer, V. (2025). *AI-Driven Optimization in ALNS: Generating Repair Operators*.
-#   Master's thesis, Information Studies (Data Science), University of Amsterdam.
-#   https://dspace.uba.uva.nl/server/api/core/bitstreams/acb54db9-f55c-4da9-9158-92a1d11ad50f/content
-# - Liu, S., Chen, C., Qu, X., Tang, K., & Ong, Y.-S. (2024). Large language models as
-#   evolutionary optimizers. *2024 IEEE Congress on Evolutionary Computation (CEC)*.
-#   https://ieeexplore.ieee.org/document/10611913
+# - CBC source code, `Cbc/src/CbcModel.cpp` (version 2.10.3, the version included in
+#   PuLP 3.3.2). https://github.com/coin-or/Cbc/blob/releases/2.10.3/Cbc/src/CbcModel.cpp
+# - Huangfu, Q., & Hall, J. A. J. (2018). Parallelizing the dual revised simplex method.
+#   *Mathematical Programming Computation*, 10(1), 119-142. HiGHS: https://highs.dev
+# - Koch, T., Berthold, T., Pedersen, J., & Vanaret, C. (2022). Progress in
+#   mathematical programming solvers from 2001 to 2020. *EURO Journal on Computational
+#   Optimization*, 10, 100031. https://doi.org/10.1016/j.ejco.2022.100031
+# - Linderoth, J. (2017). Talk at FOCAPO 2017 (Foundations of Computer-Aided Process
+#   Operations). Numbers as shown in the Lecture 10 slides.
 # - Mittelmann, H. Benchmarks for optimization software. https://plato.asu.edu/bench.html
-# - Wasserkrug, S., Boussioux, L., den Hertog, D., Mirzazadeh, F., Birbil, Ş. İ., Kurtz,
-#   J., & Maragno, D. (2024). From large language models and optimization to decision
-#   optimization CoPilot: A research manifesto. arXiv:2402.16269.
-#   https://arxiv.org/abs/2402.16269
-# - Yang, C., Wang, X., Lu, Y., Liu, H., Le, Q. V., Zhou, D., & Chen, X. (2024). Large
-#   language models as optimizers. *International Conference on Learning Representations
-#   (ICLR)*. https://arxiv.org/abs/2309.03409
+# - PuLP issue #448, Warm Start feature not working for CBC with PuLP on Windows.
+#   https://github.com/coin-or/pulp/issues/448
 # - PuLP documentation: https://coin-or.github.io/pulp/

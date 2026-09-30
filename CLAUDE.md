@@ -284,8 +284,9 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   abbreviate the iterable right next to them (`for p in products`,
   `for res, cap in available.items()`). Single-letter decision variables
   (`x`, `y`) belong only in the direct, hardcoded version that mirrors the math.
-- PuLP version: this course uses PuLP 3.3.2 (pinned as `pulp==3.3.2` in
-  `pyproject.toml`), the version Google Colab provides and the one the notes
+- PuLP version: this course uses PuLP 3.3.2 (pinned as `pulp[highs]==3.3.2` in
+  `pyproject.toml`; the `highs` extra adds `highspy` so `pulp.HiGHS` is available,
+  as in Colab, so `pulp.HiGHS` can be demonstrated in `lecture10_solvers`), the version Google Colab provides and the one the notes
   were taught with. PuLP 4.0 removes what the notes use
   (`pulp.LpVariable(...)`, `LpVariable.dicts`, `PULP_CBC_CMD`) and changes how
   a solve result is read (`stats = prob.solve()`, `stats.status_str`). 3.3.2
