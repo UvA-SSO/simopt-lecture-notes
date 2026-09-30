@@ -30,8 +30,10 @@ project:
           title: Exercises
     - title: Lecture 10
       children:
-        - file: notebooks/lecture10_modeling-tools.ipynb
-          title: Modeling Tools and Solvers
+        - file: notebooks/lecture10_applications.ipynb
+          title: Multi-Period Planning and Robust Regression
+        - file: notebooks/lecture10_solvers.ipynb
+          title: Solvers and How to Help Them
         - file: notebooks/lecture10_exercises.ipynb
           title: Exercises
     - title: Lecture 11

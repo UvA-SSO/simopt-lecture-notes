@@ -14,29 +14,27 @@
 
 # %% [markdown]
 # ---
-# description: "Multi-period inventory planning and robust regression as optimization models, and the solvers and modeling tools such as pulp that solve them."
+# description: "Two applications that each need a modeling trick: multi-period inventory planning with state variables, and robust regression with absolute errors."
 # thumbnail: null
 # ---
-# # Lecture 10: Modeling Tools and Solvers
+# # Lecture 10: Multi-Period Planning and Robust Regression
 #
-# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture10_modeling-tools.ipynb)
+# [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture10_applications.ipynb)
 
 # %% [markdown]
-# This notebook has two halves. First, two more applications that need a modeling trick:
+# This notebook covers two more applications that each need a modeling trick:
 # multi-period inventory planning and robust regression. They are introduced in the same
 # steps as the applications of [Lecture 9](lecture9_introduction.ipynb): practical
 # motivation, generic model, the model for an example, its solution in pulp, and
-# extensions. Then the tooling: the solvers that actually do the optimizing, and the
-# modeling tools (algebraic modeling languages, and pulp) that sit between your problem
-# and a solver.
+# extensions. The next notebook, [Solvers and How to Help Them](lecture10_solvers.ipynb),
+# looks at what happens inside the solver once a model is handed to it.
 #
 # **Learning outcomes**
 #
 # On completion of this notebook, you will be able to:
 #
 # - model multi-period problems with state variables, such as inventory planning;
-# - formulate a robust regression problem as an LO model;
-# - describe the roles of solvers versus modeling tools, and choose between them.
+# - formulate a robust regression problem as an LO model.
 
 # %% [markdown]
 # (production-inventory-model)=
@@ -399,183 +397,9 @@ plt.show()
 # :::
 
 # %% [markdown]
-# ## Solvers
-#
-# The solver is the engine that does the optimizing. Very roughly:
-#
-# | | examples | notes |
-# |---|---|---|
-# | open-source | CBC (pulp's default), HiGHS, GLPK | free; fine for small and medium problems |
-# | commercial | Gurobi, CPLEX, FICO Xpress | fastest on hard/large ILO; free academic licenses |
-# | spreadsheet | Excel Solver, OpenSolver | Excel Solver is weak; OpenSolver embeds CBC |
-#
-# For LO, the classic method is the simplex algorithm (corner to corner). Since the 1980s,
-# interior-point methods move through the interior of the feasible region instead and solve
-# LO in provably polynomial time; modern solvers offer both. For ILO, branch and bound (see
-# [Integer Optimization](lecture8_integer-optimization.ipynb)) wraps around an LO solver.
-# ILO solver performance has improved by a factor of roughly 1000 between 2000 and 2020
-# through better algorithms alone, comparable to the hardware speed-up over the same
-# period.
-#
-# pulp can call any installed solver without changing the model; only the `.solve(...)`
-# line changes. To see what is available here:
-
-# %%
-print(pulp.listSolvers(onlyAvailable=True))
-
-# %% [markdown]
-# Without installing anything, you can also export the model to a standard `.mps` file and
-# submit it to the free [NEOS Server](https://neos-server.org/neos/), which hosts many
-# solvers including commercial ones. If the variable and constraint names might leak
-# information about your data, pulp can anonymize them on export with `rename=1`.
-
-# %% [markdown]
-# ## Modeling Tools
-#
-# Most of an optimization specialist's time goes into modeling, not solving. An algebraic
-# modeling language (AML), such as AMPL, AIMMS, or GAMS, is a language for writing a model
-# in near-mathematical notation, kept separate from the data, and handed to whichever
-# solver you choose. AMLs are quick to write, easy to communicate, and let you re-solve new
-# instances by swapping only the data; the downsides are cost, closed source, and awkward
-# embedding in other software. A decision support system (DSS) goes the other way: a solver
-# built into software for one specific task (vehicle routing, room pricing), used by domain
-# planners rather than modelers.
-#
-# [pulp](https://coin-or.github.io/pulp/) gives the AML benefits inside Python
-# (`pip install pulp` includes the CBC solver), plus everything Python brings for preparing data
-# and analyzing solutions. The key discipline is the same as an AML's model/data split:
-# keep the instance data in plain Python structures, and build the model (`LpProblem`,
-# variables, objective, constraints) from that data so the model code is reused unchanged
-# for a new instance.
-
-# %%
-jobs = ["A", "B", "C"]
-duration = {"A": 6, "B": 4, "C": 5}
-
-# %% [markdown]
-# `pulp.LpVariable.dicts` builds a dictionary of variables from a list of keys, which reads
-# more naturally than a list once there are several variable groups:
-
-# %%
-start = pulp.LpVariable.dicts(name="start", indices=jobs, lowBound=0)
-after = pulp.LpVariable.dicts(
-    name="after",
-    indices=[(p, q) for p in jobs for q in jobs if p != q],
-    cat="Binary",
-)
-print(start["B"], "/", after[("A", "B")])
-
-# %% [markdown]
-# Adding an expression *without* a comparison registers the objective; *with* a comparison,
-# a constraint. The optional trailing string names it, helpful when you `print` the
-# problem or read the solver log.
-
-# %%
-demo = pulp.LpProblem(name="demo", sense=pulp.LpMinimize)
-demo += (
-    pulp.lpSum(start[job] + duration[job] for job in jobs),
-    "sum_of_finish_times",
-)
-for job in jobs:
-    demo += start[job] <= 10, f"{job}_starts_by_10"
-print(demo)
-
-# %% [markdown]
-# `print(problem)` shows every variable, the objective, and every named constraint: the
-# first thing to do when a model misbehaves, especially on a small instance. Passing
-# `msg=True` to the solver shows its log; for CBC on an ILO the log reports each improved
-# integer solution and the remaining optimality gap (the guaranteed distance to the best
-# possible value). A run ending `Optimal` with gap 0% has *proven* optimality; a run
-# stopped early reports the best solution so far and the still-open gap.
-
-# %%
-demo.solve(pulp.PULP_CBC_CMD(msg=True))
-print("status:", pulp.LpStatus[demo.status])
-
-# %% [markdown]
-# ## Beyond the Lecture: Warm Starting
-#
-# When you re-solve a problem that is *almost* the same as one already solved (the same
-# knapsack with one more item, the same schedule with one duration changed), you can hand
-# the solver the old solution to warm start from: `.setInitialValue(...)` on each variable,
-# then solve with `warmStart=True`.
-
-# %%
-reward = [10, 13, 18, 31, 7, 15]
-weight = [2, 3, 4, 7, 1, 3]
-
-
-def build_knapsack(
-    capacity: float,
-) -> tuple[pulp.LpProblem, list[pulp.LpVariable]]:
-    problem = pulp.LpProblem(name="knapsack", sense=pulp.LpMaximize)
-    items = [
-        pulp.LpVariable(name=f"x_{i + 1}", cat="Binary")
-        for i in range(len(reward))
-    ]
-    problem += pulp.lpSum(reward[i] * items[i] for i in range(len(reward)))
-    problem += (
-        pulp.lpSum(weight[i] * items[i] for i in range(len(reward)))
-        <= capacity
-    )
-    return problem, items
-
-
-knap10, items10 = build_knapsack(capacity=10)
-knap10.solve(pulp.PULP_CBC_CMD(msg=False))
-print("capacity 10:", [v.value() for v in items10], knap10.objective.value())
-
-knap11, items11 = build_knapsack(capacity=11)
-for new, old in zip(items11, items10):
-    new.setInitialValue(old.value())
-knap11.solve(pulp.PULP_CBC_CMD(msg=False, warmStart=True))
-print(
-    "capacity 11, warm started:",
-    [v.value() for v in items11],
-    knap11.objective.value(),
-)
-
-# %% [markdown]
-# For a problem this small the effect is not measurable, but inside a loop that re-solves a
-# large ILO with small data changes (for example the simulation-optimization loop in
-# [Simulation Optimization](lecture13_simulation-optimization.ipynb)), a warm start can cut
-# the number of branch-and-bound nodes noticeably.
-#
-# :::{exercise}
-# :label: ex-10-1
-#
-# Re-solve the knapsack from [Integer Optimization](lecture8_integer-optimization.ipynb)
-# with `msg=True` and find, in the log, the point where CBC first proves optimality
-# (gap 0%).
-# :::
-#
-# :::{exercise}
-# :label: ex-10-2
-#
-# Warm start [the shift-scheduling example](lecture9_covering.ipynb#shift-scheduling) from
-# the previous day's optimal schedule when one interval's demand changes slightly. Compare
-# the number of explored nodes (from the `msg=True` log) with and without the warm start.
-# :::
-
-# %% [markdown]
-# ## Beyond the Lecture: Debugging with a GenAI Assistant
-#
-# A GenAI assistant (Claude, ChatGPT, ...) can be a useful pulp pair-programmer if used
-# carefully:
-#
-# - paste the actual code and the actual error or solver log, not a paraphrase;
-# - always re-check a suggested model against your original formulation: it can flip a
-#   constraint's direction, quietly redefine a variable, or shift an index range, and pulp
-#   will build and solve the wrong model without complaint;
-# - `print(problem)` before and after any suggested change shows exactly what moved;
-# - for an `"Infeasible"` or `"Unbounded"` status, give it the full model text and ask it to
-#   find the conflicting or missing constraint.
-
-# %% [markdown]
 # ## References
 #
-# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.3 (multi-period), §6.6
-#   "Modeling Tools", §6.7 "Modeling Tricks" (quantile regression). Spreadsheet and AMPL
-#   material replaced with pulp.
+# - Koole, G. (2019). *An Introduction to Business Analytics*. §6.3 (multi-period), §6.7
+#   "Modeling Tricks" (quantile regression). Spreadsheet material replaced with pulp.
 # - PuLP documentation: https://coin-or.github.io/pulp/
 # - `Course Materials/pulp_tutorial.py` (this course's PuLP tutorial, by Joost Berkhout).

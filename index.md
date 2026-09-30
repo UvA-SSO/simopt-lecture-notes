@@ -63,7 +63,7 @@ PuLP's website only documents the newest version. The documentation of version 3
 
 ## Tooling
 
-The simulation and optimization part of this course uses Python. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (see [Modeling Tools and Solvers](notebooks/lecture10_modeling-tools.ipynb)). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.
+The simulation and optimization part of this course uses Python. Python's built-in functions are deliberately minimal; the data-analysis functionality comes from libraries, most importantly `numpy` (arrays and numerical computing), `pandas` (tabular data), `matplotlib` (plotting), and `scipy` (statistics and scientific computing). For optimization we add `pulp` (introduced in [Linear Optimization](notebooks/lecture8_linear-optimization.ipynb); see [PuLP version](#pulp-version) for the version these notes use). These notes are themselves Jupyter notebooks, combining code, its output, and explanation.
 
 ## Contributing
 

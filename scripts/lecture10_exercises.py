@@ -14,7 +14,7 @@
 
 # %% [markdown]
 # ---
-# description: "Homework exercises for Lecture 10 on modeling tools and solvers."
+# description: "Homework exercises for Lecture 10 on multi-period planning, robust regression and reading a solver log."
 # thumbnail: null
 # ---
 # # Lecture 10: Exercises
@@ -23,7 +23,8 @@
 
 # %% [markdown]
 # The smaller exercises embedded in
-# [Modeling Tools and Solvers](lecture10_modeling-tools.ipynb) check what you just read.
+# [Multi-Period Planning and Robust Regression](lecture10_applications.ipynb) and
+# [Solvers and How to Help Them](lecture10_solvers.ipynb) check what you just read.
 # This notebook collects the larger exercises for Lecture 10: independent problems worth
 # more time.
 #
@@ -228,33 +229,47 @@
 # :::{exercise}
 # :label: hw-10-2
 #
-# a. Give three advantages of using pulp for solving ILO problems instead of Excel's
-#    solver.
+# A planner solves a single-machine scheduling ILO with 12 jobs (minimize the total weighted tardiness, as in [Machine Scheduling](lecture9_machine-scheduling.ipynb)) with CBC and a time limit of 30 seconds, and prints the result with `pulp.LpStatus[schedule.status]`. The key lines of the solver log are:
 #
-# b. Explain what an algebraic modeling language (AML) is used for. Name two examples.
+# ```text
+# Cbc0012I Integer solution of 412 found by feasibility pump after 0 iterations and 0 nodes (0.02 seconds)
+# Cbc0010I After 0 nodes, 1 on tree, 401 best solution, best possible 14.341153 (0.43 seconds)
+# Cbc0012I Integer solution of 284 found by heuristic after 9865 iterations and 41 nodes (0.80 seconds)
+# Cbc0010I After 1000 nodes, 235 on tree, 284 best solution, best possible 14.341153 (3.08 seconds)
+# Cbc0012I Integer solution of 278 found by heuristic after 60104 iterations and 1911 nodes (4.58 seconds)
+# Cbc0010I After 5000 nodes, 201 on tree, 278 best solution, best possible 14.341153 (8.71 seconds)
+# Cbc0010I After 10000 nodes, 140 on tree, 265 best solution, best possible 14.341153 (18.75 seconds)
+# Cbc0012I Integer solution of 237 found by heuristic after 329167 iterations and 10816 nodes (20.65 seconds)
+# Cbc0010I After 11000 nodes, 290 on tree, 237 best solution, best possible 14.341153 (20.94 seconds)
+# Cbc0005I Partial search - best objective 237 (best possible 14.341153), took 536803 iterations and 11726 nodes (30.01 seconds)
+# Result - Stopped on time limit
+# ```
 #
-# c. Rank the following ILO solvers from slow to fast: Gurobi, SCIP, Excel solver, CBC
-#    solver. What is the reason not everyone uses the fastest one?
+# a. Give the incumbent, the best bound and the gap when the solver stops. Is the final schedule optimal?
+#
+# b. What does `pulp.LpStatus[schedule.status]` print? How can the planner tell from pulp, without reading the log, whether the schedule is proven optimal?
+#
+# c. Which part of the work is hard for the solver here: finding good schedules, or proving that a schedule is optimal? Motivate your answer with the log.
+#
+# d. A colleague suggests adding `gapRel=0.05`. Another suggests a warm start from the earliest-due-date schedule, which has a total weighted tardiness of 428. Would either suggestion give a better result within the 30 seconds? Explain.
+#
+# e. Name one open-source and one commercial ILO solver. What is the reason not everyone uses the fastest one?
 # :::
-#
 
 # %% [markdown]
-#
 # :::{solution} hw-10-2
 # :label: sol-hw-10-2
 # :class: dropdown
 #
-# a. pulp comes with a better solver than Excel's; pulp is open-source; and with pulp, the
-#    data and the model are kept separate, so new instances (different sizes) can be
-#    solved much more easily than by rebuilding an Excel sheet.
+# a. The incumbent is 237 and the best bound is 14.34, so the gap is $(237 - 14.34)/237 \approx 0.94$, or 94%. The schedule is not proven optimal: all we know is that the optimal total weighted tardiness lies between 14.34 and 237. It may still be optimal, but the solver cannot show it (a longer run finds a schedule with 202, so here it is not).
 #
-# b. An algebraic modeling language (AML), such as AMPL or pulp, lets you write an ILO
-#    model in abstract terms; it then acts as the interface between data and a solver by
-#    turning the abstract model into a concrete instance from the data, calling the
-#    solver, and presenting the results. An AML is not itself a solver.
+# b. It prints `Optimal`, even though the solver stopped on the time limit. `pulp.LpSolution[schedule.sol_status]` prints `Solution Found` for a feasible solution that is not proven optimal, and `Optimal Solution Found` only when optimality is proven.
 #
-# c. From slow to fast: Excel solver, CBC, SCIP, Gurobi. The fastest is proprietary
-#    (though a student license is available), which limits its use in practice.
+# c. Proving is the hard part. The best bound does not move at all after the root node (14.34 throughout), so the gap can never close in this time. The incumbent keeps improving until about 21 seconds (from 412 to 237), so finding better schedules is not easy either, but at least it makes progress.
+#
+# d. Neither helps. With `gapRel=0.05`, CBC stops once the gap is below 5%, but the gap stays around 94%, so the solve runs until the time limit as before. The warm start gives a first incumbent of 428, which is worse than the 412 that CBC finds by itself after 0.02 seconds, and a warm start does not raise the best bound. What could help is more time, or a formulation with a stronger LO relaxation.
+#
+# e. Open-source: for example CBC, HiGHS or SCIP. Commercial: for example Gurobi, CPLEX or FICO Xpress. The commercial solvers are the fastest, but they are expensive outside academia (there are free academic licenses), which limits their use in practice.
 # :::
 
 # %% [markdown]

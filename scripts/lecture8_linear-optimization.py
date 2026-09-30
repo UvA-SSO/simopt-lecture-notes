@@ -164,6 +164,7 @@ print(f"x = {x.value()}, y = {y.value()}")
 print("optimal profit:", product_mix.objective.value())
 
 # %% [markdown]
+# (separating-data)=
 # ## Separating Data from the Model
 #
 # The direct version above hardcodes every number into the model itself, which is fine for
@@ -206,8 +207,8 @@ print("optimal profit:", optimal_profit)
 # 5, 12, or 10 anywhere: it works unchanged for any number of products and resources, as
 # long as `profit`, `resource_use`, and `available` describe them. This is the pattern we
 # use for every larger model from here on, and it is also the discipline behind the
-# algebraic modeling languages (AMLs) introduced in
-# [Modeling Tools and Solvers](lecture10_modeling-tools.ipynb).
+# [algebraic modeling languages](lecture10_solvers.ipynb#modeling-tools) (AMLs) that
+# were used for optimization models before Python libraries like pulp.
 
 # %% [markdown]
 # (larger-lo-example)=

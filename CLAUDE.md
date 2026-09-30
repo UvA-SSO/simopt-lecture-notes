@@ -230,7 +230,11 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
     matplotlib images that scale with the screen (`draw_bb_tree`): transparent
     figure background, every text on its own box (branch labels in white
     boxes), and legends moved into the caption as page text.
-  - Older notebooks (lecture 10, 12) still use plain matplotlib.
+  - A static chart with axis text (e.g. the incumbent/best-bound plots in
+    `lecture10_solvers`) uses the same plotly style with
+    `config={"displayModeBar": False, "staticPlot": True}`, so `custom.css`
+    still recolours its text for the dark theme while hover and zoom are off.
+  - Older notebooks (lecture 10 applications, 12) still use plain matplotlib.
 - Put all `import` statements for a notebook at the top of its **first** code cell
   (the first cell that actually runs code, not a separate import-only cell). `isort`
   runs with `--float-to-top` and will relocate any `import` found in a later
@@ -428,6 +432,10 @@ failure — fix and re-run rather than expecting later hooks to also report.
 Run `uv run pre-commit run --all-files` before committing lecture note changes.
 It can fail on the first run with jupytext's `SynchronousModificationError`
 (two hook batches syncing the same pair at once); just re-run it.
+
+`pre-commit run --all-files` only sees files git tracks: `git add` a new
+script/notebook pair first, or its hooks (ruff, mypy, jupytext sync) are
+silently skipped.
 
 `jupytext --sync` treats whichever file of a pair was modified most recently as
 the source. So never `git checkout` a notebook (e.g. to drop editor-saved
