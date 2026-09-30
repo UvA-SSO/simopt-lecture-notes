@@ -234,7 +234,8 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
     `lecture10_solvers`) uses the same plotly style with
     `config={"displayModeBar": False, "staticPlot": True}`, so `custom.css`
     still recolours its text for the dark theme while hover and zoom are off.
-  - Older notebooks (lecture 10 applications, 12) still use plain matplotlib.
+  - Older notebooks (`lecture10_robust-regression`, lecture 12) still use plain
+    matplotlib.
 - Put all `import` statements for a notebook at the top of its **first** code cell
   (the first cell that actually runs code, not a separate import-only cell). `isort`
   runs with `--float-to-top` and will relocate any `import` found in a later

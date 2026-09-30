@@ -23,7 +23,8 @@
 
 # %% [markdown]
 # The smaller exercises embedded in
-# [Multi-Period Planning and Robust Regression](lecture10_applications.ipynb) and
+# [Multi-Period Inventory Planning](lecture10_multi-period.ipynb),
+# [Robust Regression](lecture10_robust-regression.ipynb) and
 # [Solvers and How to Help Them](lecture10_solvers.ipynb) check what you just read.
 # This notebook collects the larger exercises for Lecture 10: independent problems worth
 # more time.

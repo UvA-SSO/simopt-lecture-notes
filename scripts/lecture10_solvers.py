@@ -28,8 +28,9 @@
 # meantime. This notebook first compares the solvers that are available, then shows how
 # to read the log that a solver writes while it works, and what you can do when a solve
 # takes too long. It ends with the ways in which generative AI (GenAI) is used in
-# optimization. The applications of this lecture are in
-# [Multi-Period Planning and Robust Regression](lecture10_applications.ipynb).
+# optimization. The applications of this lecture are
+# [Multi-Period Inventory Planning](lecture10_multi-period.ipynb) and
+# [Robust Regression](lecture10_robust-regression.ipynb).
 #
 # **Learning outcomes**
 #

@@ -352,7 +352,7 @@ print("total cost:", roster.objective.value())
 # Requiring $b_u$ staff in every interval can be expensive when a single peak interval
 # forces extra shifts. An alternative is to allow under- and overstaffing and penalize
 # both in the objective. This needs the modeling trick for absolute values from
-# [Robust Regression](lecture10_applications.ipynb).
+# [Robust Regression](lecture10_robust-regression.ipynb).
 #
 # #### Interactions Between Intervals
 #
