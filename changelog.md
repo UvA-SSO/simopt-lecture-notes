@@ -4,6 +4,14 @@ The lecture notes are updated during the course. This page lists what changed in
 
 Small fixes (typos, formatting) are grouped into a single line. Each entry links to the full list of changes on GitHub.
 
+## 2026-09-30 21:31
+
+- Lecture 10 is split into three pages. [Multi-Period Inventory Planning](notebooks/lecture10_multi-period.ipynb) and [Robust Regression](notebooks/lecture10_robust-regression.ipynb) each have their own page, and the new [Solvers and How to Help Them](notebooks/lecture10_solvers.ipynb) replaces Modeling Tools and Solvers. It covers solver quality and how much faster solvers have become, how to call another solver such as HiGHS, how to read a CBC solve log (incumbent, best bound and gap), and what to do when a solve takes too long: time limits, gap tolerances, warm starts and tighter formulations. Algebraic modeling languages keep a short note.
+- [Robust Regression](notebooks/lecture10_robust-regression.ipynb) has new plots: the example data, a line that is not optimal with its errors, the optimal line, and quantile regression lines for $p = 0.5$ and $p = 0.9$. The quantile regression model is written out in full.
+- To use HiGHS on your own computer, install PuLP with `pip install "pulp[highs]==3.3.2"` (see [PuLP version](index.md#pulp-version)). In Colab, HiGHS is already available.
+- [Lecture 10 homework exercises](notebooks/lecture10_exercises.ipynb): exercise 2 is now about reading a solver log instead of modeling languages, exercise 3 is shorter, and exercise 1h uses the warehouse capacity $C_1$ instead of the rental cost $R_1$. [Multi-Period Inventory Planning](notebooks/lecture10_multi-period.ipynb) now says when an order arrives.
+- [Full diff on GitHub](https://github.com/UvA-SSO/simopt-lecture-notes/compare/2026-09-29-1110...2026-09-30-2131)
+
 ## 2026-09-29 11:10
 
 - The Lecture 9 applications ([Transportation and Transshipment](notebooks/lecture9_transportation.ipynb), [Set Covering and Shift Scheduling](notebooks/lecture9_covering.ipynb), [Machine Scheduling](notebooks/lecture9_machine-scheduling.ipynb)) and the Lecture 10 applications ([Multi-Period Inventory Planning](notebooks/lecture10_multi-period.ipynb), [Robust Regression](notebooks/lecture10_robust-regression.ipynb)) now follow the same steps as the slides: practical motivation, the general model built up step by step, the example model written out, and the solution in pulp, followed by extensions.
