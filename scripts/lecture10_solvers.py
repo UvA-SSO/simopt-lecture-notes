@@ -531,27 +531,33 @@ print("total weighted tardiness:", schedule.objective.value())
 #
 # The first is to let the LLM generate solutions directly. Yang et al. (2024) describe the
 # problem and a few earlier solutions with their objective values in a prompt, ask the
-# LLM for a better solution, and repeat. This works for small instances, but on larger
-# instances of problems like the traveling salesman problem it falls behind dedicated
-# methods. Keep in mind
-# what the first part of this notebook showed: a solver gives an incumbent and a bound,
-# so it can tell you how good its solution is. An LLM only gives an incumbent, without
-# any guarantee.
+# LLM for a better solution, and repeat. On small traveling salesman problems this finds
+# solutions as good as some simple heuristics, but the authors do not aim to beat
+# dedicated solvers, and larger instances no longer fit in a prompt. Their main
+# application is a different one: improving the prompts themselves. Keep in mind what the
+# first part of this notebook showed: a solver gives an incumbent and a bound, so it can
+# tell you how good its solution is. An LLM only gives an incumbent, without any
+# guarantee.
 #
 # The second is to make the LLM part of an optimization method. Liu et al. (2024) use an
 # LLM inside an evolutionary algorithm (a heuristic from
 # [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb)), where the LLM
 # combines and changes solutions to create new ones. In adaptive large neighborhood
 # search (ALNS), a heuristic that repeatedly destroys part of a solution and repairs it,
-# an LLM can write the code of the repair step (a Master's thesis in Data Science
-# studies this: *AI-Driven Optimization in ALNS: Generating Repair Operators*).
+# an LLM can write the code of the repair step. Brouwer (2025) compares letting an LLM
+# write repair steps in one go with improving them over several rounds in an
+# evolutionary way, on a flow shop scheduling problem and a variant of the traveling
+# salesman problem; the evolutionary approach works best.
 #
 # The third is to let the LLM assist the people involved. OptiMUS
-# (AhmadiTeshnizi et al., 2024) assists the modeler: it turns a problem description in
-# plain language into an ILO model and solver code, runs the code and fixes errors.
-# Wasserkrug et al. (2024) aim at the decision-maker, with a "copilot" that helps to
-# formulate the decision problem, calls a solver and explains the solution in the
-# decision-maker's own terms.
+# (AhmadiTeshnizi et al., 2024) assists the modeler: from a problem description in plain
+# language, it writes an LO or ILO model and the solver code, runs and debugs the code,
+# checks the solution, and improves the model and code where needed. Wasserkrug et al.
+# (2024) aim at the decision-maker, who usually has no optimization expert at hand. They
+# propose research towards a Decision Optimization CoPilot: an assistant that talks with
+# the decision-maker in plain language to understand the business problem, and then
+# formulates and solves the optimization model. Their experiments with ChatGPT show that
+# LLMs can already do part of this, but that much research is still needed.
 #
 # The third use is the one you will meet most yourself, when you ask an assistant to help
 # with a pulp model. It can be a useful pair-programmer if used carefully:
@@ -583,17 +589,20 @@ print("total weighted tardiness:", schedule.objective.value())
 # - Koole, G. (2019). *An Introduction to Business Analytics*. §6.6 "Modeling Tools".
 #   AMPL and spreadsheet material replaced with pulp.
 # - AhmadiTeshnizi, A., Gao, W., & Udell, M. (2024). OptiMUS: Scalable optimization
-#   modeling with (MI)LP solvers and large language models. *Proceedings of the 41st
-#   International Conference on Machine Learning (ICML)*.
-# - *AI-Driven Optimization in ALNS: Generating Repair Operators*. Master's thesis, Data
-#   Science.
+#   modeling with (MI)LP solvers and large language models. arXiv:2402.10172.
+#   https://arxiv.org/abs/2402.10172
+# - Brouwer, V. (2025). *AI-Driven Optimization in ALNS: Generating Repair Operators*.
+#   Master's thesis, Information Studies (Data Science), University of Amsterdam.
+#   https://dspace.uba.uva.nl/server/api/core/bitstreams/acb54db9-f55c-4da9-9158-92a1d11ad50f/content
 # - Liu, S., Chen, C., Qu, X., Tang, K., & Ong, Y.-S. (2024). Large language models as
 #   evolutionary optimizers. *2024 IEEE Congress on Evolutionary Computation (CEC)*.
+#   https://ieeexplore.ieee.org/document/10611913
 # - Mittelmann, H. Benchmarks for optimization software. https://plato.asu.edu/bench.html
 # - Wasserkrug, S., Boussioux, L., den Hertog, D., Mirzazadeh, F., Birbil, Ş. İ., Kurtz,
 #   J., & Maragno, D. (2024). From large language models and optimization to decision
 #   optimization CoPilot: A research manifesto. arXiv:2402.16269.
+#   https://arxiv.org/abs/2402.16269
 # - Yang, C., Wang, X., Lu, Y., Liu, H., Le, Q. V., Zhou, D., & Chen, X. (2024). Large
 #   language models as optimizers. *International Conference on Learning Representations
-#   (ICLR)*.
+#   (ICLR)*. https://arxiv.org/abs/2309.03409
 # - PuLP documentation: https://coin-or.github.io/pulp/
