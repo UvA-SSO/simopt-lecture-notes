@@ -4,6 +4,12 @@ The lecture notes are updated during the course. This page lists what changed in
 
 Small fixes (typos, formatting) are grouped into a single line. Each entry links to the full list of changes on GitHub.
 
+## 2026-10-02 20:36
+
+- [Simulation](notebooks/lecture12_simulation.ipynb) has a new section, [Simulating with numpy Arrays](notebooks/lecture12_simulation.ipynb#numpy-arrays): why the simulations work with arrays instead of `for` loops, with a timing comparison, and a table of the numpy features the simulations in Lectures 12 and 13 use.
+- [Simulation Optimization](notebooks/lecture13_simulation-optimization.ipynb#ranking-and-selection): in ranking and selection, the budget that remains after the first round is $m - k m_0$ (it said $m - m_0$).
+- [Full diff on GitHub](https://github.com/UvA-SSO/simopt-lecture-notes/compare/2026-09-30-2131...2026-10-02-2036)
+
 ## 2026-09-30 21:31
 
 - Lecture 10 is split into three pages. [Multi-Period Inventory Planning](notebooks/lecture10_multi-period.ipynb) and [Robust Regression](notebooks/lecture10_robust-regression.ipynb) each have their own page, and the new [Solvers and How to Help Them](notebooks/lecture10_solvers.ipynb) replaces Modeling Tools and Solvers. It covers solver quality and how much faster solvers have become, how to call another solver such as HiGHS, how to read a CBC solve log (incumbent, best bound and gap), and what to do when a solve takes too long: time limits, gap tolerances, warm starts and tighter formulations. Algebraic modeling languages keep a short note.
