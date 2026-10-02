@@ -196,7 +196,7 @@ print(f"Var(diff), independent sampling:  {diff_indep.var():.2f}")
 # I = \left\{ \pi \;\middle|\; y(\pi) > y(\pi') - \Phi^{-1}\!\left(\sqrt[k-1]{1-\alpha}\right) \frac{\sqrt{s^2(\pi)+s^2(\pi')}}{\sqrt{m_0}},\ \pi' \ne \pi \right\}.
 # $$
 #
-# The remaining budget $m - m_0$ is then split evenly between the candidates in $I$, and the best of those is returned.
+# The remaining budget $m - k m_0$ is then split evenly between the candidates in $I$, and the best of those is returned.
 #
 # :::{exercise}
 # :label: ex-8-3
