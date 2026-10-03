@@ -582,7 +582,47 @@ print("minimum cut S:", sorted(cut_side), "with value", cut_value)
 # %% [markdown]
 # This search explores the nodes closest to the source first, so it finds different
 # augmenting paths than we chose by hand, with the same maximum flow of 6.
-#
+
+# %% tags=["remove-cell"] label="mf-exercise"
+draw_graph(
+    {
+        "A": (0, 1),
+        "B": (1.2, 2),
+        "C": (1.2, 0),
+        "D": (2.4, 2),
+        "E": (2.4, 0),
+        "F": (3.6, 2),
+        "G": (3.6, 0),
+        "H": (4.8, 1),
+    },
+    {
+        ("A", "B"): 2,
+        ("A", "C"): 5,
+        ("B", "C"): 2,
+        ("B", "D"): 3,
+        ("B", "G"): 2,
+        ("C", "D"): 3,
+        ("C", "E"): 1,
+        ("D", "E"): 1,
+        ("D", "F"): 2,
+        ("E", "F"): 2,
+        ("E", "G"): 3,
+        ("E", "H"): 3,
+        ("F", "H"): 4,
+        ("G", "H"): 1,
+    },
+    directed=False,
+    # move labels away from where edges cross
+    label_at={
+        ("B", "G"): 0.2,
+        ("C", "D"): 0.35,
+        ("D", "E"): 0.25,
+        ("E", "F"): 0.6,
+        ("E", "H"): 0.55,
+    },
+)
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-mf-ford-fulkerson
 #
@@ -592,7 +632,7 @@ print("minimum cut S:", sorted(cut_side), "with value", cut_value)
 # its capacity.
 # :::
 #
-# :::{figure} images/lecture11_fig7.4.png
+# :::{figure} #mf-exercise
 # :label: fig-max-flow-exercise
 #
 # Undirected graph of [](#ex-mf-ford-fulkerson), with capacities along the edges.

@@ -554,6 +554,22 @@ while path[0] != source:
     path.insert(0, previous[path[0]])
 print("shortest path:", " -> ".join(path), "with length", d[destination])
 
+# %% tags=["remove-cell"] label="sp-exercise"
+draw_graph(
+    {"A": (0, 1), "B": (1.2, 2), "C": (1.2, 0), "D": (3.2, 2), "E": (3.2, 0)},
+    {
+        ("A", "B"): 10,
+        ("A", "C"): 2,
+        ("A", "D"): 21,
+        ("B", "D"): 5,
+        ("C", "B"): 3,
+        ("C", "E"): 11,
+        ("D", "E"): 2,
+    },
+    # keep the labels of the crossing arcs A -> D and C -> B apart
+    label_at={("A", "D"): 0.65, ("C", "B"): 0.3},
+)
+
 # %% [markdown]
 # :::{exercise}
 # :label: ex-sp-dijkstra
@@ -565,7 +581,7 @@ print("shortest path:", " -> ".join(path), "with length", d[destination])
 # `dijkstra` function above.
 # :::
 #
-# :::{figure} images/lecture11_fig7.2.png
+# :::{figure} #sp-exercise
 # :label: fig-shortest-path-exercise
 #
 # Directed graph of [](#ex-sp-dijkstra), with distances along the arcs.

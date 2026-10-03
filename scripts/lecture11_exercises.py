@@ -34,8 +34,135 @@
 # solve them with pulp.
 # :::
 
+# %% tags=["hide-input"]
+import math
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle, FancyArrowPatch
+
+# colors that read on the light and the dark site theme
+NODE_FILL, NODE_EDGE = "#d6dce5", "#5b9bd5"
+EDGE_COLOR, TEXT_COLOR = "#8c8c8c", "#111827"
+NODE_RADIUS = 0.2
+
+
+def draw_graph(
+    positions,
+    arcs,
+    highlight=(),
+    highlight_color="#d62728",
+    directed=True,
+    both_ways=(),
+    label_at=None,
+    node_notes=None,
+    cut_x=None,
+    figsize=(6, 3.2),
+):
+    """Draw a graph with a number (label) on every arc.
+
+    positions: node -> (x, y)
+    arcs: (i, j) -> label; both_ways: arcs drawn with an arrow at both ends
+    highlight: arcs drawn thick in highlight_color
+    label_at: (i, j) -> position of the label along the arc (default 0.5)
+    node_notes: node -> (text, dx, dy) for a box next to the node
+    cut_x: x-coordinate of a vertical line that marks a cut
+
+    The background is transparent and every text sits on its own box, so
+    the figure reads the same in the light and the dark site theme.
+    """
+    label_at = label_at or {}
+    node_notes = node_notes or {}
+    fig, ax = plt.subplots(figsize=figsize, dpi=150)
+    fig.patch.set_alpha(0)
+    ax.patch.set_alpha(0)
+    for (i, j), label in arcs.items():
+        (x1, y1), (x2, y2) = positions[i], positions[j]
+        on = (i, j) in highlight or (not directed and (j, i) in highlight)
+        color = highlight_color if on else EDGE_COLOR
+        style = "-"
+        if directed:
+            style = "<|-|>" if (i, j) in both_ways else "-|>"
+        # start and end the arc at the border of the node circles
+        length = math.hypot(x2 - x1, y2 - y1)
+        dx = (x2 - x1) / length * NODE_RADIUS
+        dy = (y2 - y1) / length * NODE_RADIUS
+        arrow = FancyArrowPatch(
+            (x1 + dx, y1 + dy),
+            (x2 - dx, y2 - dy),
+            arrowstyle=style,
+            mutation_scale=14,
+            color=color,
+            lw=3 if on else 1.5,
+            shrinkA=0,
+            shrinkB=0,
+        )
+        ax.add_patch(arrow)
+        t = label_at.get((i, j), 0.5)
+        ax.text(
+            x1 + t * (x2 - x1),
+            y1 + t * (y2 - y1),
+            str(label),
+            ha="center",
+            va="center",
+            fontsize=11,
+            color=TEXT_COLOR,
+            bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": color},
+        )
+    for node, (x, y) in positions.items():
+        circle = Circle(
+            (x, y), NODE_RADIUS, fc=NODE_FILL, ec=NODE_EDGE, lw=1.5, zorder=3
+        )
+        ax.add_patch(circle)
+        ax.text(x, y, node, ha="center", va="center", fontsize=12, zorder=4)
+    for node, (text, dx, dy) in node_notes.items():
+        x, y = positions[node]
+        ax.text(
+            x + dx,
+            y + dy,
+            text,
+            ha="center",
+            va="center",
+            fontsize=11,
+            color=highlight_color,
+            fontweight="bold",
+            bbox={
+                "boxstyle": "round,pad=0.2",
+                "fc": "white",
+                "ec": highlight_color,
+            },
+        )
+    xs = [x for x, _ in positions.values()]
+    ys = [y for _, y in positions.values()]
+    if cut_x is not None:
+        ax.plot(
+            [cut_x, cut_x],
+            [min(ys) - 0.4, max(ys) + 0.4],
+            color="#d62728",
+            lw=3,
+        )
+    ax.set_xlim(min(xs) - 0.45, max(xs) + 0.45)
+    ax.set_ylim(min(ys) - 0.45, max(ys) + 0.45)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    plt.show()
+
+
 # %% [markdown]
 # ## Homework Exercises
+
+# %% tags=["remove-cell"] label="hw11-ex1"
+draw_graph(
+    {"A": (0, 1), "B": (1.2, 2), "C": (1.2, 0), "D": (2.8, 2), "E": (2.8, 0)},
+    {
+        ("A", "B"): 3,
+        ("A", "C"): 1,
+        ("B", "D"): 2,
+        ("B", "E"): 4,
+        ("C", "B"): 1,
+        ("C", "E"): 5,
+        ("D", "E"): 1,
+    },
+)
 
 # %% [markdown]
 # :::{exercise}
@@ -44,7 +171,7 @@
 # We want the shortest route from node A to node E in the directed graph below (travel
 # times in hours).
 #
-# :::{figure} images/lecture11_hw1-ex1-graph.png
+# :::{figure} #hw11-ex1
 # :label: fig-hw-11-1
 #
 # Directed graph of [](#hw-11-1), with travel times in hours along the arcs.
@@ -121,6 +248,19 @@
 # :::
 #
 
+# %% tags=["remove-cell"] label="hw11-ex2"
+draw_graph(
+    {"A": (0, 1), "B": (1.6, 2), "C": (1.6, 1), "D": (1.6, 0), "E": (3.2, 1)},
+    {
+        ("A", "B"): 6,
+        ("A", "D"): 2,
+        ("B", "C"): 1,
+        ("B", "E"): 4,
+        ("C", "D"): 2,
+        ("D", "E"): 4,
+    },
+)
+
 # %% [markdown]
 #
 # ::::{solution} hw-11-2
@@ -129,7 +269,7 @@
 #
 # a. See the figure below.
 #
-# :::{figure} images/lecture11_hw1-ex2-graph.png
+# :::{figure} #hw11-ex2
 # :label: fig-hw-11-2
 #
 # Solution of [](#hw-11-2), part a: the directed graph with capacities.
@@ -168,6 +308,28 @@
 #    leaves the same bottleneck cut unchanged, so the flow stays at 7).
 # ::::
 
+# %% tags=["remove-cell"] label="hw11-ex3"
+draw_graph(
+    {"A": (0, 1), "B": (1.2, 2), "C": (1.2, 0), "D": (2.6, 1), "E": (3.8, 1)},
+    {
+        ("A", "B"): 2,
+        ("A", "C"): 4,
+        ("B", "C"): 1,
+        ("B", "D"): 6,
+        ("B", "E"): 5,
+        ("C", "D"): 3,
+        ("C", "E"): 2,
+        ("D", "E"): 0,
+    },
+    # move the labels of the arcs into D and E apart
+    label_at={
+        ("B", "D"): 0.4,
+        ("C", "D"): 0.4,
+        ("B", "E"): 0.7,
+        ("C", "E"): 0.7,
+    },
+)
+
 # %% [markdown]
 # :::{exercise}
 # :label: hw-11-3
@@ -175,7 +337,7 @@
 # We want to go from node A to node E in the directed graph below; edge labels are travel
 # costs (e.g. $A \to B$ costs 2; $D \to E$ costs nothing).
 #
-# :::{figure} images/lecture11_hw1-ex3-graph.png
+# :::{figure} #hw11-ex3
 # :label: fig-hw-11-3
 #
 # Directed graph of [](#hw-11-3), with travel costs along the arcs.
@@ -234,13 +396,36 @@
 #    $x_{BD} + x_{CD} = 1$) to force the path through D.
 # :::
 
+# %% tags=["remove-cell"] label="hw11-ex4"
+draw_graph(
+    {
+        "A": (0, 1),
+        "B": (1.2, 2),
+        "C": (1.2, 0),
+        "D": (2.8, 2),
+        "E": (2.8, 0),
+        "F": (4, 1),
+    },
+    {
+        ("A", "B"): 3,
+        ("A", "C"): 2,
+        ("B", "D"): 3,
+        ("C", "B"): 1,
+        ("C", "D"): 2,
+        ("C", "E"): 1,
+        ("D", "E"): 2,
+        ("D", "F"): 4,
+        ("E", "F"): 2,
+    },
+)
+
 # %% [markdown]
 # :::{exercise}
 # :label: hw-11-4
 #
 # Consider the maximum-flow problem below.
 #
-# :::{figure} images/lecture11_hw1-ex4-graph.png
+# :::{figure} #hw11-ex4
 # :label: fig-hw-11-4
 #
 # Directed graph of [](#hw-11-4), with capacities along the arcs.
@@ -288,6 +473,28 @@
 # :::
 #
 
+# %% tags=["remove-cell"] label="hw11-ex5"
+draw_graph(
+    {
+        "A": (0, 1),
+        "B": (1.2, 2),
+        "C": (1.2, 0),
+        "D": (2.8, 2),
+        "E": (2.8, 0),
+        "F": (4, 1),
+    },
+    {
+        ("A", "B"): 20,
+        ("A", "C"): 10,
+        ("B", "C"): 5,
+        ("B", "D"): 20,
+        ("C", "E"): 20,
+        ("D", "F"): 10,
+        ("E", "D"): 10,
+        ("E", "F"): 25,
+    },
+)
+
 # %% [markdown]
 #
 # ::::{solution} hw-11-5
@@ -296,7 +503,7 @@
 #
 # a. See the figure below.
 #
-# :::{figure} images/lecture11_hw1-ex5-graph.png
+# :::{figure} #hw11-ex5
 # :label: fig-hw-11-5
 #
 # Solution of [](#hw-11-5), part a: the directed graph with capacities.

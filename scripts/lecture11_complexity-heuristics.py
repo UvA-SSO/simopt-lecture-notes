@@ -596,8 +596,37 @@ print("better tour than", "".join(nn_tour), ":", better_neighbor(nn_tour))
 # reconnecting the pieces, and is known to give better tours than 2-opt. In general,
 # the $k$-opt neighborhood removes $k$ edges and contains in the order of $n^k$
 # tours.
-#
-#
+
+# %% tags=["remove-cell"] label="tsp-exercise"
+draw_graph(
+    {
+        "A": (0, 1),
+        "B": (1.2, 2),
+        "C": (1.2, 0),
+        "D": (2.8, 2),
+        "E": (2.8, 0),
+        "F": (4, 1),
+    },
+    {
+        ("A", "B"): 2,
+        ("A", "C"): 3,
+        ("A", "D"): 4,
+        ("B", "C"): 2,
+        ("B", "D"): 3,
+        ("B", "E"): 2,
+        ("C", "D"): 3,
+        ("C", "E"): 3,
+        ("D", "E"): 1,
+        ("D", "F"): 5,
+        ("E", "F"): 4,
+    },
+    highlight=tour_edges(["A", "B", "D", "F", "E", "C"]),
+    directed=False,
+    # move labels away from where edges cross
+    label_at={("A", "D"): 0.7, ("B", "E"): 0.72, ("C", "D"): 0.28},
+)
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-tsp-2opt
 #
@@ -606,7 +635,7 @@ print("better tour than", "".join(nn_tour), ":", better_neighbor(nn_tour))
 # `better_neighbor`, after changing `distance` to the distances in the figure.
 # :::
 #
-# :::{figure} images/lecture11_fig7.6.png
+# :::{figure} #tsp-exercise
 # :label: fig-tsp-distances
 #
 # Undirected graph of [](#ex-tsp-2opt), with distances along the edges.
