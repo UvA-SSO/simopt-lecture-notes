@@ -47,6 +47,7 @@
 import math
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import pulp
 from matplotlib.patches import Circle, FancyArrowPatch
 
@@ -362,6 +363,7 @@ print("length:", shortest_path.objective.value())
 # $d_{\text{all nodes}}(\text{destination})$.
 
 # %% [markdown]
+# (dijkstra-steps)=
 # ### The Algorithm
 #
 # Write $W \setminus x'$ for the set $W$ without the node $x'$.
@@ -461,22 +463,6 @@ draw_graph(
 # :::
 
 # %% [markdown]
-# :::{exercise}
-# :label: ex-sp-dijkstra
-#
-# Find the shortest path from A to E in [](#fig-shortest-path-exercise) using
-# Dijkstra's algorithm. Write down the table with $d_W(x)$ and the previous nodes,
-# as in [](#tbl-dijkstra). Formulate the problem also as an LO model, solve it with
-# pulp, and check that the two answers agree.
-# :::
-#
-# :::{figure} images/lecture11_fig7.2.png
-# :label: fig-shortest-path-exercise
-#
-# Directed graph of [](#ex-sp-dijkstra), with distances along the arcs.
-# :::
-
-# %% [markdown]
 # ### Why It Works
 #
 # Suppose $x'$ has the smallest value $d_W(x')$ among the unvisited nodes. Any path
@@ -498,6 +484,91 @@ draw_graph(
 #
 # Give a small network with one negative distance for which Dijkstra's algorithm
 # does not find the shortest path. Which step of the argument above fails?
+# :::
+
+# %% [markdown]
+# ### Dijkstra's Algorithm in Python
+#
+# The function below follows the algorithm line by line. You do not have to be able
+# to write it yourself, but read it next to [The Algorithm](#dijkstra-steps) and
+# check that you can follow each step. The dictionary `d` holds $d_W(x)$ and the
+# list `W` the visited nodes. To show the steps, the function also builds the table
+# of [](#tbl-dijkstra).
+
+
+# %%
+def dijkstra(nodes, distance, source):
+    """Shortest distances from source with Dijkstra's algorithm.
+
+    Returns d (node -> shortest distance), previous (node -> previous node
+    on a shortest path) and the table of all steps.
+    """
+    d = {x: math.inf for x in nodes}
+    d[source] = 0
+    previous = {}
+    W = []
+    rows = []
+    while len(W) < len(nodes):
+        # 1. find the unvisited node with the smallest d_W(x)
+        current = min((x for x in nodes if x not in W), key=lambda x: d[x])
+        rows.append(table_row(nodes, d, previous, W, current))
+        # 2. visit it
+        W.append(current)
+        # 3. update the unvisited nodes via the current node
+        for x in nodes:
+            if x not in W and (current, x) in distance:
+                via_current = d[current] + distance[current, x]
+                if via_current < d[x]:
+                    d[x] = via_current
+                    previous[x] = current
+    rows.append(table_row(nodes, d, previous, W, ""))
+    table = pd.DataFrame(rows)
+    table.index = ["start"] + [f"step {k}" for k in range(1, len(rows))]
+    return d, previous, table
+
+
+def table_row(nodes, d, previous, W, current):
+    """One row of the table: d_W(x) (previous node) for unvisited x."""
+    row = {}
+    for x in nodes:
+        if x in W:
+            row[x] = ""
+        elif x in previous:
+            row[x] = f"{d[x]} ({previous[x]})"
+        else:
+            row[x] = "∞" if d[x] == math.inf else str(d[x])
+    row["current"] = current
+    row["W"] = "{" + ", ".join(W) + "}"
+    return row
+
+
+d, previous, table = dijkstra(nodes, distance, source)
+table
+
+# %% [markdown]
+# Backtracking through `previous` gives the shortest path:
+
+# %%
+path = [destination]
+while path[0] != source:
+    path.insert(0, previous[path[0]])
+print("shortest path:", " -> ".join(path), "with length", d[destination])
+
+# %% [markdown]
+# :::{exercise}
+# :label: ex-sp-dijkstra
+#
+# Find the shortest path from A to E in [](#fig-shortest-path-exercise) using
+# Dijkstra's algorithm. Write down the table with $d_W(x)$ and the previous nodes,
+# as in [](#tbl-dijkstra). Formulate the problem also as an LO model, solve it with
+# pulp, and check that the two answers agree. Finally, check your table with the
+# `dijkstra` function above.
+# :::
+#
+# :::{figure} images/lecture11_fig7.2.png
+# :label: fig-shortest-path-exercise
+#
+# Directed graph of [](#ex-sp-dijkstra), with distances along the arcs.
 # :::
 
 # %% [markdown]

@@ -349,10 +349,11 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   (e.g. Dijkstra's $d_W(x)$, the flow $x_{ij}$ and bottleneck $\delta$ in
   Ford-Fulkerson, $L(T)$ and $N(T)$ in 2-opt), then a **Start:** / **While**
   bullet list, then a worked example (table or one figure per iteration)
-  using the slide deck's example network. Programming complex algorithms
-  (Dijkstra, Ford-Fulkerson) is out of scope for this course: they are done
-  by hand only. Simple algorithms (brute force, nearest neighbor, 2-opt) get
-  a short Python function that follows the pseudocode line by line.
+  using the slide deck's example network, then a short Python function that
+  follows the pseudocode line by line. Students need to be able to read and
+  follow this code, not to program the algorithms from scratch; the text
+  says so (`lecture11_algorithms`, and next to the Dijkstra and
+  Ford-Fulkerson code).
 
 ## Writing style
 

@@ -112,6 +112,13 @@ print("largest number:", largest)
 # Dijkstra's algorithm in the next notebook is written in the same way, with
 # $d_W(x)$, the length of a shortest path to node $x$ that only passes through nodes
 # in a set $W$, in the role of $m_k$.
+#
+# Each algorithm in this lecture also comes with Python code that follows its
+# description line by line, as the code above does. You do not need to be able to
+# program these algorithms from scratch. You should be able to read the code and
+# follow what it does: which line carries out which step of the algorithm, and what
+# each variable holds at every step. Running the code on a small example and
+# comparing it with your own steps by hand is a good way to check that.
 
 # %% [markdown]
 # ## Characteristics of Algorithms
