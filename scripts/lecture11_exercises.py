@@ -22,10 +22,8 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture11_exercises.ipynb)
 
 # %% [markdown]
-# The smaller exercises embedded in
-# [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb) and
-# [Complexity](lecture11_complexity.ipynb) check what you just read. This notebook
-# collects the larger exercises for Lecture 11: independent problems worth more time.
+# The smaller exercises embedded in the other Lecture 11 notebooks check what you
+# just read. This notebook collects the larger exercises for Lecture 11: independent problems worth more time.
 #
 # :::{warning} Try It Yourself First
 # The homework exercises below are representative of what you can expect on the exam:

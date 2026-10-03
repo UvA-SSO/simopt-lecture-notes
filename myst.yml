@@ -40,8 +40,14 @@ project:
           title: Exercises
     - title: Lecture 11
       children:
-        - file: notebooks/lecture11_algorithms-heuristics.ipynb
-          title: Algorithms and Heuristics
+        - file: notebooks/lecture11_algorithms.ipynb
+          title: Algorithms and Their Characteristics
+        - file: notebooks/lecture11_shortest-path.ipynb
+          title: Shortest Path
+        - file: notebooks/lecture11_maximum-flow.ipynb
+          title: Maximum Flow
+        - file: notebooks/lecture11_tsp-heuristics.ipynb
+          title: Traveling Salesman Problem and Heuristics
         - file: notebooks/lecture11_complexity.ipynb
           title: Complexity
         - file: notebooks/lecture11_exercises.ipynb

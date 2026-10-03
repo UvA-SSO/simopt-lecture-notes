@@ -229,7 +229,11 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   - Box-and-text diagrams such as branch-and-bound trees are static
     matplotlib images that scale with the screen (`draw_bb_tree`): transparent
     figure background, every text on its own box (branch labels in white
-    boxes), and legends moved into the caption as page text.
+    boxes), and legends moved into the caption as page text. Network
+    drawings in Lecture 11 work the same way (`draw_graph`, copied into each
+    network notebook so it runs standalone in Colab): grey arcs, numbers in
+    white boxes, a path/tour/tree highlighted in red, an augmenting path in
+    green.
   - A static chart with axis text (e.g. the incumbent/best-bound plots in
     `lecture10_solvers`, the regression plots in `lecture10_robust-regression`)
     uses the same plotly style with
@@ -332,6 +336,13 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
 - Where a concept has distinct qualitative outcomes (e.g. a solve status of
   optimal/infeasible/unbounded), demonstrate each with a small runnable pulp
   snippet, not just a prose description or a static figure alone.
+- Algorithms (Lecture 11) are written as in the slides: first define the
+  quantities the algorithm keeps track of and what they mean at every step
+  (e.g. Dijkstra's $d_W(x)$, the flow $x_{ij}$ and bottleneck $\delta$ in
+  Ford-Fulkerson, $L(T)$ and $N(T)$ in 2-opt), then a **Start:** / **While**
+  bullet list, then a worked example (table or one figure per iteration)
+  using the slide deck's example network, then a short Python function that
+  follows the pseudocode line by line.
 
 ## Writing style
 

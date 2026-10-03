@@ -216,8 +216,8 @@ print("total cost:", transport.objective.value())
 # $$
 #
 # This extends to a full network by stacking several layers of intermediate nodes, and it
-# is the model behind the shortest-path and maximum-flow problems in
-# [Algorithms and Heuristics](lecture11_algorithms-heuristics.ipynb).
+# is the model behind the [shortest path](lecture11_shortest-path.ipynb) and
+# [maximum flow](lecture11_maximum-flow.ipynb) problems of Lecture 11.
 
 # %% [markdown]
 # ## References

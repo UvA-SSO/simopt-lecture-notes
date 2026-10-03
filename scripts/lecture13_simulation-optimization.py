@@ -208,7 +208,7 @@ print(f"Var(diff), independent sampling:  {diff_indep.var():.2f}")
 # (local-search)=
 # ## Local Search
 #
-# If $S$ is very large or even countable (e.g., $\{1,2,\dots\}$) then we cannot start by simulating all $x \in S$ a number of times. In this situation there is often some structure that we can exploit. Just as in the case of [deterministic local search](lecture11_algorithms-heuristics.ipynb#local-search-heuristic) we define a neighborhood $N(x)$ for every $x \in S$. During each iteration we randomly choose a point in the neighborhood of the current point and simulate both solutions once. Then we move to the best of the two and we iterate again. In more detail the algorithm is as follows:
+# If $S$ is very large or even countable (e.g., $\{1,2,\dots\}$) then we cannot start by simulating all $x \in S$ a number of times. In this situation there is often some structure that we can exploit. Just as in the case of [deterministic local search](lecture11_tsp-heuristics.ipynb#local-search-heuristic) we define a neighborhood $N(x)$ for every $x \in S$. During each iteration we randomly choose a point in the neighborhood of the current point and simulate both solutions once. Then we move to the best of the two and we iterate again. In more detail the algorithm is as follows:
 #
 # **Algorithm for local search simulation optimization**
 #
