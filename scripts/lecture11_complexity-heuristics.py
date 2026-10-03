@@ -178,17 +178,16 @@
 # ## Heuristics
 #
 # For NP-complete problems such as the TSP, no fast exact algorithm is known. A
-# heuristic does
-# not aim for the optimum but for a near-optimal solution in a reasonable amount of
-# time. There are two types:
+# heuristic does not aim for the optimum but for a near-optimal solution in a
+# reasonable amount of time. There are two types:
 #
 # - **Metaheuristics** are not specific to one problem. Examples are local search,
 #   evolutionary algorithms, tabu search and simulated annealing. They still need
 #   some tailoring to the problem at hand, for example a definition of which
 #   solutions are "close" to each other.
 # - **Problem-specific heuristics** use the structure of one problem. For common
-#   problems there is a lot of literature on them. The 2-opt heuristic for the TSP,
-#   below, is an example.
+#   problems there is a lot of literature on them. The nearest neighbor and 2-opt
+#   heuristics for the TSP, below, are examples.
 #
 # Before using a heuristic, ask whether you need the optimal solution at all, and
 # how much worse than optimal a solution may be. A heuristic usually gives no
@@ -197,52 +196,25 @@
 # instances, or with a lower bound such as the value of an LO relaxation, helps.
 
 # %% [markdown]
-# (local-search-heuristic)=
-# ## The 2-Opt Heuristic
+# ## The Nearest Neighbor Heuristic
 #
-# ### Local Search
+# A natural way to build a tour is to always go to the closest city you have not
+# visited yet. This is the **nearest neighbor heuristic**. It builds a tour $T$, a
+# list of nodes, one node at a time:
 #
-# The 2-opt heuristic is a **local search** method. Local search starts with some
-# solution and repeatedly moves to a better solution close to the current one, until
-# there is no better solution close by. "Close" is made precise by a
-# **neighborhood**: for every solution $T$, a set $N(T)$ of solutions that can be
-# reached from $T$ with one small change. Writing $L(T)$ for the length of tour $T$,
-# local search is:
+# - **Start:** choose a start node $s$, and let $T = (s)$.
+# - **While** $T$ does not contain all nodes:
+#   - add to the end of $T$ the unvisited node nearest to the last node of $T$.
+# - Return from the last node of $T$ to $s$.
 #
-# - **Start:** an initial tour $T$.
-# - **While** $N(T)$ contains a tour $T'$ with $L(T') < L(T)$:
-#   - $T = T'$.
+# Each step looks at no more than $n$ nodes, and there are $n$ steps, so the running
+# time is about $n^2$: the heuristic is fast even for many cities.
 #
-# The final tour has no better tour in its neighborhood: it is a **local optimum**.
-# There is no guarantee that it is a **global optimum**, a best tour overall (there
-# can be more than one).
-#
-# The 2-opt heuristic uses the TSP-specific neighborhood $N(T)$ of all tours that
-# can be reached from $T$ with one 2-opt swap:
-#
-# 1. remove two edges of the tour that do not share a node;
-# 2. reconnect the two pieces into a tour, with the other two edges that do so.
-#
-# There is only one other way to reconnect the pieces into one tour: if the tour
-# goes $\dots \to a \to b \to \dots \to c \to d \to \dots$ and we remove the edges
-# $a$-$b$ and $c$-$d$, the new tour goes
-# $\dots \to a \to c \to \dots \to b \to d \to \dots$, where the part from $b$ to $c$
-# is now traveled in the opposite direction. The length changes by
-#
-# $$
-# d_{ac} + d_{bd} - d_{ab} - d_{cd},
-# $$
-#
-# so the swap is an improvement if this is negative. For the initial tour, a simple
-# choice is to start at some node and repeatedly move to a random (or the nearest)
-# unvisited node.
-
-# %% [markdown]
 # ### Example
 #
 # We continue with the example of
 # [Traveling Salesman Problem](lecture11_tsp.ipynb), with the same distances and the
-# same function `tour_length` as there:
+# same function `tour_length` as there. A missing edge has distance $\infty$.
 
 # %%
 import math
@@ -389,7 +361,7 @@ def tour_edges(tour):
     return {(tour[k], tour[(k + 1) % len(tour)]) for k in range(len(tour))}
 
 
-# %% tags=["remove-cell"] label="tsp-start"
+# %% tags=["remove-cell"] label="tsp-nearest"
 positions = {
     "A": (0, 1),
     "B": (1.2, 2),
@@ -400,6 +372,128 @@ positions = {
 }
 # the edges B-E and C-D cross in the middle: move their labels apart
 crossing_labels = {("B", "E"): 0.72, ("C", "D"): 0.28}
+greedy_path = ["A", "C", "B", "E", "D", "F"]
+draw_graph(
+    positions,
+    distance,
+    highlight=set(zip(greedy_path, greedy_path[1:])),
+    directed=False,
+    label_at=crossing_labels,
+)
+
+# %% [markdown]
+# Starting in A, the heuristic goes:
+#
+# - from A to C (distance 1; B would be 2);
+# - from C to B (distance 2; D would be 3 and E 6);
+# - from B to E (distance 2; D would be 3);
+# - from E to D (distance 1; F would be 2);
+# - from D to F (distance 5), the only unvisited node left.
+#
+# Now the tour has to return from F to A, but there is no edge between F and A
+# ([](#fig-tsp-nearest)). The heuristic did not find a tour at all, while the
+# network does have tours, for example the one of length 15 found in the
+# [previous notebook](lecture11_tsp.ipynb).
+#
+# :::{figure} #tsp-nearest
+# :label: fig-tsp-nearest
+#
+# The nearest neighbor heuristic from A visits A, C, B, E, D and F (red), and then
+# needs the edge from F back to A, which does not exist.
+# :::
+
+# %% [markdown]
+# ### Nearest Neighbor in Python
+#
+# The function follows the algorithm above. We run it from every start node.
+
+
+# %%
+def nearest_neighbor(nodes, start):
+    """Tour built by the nearest neighbor heuristic from start."""
+    tour = [start]
+    while len(tour) < len(nodes):
+        unvisited = [x for x in nodes if x not in tour]
+        nearest = min(unvisited, key=lambda x: edge_length(tour[-1], x))
+        tour.append(nearest)
+    return tour
+
+
+nodes = ["A", "B", "C", "D", "E", "F"]
+for start in nodes:
+    nn_tour = nearest_neighbor(nodes, start)
+    print("".join(nn_tour), "length", tour_length(nn_tour))
+
+# %% [markdown]
+# ### When the Heuristic Breaks Down
+#
+# From every start node, the heuristic ends up with a tour that needs a missing
+# edge. The reason is node F: it has only two edges, D-F and E-F, so every tour
+# enters and leaves F through D and E: it has D, F and E next to each other. The
+# nearest neighbor heuristic never looks ahead. It visits D and E right after each
+# other, because the edge D-E is so short, and then at most one of them can be next
+# to F in the tour. If missing edges are replaced by a very large distance, the
+# heuristic does find a tour, but a very long one.
+#
+# The same thing happens in a milder form in many instances. Going to the nearest
+# city is cheap in the beginning, but the cities that were skipped remain and have
+# to be visited at the end, often with long detours, and the last step back to the
+# start can be long too. The nearest neighbor heuristic is therefore mostly used to
+# find an initial tour, which a local search heuristic such as 2-opt then improves.
+#
+# :::{exercise}
+# :label: ex-tsp-nearest
+#
+# Apply the nearest neighbor heuristic to [](#fig-tsp-distances), starting in A.
+# When two nodes are equally near, choose the one that comes first in the alphabet.
+# What is the length of the tour? Does the heuristic break down here as well?
+# :::
+
+# %% [markdown]
+# (local-search-heuristic)=
+# ## The 2-Opt Heuristic
+#
+# ### Local Search
+#
+# The 2-opt heuristic is a **local search** method. Local search starts with some
+# solution and repeatedly moves to a better solution close to the current one, until
+# there is no better solution close by. "Close" is made precise by a
+# **neighborhood**: for every solution $T$, a set $N(T)$ of solutions that can be
+# reached from $T$ with one small change. Writing $L(T)$ for the length of tour $T$,
+# local search is:
+#
+# - **Start:** an initial tour $T$.
+# - **While** $N(T)$ contains a tour $T'$ with $L(T') < L(T)$:
+#   - $T = T'$.
+#
+# The final tour has no better tour in its neighborhood: it is a **local optimum**.
+# There is no guarantee that it is a **global optimum**, a best tour overall (there
+# can be more than one).
+#
+# The 2-opt heuristic uses the TSP-specific neighborhood $N(T)$ of all tours that
+# can be reached from $T$ with one 2-opt swap:
+#
+# 1. remove two edges of the tour that do not share a node;
+# 2. reconnect the two pieces into a tour, with the other two edges that do so.
+#
+# There is only one other way to reconnect the pieces into one tour: if the tour
+# goes $\dots \to a \to b \to \dots \to c \to d \to \dots$ and we remove the edges
+# $a$-$b$ and $c$-$d$, the new tour goes
+# $\dots \to a \to c \to \dots \to b \to d \to \dots$, where the part from $b$ to $c$
+# is now traveled in the opposite direction. The length changes by
+#
+# $$
+# d_{ac} + d_{bd} - d_{ab} - d_{cd},
+# $$
+#
+# so the swap is an improvement if this is negative. For the initial tour, a simple
+# choice is to start at some node and repeatedly move to a random unvisited node, or
+# to use the nearest neighbor heuristic.
+
+# %% [markdown]
+# ### Example
+
+# %% tags=["remove-cell"] label="tsp-start"
 draw_graph(
     positions,
     distance,
@@ -477,6 +571,19 @@ while neighbor is not None:
     print("better tour: ", "".join(tour), "length", tour_length(tour))
     neighbor = better_neighbor(tour)
 print("local optimum:", "".join(tour))
+
+# %% [markdown]
+# What if we start 2-opt from the tour of the nearest neighbor heuristic?
+
+# %%
+nn_tour = nearest_neighbor(nodes, "A")
+print("better tour than", "".join(nn_tour), ":", better_neighbor(nn_tour))
+
+# %% [markdown]
+# There is none: every tour in the 2-opt neighborhood of A → C → B → E → D → F → A
+# also needs an edge that does not exist. This tour is a local optimum of very bad
+# quality, which shows how much the result of a local search depends on its initial
+# tour.
 
 # %% [markdown]
 # ### Local and Global Optima

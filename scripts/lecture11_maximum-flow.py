@@ -522,66 +522,6 @@ draw_graph(positions, flow_labels(capacity, flow), cut_x=0.35)
 # :::
 
 # %% [markdown]
-# ### Ford-Fulkerson in Python
-#
-# The function `augmenting_path` searches for an augmenting path from the source,
-# node by node: from a node $i$ it continues over every arc $i \to j$ with room left
-# (forward) and every arc $j \to i$ with positive flow (reversed). It returns the
-# path as a list of steps `(arc, direction)`, with direction `+1` for a forward and
-# `-1` for a reversed arc, and also the set of nodes it could reach, which is the
-# minimum cut $S$ once no path exists. The function `ford_fulkerson` follows the
-# algorithm above.
-
-
-# %%
-def augmenting_path(capacity, flow, source, destination):
-    """Search an augmenting path; return it and the reachable nodes."""
-    path_to = {source: []}
-    to_explore = [source]
-    while to_explore:
-        i = to_explore.pop(0)
-        for (a, b), cap in capacity.items():
-            if a == i and b not in path_to and flow[a, b] < cap:
-                path_to[b] = path_to[i] + [((a, b), +1)]
-                to_explore.append(b)
-            elif b == i and a not in path_to and flow[a, b] > 0:
-                path_to[a] = path_to[i] + [((a, b), -1)]
-                to_explore.append(a)
-    return path_to.get(destination), set(path_to)
-
-
-def ford_fulkerson(capacity, source, destination):
-    """Maximum flow with the Ford-Fulkerson algorithm."""
-    flow = {arc: 0 for arc in capacity}
-    path, reached = augmenting_path(capacity, flow, source, destination)
-    while path is not None:
-        room = [
-            capacity[arc] - flow[arc] if direction == 1 else flow[arc]
-            for arc, direction in path
-        ]
-        delta = min(room)
-        for arc, direction in path:
-            flow[arc] += direction * delta
-        visits = [source] + [a if dr == -1 else b for (a, b), dr in path]
-        print(f"augmenting path {' -> '.join(visits)}, delta = {delta}")
-        path, reached = augmenting_path(capacity, flow, source, destination)
-    return flow, reached
-
-
-ff_flow, cut_side = ford_fulkerson(capacity, source, destination)
-flow_value = sum(ff_flow[i, j] for (i, j) in capacity if i == source)
-cut_value = sum(
-    cap
-    for (i, j), cap in capacity.items()
-    if i in cut_side and j not in cut_side
-)
-print("maximum flow:", flow_value)
-print("minimum cut S:", sorted(cut_side), "with value", cut_value)
-
-# %% [markdown]
-# This search explores the nodes closest to the source first, so it finds different
-# augmenting paths than we chose by hand, with the same maximum flow of 6.
-#
 # :::{exercise}
 # :label: ex-mf-ford-fulkerson
 #
@@ -603,10 +543,9 @@ print("minimum cut S:", sorted(cut_side), "with value", cut_value)
 # every arc at most a few times, and with integer capacities every iteration
 # increases the flow by at least 1. So there are at most as many iterations as the
 # value of the maximum flow. If the capacities are large, that can be many
-# iterations. Searching nearest nodes first, as above, avoids this: it always
-# chooses an augmenting path with as few arcs as possible, and with that choice the
-# number of iterations is bounded by a polynomial in the number of nodes and arcs,
-# whatever the capacities (Edmonds & Karp, 1972).
+# iterations. Choosing an augmenting path with as few arcs as possible each time
+# avoids this: with that choice, the number of iterations is bounded by a polynomial
+# in the number of nodes and arcs, whatever the capacities (Edmonds & Karp, 1972).
 
 # %% [markdown]
 # ## References
