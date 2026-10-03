@@ -273,8 +273,16 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   introduce a trick (big M, the `e⁺ - e⁻` split) where the model first needs
   it, generalizing it in a separate `##` section afterwards if needed (see
   `lecture9_machine-scheduling`; for knapsack, branch and bound follows as
-  its own `##` section). The rest of Lectures 8 and 11 intentionally keeps its
-  own structure.
+  its own `##` section). The rest of Lecture 8 intentionally keeps its own
+  structure. Lecture 11's problem notebooks (shortest path, maximum flow,
+  TSP) share one outline: an intro (define the problem, give an example,
+  solve it with an (I)LO approach and with a dedicated algorithm, which is
+  often the way to go); `## The <Problem>` (motivation, definition,
+  example); `## LO Approach` (`ILO` for the TSP) with `### Model` (the
+  `####` headings above), `### Model for the Example` and `### Solving the
+  Example in pulp`; then `## <Algorithm>`. The TSP notebook ends with brute
+  force as the bridge to `lecture11_complexity-heuristics`, which continues
+  the TSP example with 2-opt.
 - When introducing a new way of formulating a model in pulp, show a minimal
   direct implementation first, with the problem's numbers hardcoded into the
   `LpVariable`/constraint calls, before showing the data-and-model-separated

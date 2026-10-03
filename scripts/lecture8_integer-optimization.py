@@ -30,7 +30,7 @@
 # In pulp this is a one-word change: set a variable's `cat` to `"Integer"` or `"Binary"`
 # instead of the default `"Continuous"`. Everything else about building and solving the
 # model is the same. Solving it, however, is a different matter: in general ILO is much
-# harder than LO, as this notebook and [Complexity](lecture11_complexity.ipynb) explain.
+# harder than LO, as this notebook and [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb) explain.
 #
 # **Learning outcomes**
 #

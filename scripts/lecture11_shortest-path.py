@@ -22,13 +22,15 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture11_shortest-path.ipynb)
 
 # %% [markdown]
-# This is the first of three classical problems in this lecture, each with an (I)LO
-# model and a dedicated algorithm (see
-# [Algorithms and Their Characteristics](lecture11_algorithms.ipynb)). The shortest
-# path problem asks for the shortest route between two nodes of a network. We first
-# model it as an LO problem, a special case of the transshipment problem, and then
-# solve it with Dijkstra's algorithm, which uses the structure of the problem and is
-# much faster.
+# This lecture looks at three classical problems: the shortest path problem in this
+# notebook, then [maximum flow](lecture11_maximum-flow.ipynb) and the
+# [traveling salesman problem](lecture11_tsp.ipynb). Each notebook takes the same
+# steps: we define the problem and give an example, solve the example with an LO
+# approach (a model solved with pulp, as in Lectures 8 to 10), and then solve it with
+# a dedicated algorithm. The dedicated algorithm uses the structure of the problem and
+# is much faster, so it is often the way to go in practice (see
+# [Algorithms and Their Characteristics](lecture11_algorithms.ipynb)). For the
+# shortest path problem, that algorithm is Dijkstra's algorithm.
 #
 # **Learning outcomes**
 #
@@ -164,7 +166,7 @@ def draw_graph(
 # problem: find the shortest (or fastest) route from where you are to where you want
 # to go. The same problem appears in many less visible places, for example in routing
 # data packets through the internet, and as a building block of other problems: the
-# [traveling salesman problem](lecture11_tsp-heuristics.ipynb) needs the shortest
+# [traveling salesman problem](lecture11_tsp.ipynb) needs the shortest
 # distance between every pair of cities.
 #
 # In the notation of [Graphs: Notation for This Lecture](lecture11_algorithms.ipynb#graph-notation),
@@ -208,7 +210,9 @@ draw_graph(positions, graph_arcs, both_ways={("B", "C")})
 # :::
 
 # %% [markdown]
-# ## LO Model
+# ## LO Approach
+#
+# ### Model
 #
 # The shortest path problem is a special case of the
 # [transshipment problem](lecture9_transportation.ipynb#transshipment-problem): ship
@@ -216,13 +220,28 @@ draw_graph(positions, graph_arcs, both_ways={("B", "C")})
 # cheaply as possible, where the cost of using an arc is its distance. The unit
 # follows a path, and the cost is the length of that path.
 #
-# - **Decision variables:** $x_{ij} = 1$ if the arc $i \to j$ is on the path, and 0
-#   otherwise.
-# - **Objective:** minimize the length of the path, $\sum_{i,j} c_{ij} x_{ij}$, with
-#   $c_{ij} = \infty$ if there is no arc $i \to j$.
-# - **Constraints:** one unit more leaves the source than enters it, one unit more
-#   enters the destination than leaves it, and every other node passes on what it
-#   receives (flow conservation).
+# #### Decision Variables
+#
+# $x_{ij} = 1$ if the arc $i \to j$ is on the path, and 0 otherwise.
+#
+# #### Objective
+#
+# Minimize the length of the path, $\sum_{i,j} c_{ij} x_{ij}$, with
+# $c_{ij} = \infty$ if there is no arc $i \to j$.
+#
+# #### Constraints
+#
+# One unit more leaves the source than enters it, one unit more enters the
+# destination than leaves it, and every other node passes on what it receives (flow
+# conservation). The constraint $x_{ij} \ge 0$ is needed: without it, a negative
+# amount could flow backwards over an arc.
+#
+# We do not require $x_{ij} \in \{0, 1\}$. As for the transportation problem, the
+# corner points of the feasible region are already integer, so the simplex method
+# returns a 0/1 solution. If a solver does return a fractional solution, the unit is
+# split over several paths, and each of these paths is then a shortest path.
+#
+# #### Complete LO Model
 #
 # $$
 # \begin{aligned}
@@ -234,13 +253,34 @@ draw_graph(positions, graph_arcs, both_ways={("B", "C")})
 # \end{aligned}
 # $$
 #
-# We do not require $x_{ij} \in \{0, 1\}$. As for the transportation problem, the
-# corner points of the feasible region are already integer, so the simplex method
-# returns a 0/1 solution. If a solver does return a fractional solution, the unit is
-# split over several paths, and each of these paths is then a shortest path. The
-# constraint $x_{ij} \ge 0$ is needed, though: without it, a negative amount could
-# flow backwards over an arc. In pulp we only create variables for arcs that exist,
-# which has the same effect as $c_{ij} = \infty$ for the others.
+# ### Model for the Example
+#
+# For [](#fig-sp-example), with source A and destination F, there is a variable for
+# each of the 10 arcs; pairs of nodes without an arc have $c_{ij} = \infty$, so
+# their variables are 0 in any optimal solution and can be left out. No arc enters A
+# or leaves F, which simplifies their constraints:
+#
+# $$
+# \begin{aligned}
+# \min \quad & 2x_{AB} + x_{AC} + 2x_{BC} + 2x_{CB} + 3x_{BD} + 3x_{CD} + x_{CE}
+#   + x_{ED} + 5x_{DF} + 2x_{EF} \\
+# \text{s.t.} \quad & x_{AB} + x_{AC} = 1 & \text{(source A)} \\
+# & x_{DF} + x_{EF} = 1 & \text{(destination F)} \\
+# & x_{AB} + x_{CB} = x_{BC} + x_{BD} & \text{(node B)} \\
+# & x_{AC} + x_{BC} = x_{CB} + x_{CD} + x_{CE} & \text{(node C)} \\
+# & x_{BD} + x_{CD} + x_{ED} = x_{DF} & \text{(node D)} \\
+# & x_{CE} = x_{ED} + x_{EF} & \text{(node E)} \\
+# & x_{ij} \ge 0, \quad \text{for all arcs } i \to j.
+# \end{aligned}
+# $$
+#
+# ### Solving the Example in pulp
+#
+# The model is built as the transshipment model in
+# [Transportation and Transshipment](lecture9_transportation.ipynb): the keys of the
+# dictionary `distance` are the arcs, and a variable is only created for an arc that
+# exists. The constraint of a node depends on whether it is the source, the
+# destination, or another node.
 
 # %%
 distance = {
@@ -422,7 +462,6 @@ draw_graph(
 # :::
 
 # %% [markdown]
-# (dijkstra-why)=
 # ### Why It Works
 #
 # Suppose $x'$ has the smallest value $d_W(x')$ among the unvisited nodes. Any path
@@ -438,6 +477,13 @@ draw_graph(
 # Dijkstra's algorithm requires $c_{ij} \ge 0$. The argument also shows that we may
 # stop as soon as the destination is visited: we then already know its shortest
 # distance.
+#
+# :::{exercise}
+# :label: ex-sp-negative
+#
+# Give a small network with one negative distance for which Dijkstra's algorithm
+# does not find the shortest path. Which step of the argument above fails?
+# :::
 
 # %% [markdown]
 # ### Dijkstra's Algorithm in Python
@@ -506,6 +552,23 @@ while path[0] != source:
 print("shortest path:", " -> ".join(path), "with length", d[destination])
 
 # %% [markdown]
+# :::{exercise}
+# :label: ex-sp-dijkstra
+#
+# Find the shortest path from A to E in [](#fig-shortest-path-exercise) using
+# Dijkstra's algorithm. Write down the table with $d_W(x)$ and the previous nodes,
+# as in [](#tbl-dijkstra). Formulate the problem also as an LO model, solve it with
+# pulp, and check that the two answers agree. Finally, check your table with the
+# `dijkstra` function above.
+# :::
+#
+# :::{figure} images/lecture11_fig7.2.png
+# :label: fig-shortest-path-exercise
+#
+# Directed graph of [](#ex-sp-dijkstra), with distances along the arcs.
+# :::
+
+# %% [markdown]
 # ### Running Time
 #
 # How much work does Dijkstra's algorithm take for a network with $n$ nodes? Every
@@ -514,8 +577,8 @@ print("shortest path:", " -> ".join(path), "with length", d[destination])
 # updating the unvisited nodes each look at no more than $n$ nodes. In total that is
 # about $n \cdot n = n^2$ operations. For a network with 1000 nodes, this is in the
 # order of a million operations, a fraction of a second on a computer: very fast. In
-# [Complexity](lecture11_complexity.ipynb) we compare this with problems for which
-# no such fast algorithm is known.
+# [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb) we compare this
+# with problems for which no such fast algorithm is known.
 
 # %% [markdown]
 # :::{note} Navigation Software
@@ -533,35 +596,6 @@ print("shortest path:", " -> ".join(path), "with length", d[destination])
 # visited first. If $h(x)$ is never larger than the real remaining distance, A* still
 # finds a shortest route, and it is much faster than Dijkstra's algorithm.
 # :::
-
-# %% [markdown]
-# ## Exercises
-#
-# :::{exercise}
-# :label: ex-sp-dijkstra
-#
-# Find the shortest path from A to E in [](#fig-shortest-path-exercise) using
-# Dijkstra's algorithm. Write down the table with $d_W(x)$ and the previous nodes,
-# as in [](#tbl-dijkstra). Formulate the problem also as an LO model, solve it with
-# pulp, and check that the two answers agree. Finally, check your table with the
-# `dijkstra` function above.
-# :::
-#
-# :::{figure} images/lecture11_fig7.2.png
-# :label: fig-shortest-path-exercise
-#
-# Directed graph of [](#ex-sp-dijkstra), with distances along the arcs.
-# :::
-#
-# :::{exercise}
-# :label: ex-sp-negative
-#
-# Give a small network with one negative distance for which Dijkstra's algorithm
-# does not find the shortest path. Which step of the argument in
-# [Why It Works](#dijkstra-why) fails?
-# :::
-#
-# More exercises are in [Lecture 11: Exercises](lecture11_exercises.ipynb).
 
 # %% [markdown]
 # ## References

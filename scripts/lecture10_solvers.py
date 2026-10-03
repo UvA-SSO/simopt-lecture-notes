@@ -471,7 +471,7 @@ plot_progress(schedule12_log).show(config=PLOT_CONFIG)
 # has an incumbent from the start: this helps with the third pattern above, and it lets
 # the solver prune nodes by bound from the first node on. Good starting solutions come
 # from a simple rule of thumb (a heuristic, see
-# [Heuristics](lecture11_tsp-heuristics.ipynb#heuristics)), or from the
+# [Heuristics](lecture11_complexity-heuristics.ipynb#heuristics)), or from the
 # solution of an earlier, almost identical problem, such as yesterday's schedule when
 # one job has changed.
 #

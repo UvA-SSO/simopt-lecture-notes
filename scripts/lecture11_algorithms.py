@@ -27,12 +27,16 @@
 # and bound, but we did not look inside. This lecture does. This notebook explains
 # what an algorithm is, how the algorithms in this lecture are written down, and how
 # algorithms differ from each other. The next three notebooks each take one classical
-# problem, give an (I)LO model for it and then a dedicated algorithm:
-# [Shortest Path](lecture11_shortest-path.ipynb),
+# problem: [Shortest Path](lecture11_shortest-path.ipynb),
 # [Maximum Flow](lecture11_maximum-flow.ipynb) and the
-# [Traveling Salesman Problem](lecture11_tsp-heuristics.ipynb), where we also meet
-# heuristics. The last notebook, [Complexity](lecture11_complexity.ipynb), explains
-# why some of these problems can be solved fast and others apparently cannot.
+# [Traveling Salesman Problem](lecture11_tsp.ipynb). Each defines the problem, gives
+# an example, and solves it in two ways: with an (I)LO approach, a model solved with
+# pulp, and with a dedicated algorithm. The dedicated algorithm is often the way to
+# go in practice, because it is much faster. For the traveling salesman problem,
+# however, no fast exact algorithm is known. The last notebook,
+# [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb), explains why
+# some problems can be solved fast and others apparently cannot, and how heuristics
+# find good solutions for the hard ones.
 #
 # **Learning outcomes**
 #
@@ -103,7 +107,7 @@ print("largest number:", largest)
 # %% [markdown]
 # The algorithm makes $n - 1$ comparisons, one per repetition of the loop, so its
 # running time grows linearly with $n$. Counting steps like this is the start of
-# [Complexity](lecture11_complexity.ipynb).
+# [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb).
 #
 # Dijkstra's algorithm in the next notebook is written in the same way, with
 # $d_W(x)$, the length of a shortest path to node $x$ that only passes through nodes
@@ -127,7 +131,7 @@ print("largest number:", largest)
 #   with the number of nodes $n$ of a network. If the running time grows like $n^2$
 #   (polynomial), large instances are no problem; if it grows like $n!$
 #   (non-polynomial), even moderate instances take forever. See
-#   [Complexity](lecture11_complexity.ipynb).
+#   [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb).
 # - **Exact or heuristic.** An exact algorithm is guaranteed to find an optimal
 #   solution. A **heuristic** is a best-effort method: a shortcut algorithm whose aim
 #   is not the optimal solution but a good solution in a reasonable amount of time.
@@ -144,7 +148,7 @@ print("largest number:", largest)
 #
 # The table below characterizes the algorithms of Lectures 8 to 11. The running times
 # are explained in the notebooks of the algorithms and in
-# [Complexity](lecture11_complexity.ipynb).
+# [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb).
 #
 # :::{table} Characteristics of the algorithms in Lectures 8 to 11.
 # :label: tbl-algorithm-characteristics

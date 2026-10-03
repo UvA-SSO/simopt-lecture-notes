@@ -46,10 +46,10 @@ project:
           title: Shortest Path
         - file: notebooks/lecture11_maximum-flow.ipynb
           title: Maximum Flow
-        - file: notebooks/lecture11_tsp-heuristics.ipynb
-          title: Traveling Salesman Problem and Heuristics
-        - file: notebooks/lecture11_complexity.ipynb
-          title: Complexity
+        - file: notebooks/lecture11_tsp.ipynb
+          title: Traveling Salesman Problem
+        - file: notebooks/lecture11_complexity-heuristics.ipynb
+          title: Complexity and Heuristics
         - file: notebooks/lecture11_exercises.ipynb
           title: Exercises
     - title: Lecture 12

@@ -24,9 +24,12 @@
 # %% [markdown]
 # The second classical problem of this lecture is the maximum flow problem: how much
 # can be sent through a network from one node to another when every arc has a
-# capacity? As for the [shortest path problem](lecture11_shortest-path.ipynb), we
-# first give an LO model and then a dedicated algorithm, the Ford-Fulkerson
-# algorithm. A cut then gives a simple test of whether a flow is maximal.
+# capacity? As for the [shortest path problem](lecture11_shortest-path.ipynb), and
+# next for the [traveling salesman problem](lecture11_tsp.ipynb), we define the
+# problem and give an example, solve the example with an LO approach, and then solve
+# it with a dedicated algorithm: the Ford-Fulkerson algorithm. As usual, the
+# dedicated algorithm is often the way to go in practice. A cut then gives a simple
+# test of whether a flow is maximal.
 #
 # **Learning outcomes**
 #
@@ -237,12 +240,28 @@ draw_graph(positions, example_capacity)
 # :::
 
 # %% [markdown]
-# ## LO Model
+# ## LO Approach
 #
-# - **Decision variables:** $x_{ij}$ = the flow from $i$ to $j$, for all $i, j$.
-# - **Objective:** maximize the flow out of the source, $\sum_j x_{sj}$.
-# - **Constraints:** the flow on an arc is at most its capacity, every node other
-#   than $s$ and $d$ has flow in equal to flow out, and flows are non-negative.
+# ### Model
+#
+# #### Decision Variables
+#
+# $x_{ij}$ = the flow from $i$ to $j$, for all $i, j$.
+#
+# #### Objective
+#
+# Maximize the flow out of the source, $\sum_j x_{sj}$. By flow conservation,
+# everything that leaves the source arrives at the destination, so maximizing
+# $\sum_i x_{id}$ gives the same answer. If there are arcs into the source, maximize
+# the net outflow $\sum_j x_{sj} - \sum_j x_{js}$ instead: otherwise flow could go
+# round in a cycle back to the source and count twice.
+#
+# #### Constraints
+#
+# The flow on an arc is at most its capacity, every node other than $s$ and $d$ has
+# flow in equal to flow out, and flows are non-negative.
+#
+# #### Complete LO Model
 #
 # $$
 # \begin{aligned}
@@ -253,12 +272,37 @@ draw_graph(positions, example_capacity)
 # \end{aligned}
 # $$
 #
-# By flow conservation, everything that leaves the source arrives at the
-# destination, so maximizing $\sum_i x_{id}$ gives the same answer. If there are arcs
-# into the source, maximize the net outflow $\sum_j x_{sj} - \sum_j x_{js}$ instead:
-# otherwise flow could go round in a cycle back to the source and count twice. In
-# pulp we again only create variables for arcs that exist, with the capacity as
-# upper bound.
+# ### Model for the Example
+#
+# For [](#fig-mf-example), with source A and destination F, we only need variables
+# for the 9 arcs: a pair without an arc has capacity 0, so its flow is 0. No arc
+# enters A, so the objective is the flow out of A.
+#
+# $$
+# \begin{aligned}
+# \max \quad & x_{AB} + x_{AC} \\
+# \text{s.t.} \quad & x_{AB} \le 2 \\
+# & x_{AC} \le 4 \\
+# & x_{BD} \le 3 \\
+# & x_{CB} \le 2 \\
+# & x_{CD} \le 3 \\
+# & x_{CE} \le 1 \\
+# & x_{DE} \le 1 \\
+# & x_{DF} \le 4 \\
+# & x_{EF} \le 2 \\
+# & x_{AB} + x_{CB} = x_{BD} & \text{(node B)} \\
+# & x_{AC} = x_{CB} + x_{CD} + x_{CE} & \text{(node C)} \\
+# & x_{BD} + x_{CD} = x_{DE} + x_{DF} & \text{(node D)} \\
+# & x_{CE} + x_{DE} = x_{EF} & \text{(node E)} \\
+# & x_{ij} \ge 0, \quad \text{for all arcs } i \to j.
+# \end{aligned}
+# $$
+#
+# ### Solving the Example in pulp
+#
+# As for the shortest path problem, we only create variables for arcs that exist. New
+# is the `upBound` argument of `pulp.LpVariable`: it gives a variable an upper bound,
+# here the capacity, so the capacity constraints need no separate lines.
 
 # %%
 capacity = {
@@ -276,22 +320,22 @@ nodes = ["A", "B", "C", "D", "E", "F"]
 source, destination = "A", "F"
 
 max_flow = pulp.LpProblem(name="max_flow", sense=pulp.LpMaximize)
-flow_var = {
+send = {
     (i, j): pulp.LpVariable(name=f"x_{i}_{j}", lowBound=0, upBound=cap)
     for (i, j), cap in capacity.items()
 }
 
-max_flow += pulp.lpSum(flow_var[i, j] for (i, j) in capacity if i == source)
+max_flow += pulp.lpSum(send[i, j] for (i, j) in capacity if i == source)
 for k in nodes:
     if k in (source, destination):
         continue
-    inflow = pulp.lpSum(flow_var[i, j] for (i, j) in capacity if j == k)
-    outflow = pulp.lpSum(flow_var[i, j] for (i, j) in capacity if i == k)
+    inflow = pulp.lpSum(send[i, j] for (i, j) in capacity if j == k)
+    outflow = pulp.lpSum(send[i, j] for (i, j) in capacity if i == k)
     max_flow += inflow == outflow, f"conservation_{k}"
 
 max_flow.solve(pulp.PULP_CBC_CMD(msg=False))
 print("status:", pulp.LpStatus[max_flow.status])
-print("flows:", {a: v.value() for a, v in flow_var.items() if v.value() > 0})
+print("flows:", {a: v.value() for a, v in send.items() if v.value() > 0})
 print("maximum flow:", max_flow.objective.value())
 
 # %% [markdown]
@@ -423,7 +467,7 @@ augment_and_draw(positions, capacity, flow, ["A", "B", "C", "E", "F"])
 
 # %% [markdown]
 # (max-flow-cuts)=
-# ## Cuts: Checking That a Flow Is Maximal
+# ### Cuts: Checking That a Flow Is Maximal
 #
 # A **cut** splits the nodes into a set $S$ that contains the source and the rest
 # that contains the destination. The **value of the cut** is the total capacity of
@@ -469,9 +513,16 @@ draw_graph(positions, flow_labels(capacity, flow), cut_x=0.35)
 # The final flow with the cut $S = \{\text{A}\}$ (red line), with value
 # $2 + 4 = 6$, equal to the flow.
 # :::
+#
+# :::{exercise}
+# :label: ex-mf-cuts
+#
+# List all cuts $S$ of [](#fig-mf-example) that contain A and B but not F, and
+# compute their values. Which of them are minimum cuts?
+# :::
 
 # %% [markdown]
-# ## Ford-Fulkerson in Python
+# ### Ford-Fulkerson in Python
 #
 # The function `augmenting_path` searches for an augmenting path from the source,
 # node by node: from a node $i$ it continues over every arc $i \to j$ with room left
@@ -531,18 +582,6 @@ print("minimum cut S:", sorted(cut_side), "with value", cut_value)
 # This search explores the nodes closest to the source first, so it finds different
 # augmenting paths than we chose by hand, with the same maximum flow of 6.
 #
-# How long does the algorithm take? Every search for an augmenting path looks at
-# every arc at most a few times, and with integer capacities every iteration
-# increases the flow by at least 1. So there are at most as many iterations as the
-# value of the maximum flow. If the capacities are large, that can be many
-# iterations. Searching nearest nodes first, as above, avoids this: it always
-# chooses an augmenting path with as few arcs as possible, and with that choice the
-# number of iterations is bounded by a polynomial in the number of nodes and arcs,
-# whatever the capacities (Edmonds & Karp, 1972).
-
-# %% [markdown]
-# ## Exercises
-#
 # :::{exercise}
 # :label: ex-mf-ford-fulkerson
 #
@@ -558,14 +597,16 @@ print("minimum cut S:", sorted(cut_side), "with value", cut_value)
 # Undirected graph of [](#ex-mf-ford-fulkerson), with capacities along the edges.
 # :::
 #
-# :::{exercise}
-# :label: ex-mf-cuts
+# ### Running Time
 #
-# List all cuts $S$ of [](#fig-mf-example) that contain A and B but not F, and
-# compute their values. Which of them are minimum cuts?
-# :::
-#
-# More exercises are in [Lecture 11: Exercises](lecture11_exercises.ipynb).
+# How long does the algorithm take? Every search for an augmenting path looks at
+# every arc at most a few times, and with integer capacities every iteration
+# increases the flow by at least 1. So there are at most as many iterations as the
+# value of the maximum flow. If the capacities are large, that can be many
+# iterations. Searching nearest nodes first, as above, avoids this: it always
+# chooses an augmenting path with as few arcs as possible, and with that choice the
+# number of iterations is bounded by a polynomial in the number of nodes and arcs,
+# whatever the capacities (Edmonds & Karp, 1972).
 
 # %% [markdown]
 # ## References
