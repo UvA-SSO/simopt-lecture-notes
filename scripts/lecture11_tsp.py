@@ -29,10 +29,10 @@
 # give an example, solve the example with an ILO approach, and then look for a
 # dedicated algorithm. This time the story ends differently. The ILO model needs a
 # huge number of constraints, and the only exact algorithm we find tries all tours,
-# which takes far too long for large instances. No relatively fast exact algorithm
-# is known for the TSP. The next notebook,
-# [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb), explains why,
-# and continues with this example using a heuristic.
+# which takes far too long for large instances. No exact algorithm with a
+# polynomial running time is known for the TSP. The next notebook,
+# [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb), explains what
+# that means and why, and continues with this example using a heuristic.
 #
 # **Learning outcomes**
 #
@@ -40,8 +40,8 @@
 #
 # - formulate the TSP as an ILO model and explain why subtour elimination
 #   constraints are needed;
-# - solve a small TSP in pulp by adding subtour elimination constraints only when
-#   they are needed;
+# - follow how a small TSP is solved in pulp by adding subtour elimination
+#   constraints only when they are needed;
 # - explain why trying all tours is not practical for large instances.
 
 # %% [markdown]
@@ -237,7 +237,7 @@ draw_graph(
 #
 # #### Objective
 #
-# Minimize the length of the tour, $\sum_{i,j} d_{ij} x_{ij}$.
+# Minimize the length of the tour, $\sum_{i \ne j} d_{ij} x_{ij}$.
 #
 # #### Constraints
 #
@@ -245,8 +245,8 @@ draw_graph(
 #
 # $$
 # \begin{aligned}
-# & \sum_{i} x_{ij} = 1, \quad \text{for all } j \\
-# & \sum_{i} x_{ji} = 1, \quad \text{for all } j.
+# & \sum_{i \ne j} x_{ij} = 1, \quad \text{for all } j \\
+# & \sum_{i \ne j} x_{ji} = 1, \quad \text{for all } j.
 # \end{aligned}
 # $$
 #
@@ -282,23 +282,23 @@ draw_graph(
 # inside $S$. So we add the **subtour elimination constraints**
 #
 # $$
-# \sum_{i,j \in S} x_{ij} \le |S| - 1, \quad
+# \sum_{i,j \in S,\ i \ne j} x_{ij} \le |S| - 1, \quad
 # \text{for all node sets } S \text{ with } 2 \le |S| \le n - 1.
 # $$
 #
 # In [](#fig-tsp-subtours), the set $S = \{\text{A}, \text{B}, \text{C}\}$ has
 # $x_{AB} + x_{BC} + x_{CA} = 3 > |S| - 1 = 2$, so these subtours are no longer
-# feasible. (Some formulations also allow $i = j$; the constraints with $|S| = 1$
-# then forbid $x_{ii} = 1$.)
+# feasible.
 #
 # #### Complete ILO Model
 #
 # $$
 # \begin{aligned}
-# \min \quad & \sum_{i,j} d_{ij} x_{ij} \\
-# \text{s.t.} \quad & \sum_{i} x_{ij} = 1, \quad \text{for all } j \\
-# & \sum_{i} x_{ji} = 1, \quad \text{for all } j \\
-# & \sum_{i,j \in S} x_{ij} \le |S| - 1, \quad \text{for all } S \text{ with }
+# \min \quad & \sum_{i \ne j} d_{ij} x_{ij} \\
+# \text{s.t.} \quad & \sum_{i \ne j} x_{ij} = 1, \quad \text{for all } j \\
+# & \sum_{i \ne j} x_{ji} = 1, \quad \text{for all } j \\
+# & \sum_{i,j \in S,\ i \ne j} x_{ij} \le |S| - 1, \quad
+#   \text{for all } S \text{ with }
 #   2 \le |S| \le n - 1 \\
 # & x_{ij} \in \{0, 1\}, \quad \text{for all } i \ne j.
 # \end{aligned}
@@ -337,15 +337,20 @@ draw_graph(
 # ### Solving the Example in pulp
 #
 # In practice, the subtour elimination constraints are added only when they are
-# needed, as so-called lazy constraints: solve the model without them, look for
-# subtours in the solution, add the constraint for the node set of each subtour, and
-# solve again, until the solution is one tour. Usually only a small fraction of all
+# needed, as so-called lazy constraints: solve the model without them, and follow
+# the solution from the start node A until it returns to A. If that tour visits all
+# nodes, it is the optimal tour. If not, it is a subtour: add the subtour elimination
+# constraint for its nodes, and solve again. Usually only a small fraction of all
 # subtour elimination constraints is ever added.
 #
 # In the code, `distance` holds each edge once; `arc_length` adds the reverse
 # direction, so there is a variable for each of the 20 arcs. The function
-# `find_subtours` follows the tour from node to node to split a solution into its
-# subtours.
+# `follow_tour` follows the solution from node to node. A solver computes with
+# floating-point numbers, so a binary variable can come out as, say, 0.9999999
+# instead of exactly 1. That is why the code tests `var.value() > 0.5` and not
+# `var.value() == 1`. As for the algorithms in this lecture, you do not have to be
+# able to write this code yourself, but you should be able to follow what each line
+# does and why.
 
 # %%
 import pulp
@@ -380,40 +385,38 @@ for k in nodes:
     tsp += leave == 1, f"leave_{k}"
 
 
-def find_subtours(travel):
-    """Split the solution into its (sub)tours, as lists of nodes."""
+def follow_tour(travel, start):
+    """Follow the solution from start until it returns to start."""
+    # the node visited after node i
     successor = {i: j for (i, j), var in travel.items() if var.value() > 0.5}
-    subtours = []
-    unvisited = set(successor)
-    while unvisited:
-        subtour = [min(unvisited)]
-        while successor[subtour[-1]] != subtour[0]:
-            subtour.append(successor[subtour[-1]])
-        subtours.append(subtour)
-        unvisited -= set(subtour)
-    return subtours
+    tour = [start]
+    while successor[tour[-1]] != start:
+        tour.append(successor[tour[-1]])
+    return tour
 
 
 tsp.solve(pulp.PULP_CBC_CMD(msg=False))
-subtours = find_subtours(travel)
-print(f"length {tsp.objective.value()}: {subtours}")
-while len(subtours) > 1:
-    for subtour in subtours:
-        inside = pulp.lpSum(
-            travel[i, j] for (i, j) in arc_length if {i, j} <= set(subtour)
-        )
-        tsp += inside <= len(subtour) - 1
+tour = follow_tour(travel, "A")
+print(f"length {tsp.objective.value()}: {tour}")
+while len(tour) < len(nodes):
+    # subtour elimination constraint for the nodes of the subtour
+    inside = pulp.lpSum(
+        travel[i, j] for (i, j) in arc_length if {i, j} <= set(tour)
+    )
+    tsp += inside <= len(tour) - 1
     tsp.solve(pulp.PULP_CBC_CMD(msg=False))
-    subtours = find_subtours(travel)
-    print(f"length {tsp.objective.value()}: {subtours}")
+    tour = follow_tour(travel, "A")
+    print(f"length {tsp.objective.value()}: {tour}")
 
 # %% [markdown]
-# The first solution consists of three subtours of two nodes, such as A → C → A:
-# going to a neighbor and straight back also enters and leaves every node once. The
-# constraint for $S = \{\text{A}, \text{C}\}$ is $x_{AC} + x_{CA} \le 1$. The second
-# solution consists of the two subtours of [](#fig-tsp-subtours), with length 13.
-# After adding their constraints too, the solver finds one tour of length 15. Only 5
-# of the subtour elimination constraints were needed. For instances with thousands
+# In the first solution, the tour from A is A → C → A: going to a neighbor and
+# straight back also enters and leaves every node once. The constraint for
+# $S = \{\text{A}, \text{C}\}$ is $x_{AC} + x_{CA} \le 1$. The second solution
+# contains the subtour A → B → C → A of [](#fig-tsp-subtours), and the third the
+# subtour A → B → D → C → A. After adding their constraints too, the solver finds one
+# tour of length 15. Only 3 of the 56 subtour elimination constraints were needed.
+# Each time, only the subtour through A gets a constraint; adding one for every
+# subtour in the solution at once usually saves solves. For instances with thousands
 # of cities, specialized solvers use this approach together with many other tricks,
 # but the solution time can still grow very quickly with the number of cities.
 
@@ -472,10 +475,11 @@ print(
 # reasonably sized instances.
 #
 # Can we do better? Unlike for the shortest path and maximum flow problems, no
-# relatively fast exact algorithm is known for the TSP: not via the ILO model, and
-# not via any dedicated algorithm. The next notebook,
-# [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb), explains why
-# there probably is none, and then solves this example with a heuristic.
+# exact algorithm with a polynomial running time is known for the TSP: not via the
+# ILO model, and not via any dedicated algorithm. The next notebook,
+# [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb), explains what
+# polynomial running time means, why there probably is no such algorithm for the
+# TSP, and then solves this example with a heuristic.
 
 # %% [markdown]
 # ## References

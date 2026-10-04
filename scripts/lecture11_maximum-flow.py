@@ -365,15 +365,15 @@ print("maximum flow:", max_flow.objective.value())
 # node $j$ receives the new flow from the path in its place.
 #
 # How large can $\delta$ be? A forward arc has room for $c_{ij} - x_{ij}$ more, and
-# the flow on a reversed arc can decrease by at most $x_{ij}$. So
+# the flow on a reversed arc can decrease by at most $x_{ij}$. So the largest value is
 #
 # $$
 # \delta = \min\Big\{\min_{\text{forward } i \to j} (c_{ij} - x_{ij}),\
 # \min_{\text{reversed } i \to j} x_{ij}\Big\},
 # $$
 #
-# the bottleneck of the path. These remaining amounts, $c_{ij} - x_{ij}$ forward and
-# $x_{ij}$ backward, are the available capacities of the current flow: together they
+# determined by the bottleneck of the path. These remaining amounts, $c_{ij} - x_{ij}$ forward and
+# $x_{ij}$ backward, are the available remaining capacities considering the current flow: together they
 # form the so-called *residual graph*, and an augmenting path is a path from $s$ to $d$
 # in it.
 
@@ -382,13 +382,13 @@ print("maximum flow:", max_flow.objective.value())
 #
 # - **Start:** $x_{ij} = 0$ for all arcs.
 # - **While** there is an augmenting path from $s$ to $d$:
-#   1. Find an augmenting path and its bottleneck $\delta$.
+#   1. Find an augmenting path and its maximum increase in flow $\delta$.
 #   2. Increase the flow along the path: $x_{ij} = x_{ij} + \delta$ on its forward
 #      arcs and $x_{ij} = x_{ij} - \delta$ on its reversed arcs. This updates the
 #      available capacities.
 #
 # When no augmenting path can be found, the flow is maximal. Why that is the case
-# follows from cuts, below.
+# follows from cuts below.
 
 # %% [markdown]
 # ### Example
@@ -484,16 +484,22 @@ augment_and_draw(positions, capacity, flow, ["A", "B", "C", "E", "F"])
 # \text{any } s\text{-}d \text{ flow} \le \text{any } s\text{-}d \text{ cut value}.
 # $$
 #
-# Arcs that point into $S$ do not count in $c(S)$: flow over them only goes back. For
-# example, in [](#fig-mf-example) the cut $S = \{\text{A}, \text{B}\}$ consists of
-# A → C and B → D and has value $4 + 3 = 7$; the arc C → B points into $S$ and does
-# not count. The cut $S = \{\text{A}, \text{B}, \text{D}\}$ has value
-# $c_{AC} + c_{DE} + c_{DF} = 4 + 1 + 4 = 9$. So no flow is larger than 7.
+# Arcs that point into $S$ do not count in $c(S)$. Flow over such an arc goes back
+# into $S$, so it has to cross from $S$ to the rest once more: it can only lower the
+# net amount that leaves $S$, never raise it. For example, in [](#fig-mf-example)
+# the cut $S = \{\text{A}, \text{B}\}$ consists of A → C and B → D and has value
+# $4 + 3 = 7$. The arc C → B also connects $S$ with the rest, but it points into
+# $S$, so its capacity does not count. Every cut gives an upper bound on the flow,
+# and some bounds are better than others: the cut
+# $S = \{\text{A}, \text{B}, \text{D}\}$ has value
+# $c_{AC} + c_{DE} + c_{DF} = 4 + 1 + 4 = 9$, a weaker bound than 7.
 #
-# The **max-flow min-cut theorem** says that the bound is tight: the maximum flow
-# from $s$ to $d$ equals the minimum value of an $s$-$d$ cut. This gives an
-# optimality test: if we find a flow and a cut with the same value, the flow is
-# maximal (and the cut is minimal).
+# The inequality above already gives an optimality test: if we find a flow and a
+# cut with the same value, no flow can be larger than this flow, so it is maximal
+# (and no cut can be smaller, so the cut is minimal). The **max-flow min-cut
+# theorem** adds that such a cut always exists: the maximum flow from $s$ to $d$
+# equals the minimum value of an $s$-$d$ cut. So for a maximum flow, the optimality
+# test always works: there is always a cut with the same value.
 #
 # When the Ford-Fulkerson algorithm stops, such a cut is easy to find: let $S$ be the
 # set of nodes that can still be reached from $s$ along forward arcs with room and
@@ -583,7 +589,7 @@ print("minimum cut S:", sorted(cut_side), "with value", cut_value)
 # This search explores the nodes closest to the source first, so it finds different
 # augmenting paths than we chose by hand, with the same maximum flow of 6.
 
-# %% tags=["remove-cell"] label="mf-exercise"
+# %% label="mf-exercise" tags=["remove-cell"]
 draw_graph(
     {
         "A": (0, 1),
@@ -653,10 +659,16 @@ draw_graph(
 # The search in `augmenting_path` avoids this. It explores the nodes closest to the
 # source first, counting arcs and ignoring capacities, so it returns an augmenting
 # path that uses the smallest possible number of arcs: a path with two arcs is found
-# before any path with three arcs. With that choice, the number of iterations is
-# bounded by a polynomial in the number of nodes and arcs, whatever the capacities
-# (Edmonds & Karp, 1972). So the Ford-Fulkerson algorithm is polynomial if it picks
-# its augmenting paths in this way.
+# before any path with three arcs. With that choice, the number of iterations
+# depends only on the number of nodes $n$ and arcs $m$, not on the capacities
+# (Edmonds & Karp, 1972). The idea: every iteration fills the bottleneck arc of the
+# path, so that arc can no longer be used in that direction. The new options the
+# iteration creates are reversed arcs, which point back towards the source and
+# therefore never give a path with as few arcs as the current one. So after at most
+# $m$ iterations, the shortest augmenting paths of the current number of arcs are
+# used up, and the next path has more arcs. A path has at most $n - 1$ arcs, so
+# there are at most about $n \cdot m$ iterations. The Ford-Fulkerson algorithm is
+# therefore polynomial if it picks its augmenting paths in this way.
 
 # %% [markdown]
 # ## References
