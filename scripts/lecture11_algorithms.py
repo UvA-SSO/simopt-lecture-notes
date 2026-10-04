@@ -97,11 +97,6 @@
 # $a_{k+1}$. When the loop stops, $k = n$ and $m_n$ is the answer. In Python:
 
 # %%
-import math
-
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, FancyArrowPatch
-
 numbers = [4, 9, 2, 7, 11, 3]
 
 largest = numbers[0]  # m_1
@@ -166,22 +161,10 @@ print("largest number:", largest)
 # | simplex method | LO | general | non-polynomial in the worst case, fast in practice | exact |
 # | branch and bound | ILO | general | non-polynomial | exact |
 # | Dijkstra's algorithm | shortest path | dedicated | polynomial ($n^2$) | exact |
-# | Ford-Fulkerson algorithm | maximum flow | dedicated | polynomial, if every augmenting path has as few arcs as possible | exact |
+# | Ford-Fulkerson algorithm | maximum flow | dedicated | depends on which augmenting paths it picks: polynomial with the right choice, see [Running Time](lecture11_maximum-flow.ipynb#max-flow-running-time) | exact |
 # | brute force (try all tours) | TSP | dedicated | non-polynomial ($n!$) | exact |
 # | 2-opt | TSP | dedicated | fast per improvement step | heuristic |
 # :::
-#
-# The Ford-Fulkerson algorithm repeatedly increases the flow along an augmenting
-# path, but it does not say which one to take when there are several. With integer
-# capacities, every augmenting path increases the flow by at least 1, so there are at
-# most as many iterations as the value of the maximum flow. That number grows with
-# the capacities, not with the size of the network: with capacities in the millions
-# and an unlucky choice of paths, a network with four nodes can take millions of
-# iterations. If every augmenting path has as few arcs as possible, the number of
-# iterations is bounded by a polynomial in the number of nodes and arcs, whatever the
-# capacities (Edmonds & Karp, 1972). See
-# [Running Time](lecture11_maximum-flow.ipynb#max-flow-running-time) in the maximum
-# flow notebook.
 
 # %% [markdown]
 # (graph-notation)=
@@ -205,6 +188,11 @@ distance = {("A", "B"): 2, ("A", "C"): 1, ("C", "B"): 2}
 print("distance from A to B:", distance["A", "B"])
 
 # %% tags=["hide-input"]
+import math
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle, FancyArrowPatch
+
 # colors that read on the light and the dark site theme
 NODE_FILL, NODE_EDGE = "#d6dce5", "#5b9bd5"
 EDGE_COLOR, TEXT_COLOR = "#8c8c8c", "#111827"
@@ -339,5 +327,3 @@ draw_graph(
 #   "Combinatorial Optimization," introduction.
 # - Wolpert, D. H., & Macready, W. G. (1997). No free lunch theorems for
 #   optimization. *IEEE Transactions on Evolutionary Computation*, 1(1), 67-82.
-# - Edmonds, J., & Karp, R. M. (1972). Theoretical improvements in algorithmic
-#   efficiency for network flow problems. *Journal of the ACM*, 19(2), 248-264.

@@ -63,8 +63,6 @@
 import math
 
 import matplotlib.pyplot as plt
-import pandas as pd
-import pulp
 from matplotlib.patches import Circle, FancyArrowPatch
 
 # colors that read on the light and the dark site theme
@@ -285,6 +283,8 @@ draw_graph(positions, graph_arcs, both_ways={("B", "C")})
 # destination, or another node.
 
 # %%
+import pulp
+
 distance = {
     ("A", "B"): 2,
     ("A", "C"): 1,
@@ -406,21 +406,20 @@ print("length:", shortest_path.objective.value())
 # for every node $x$ throughout the algorithm, with the previous node in brackets.
 # Each row shows the values after updating, for the nodes that are not yet visited,
 # with $W$ the set of visited nodes in that row. The smallest of these values is
-# underlined: its node becomes the current node $x'$ in the next step (column
-# "next $x'$").
+# underlined: its node becomes the current node $x'$ in the next step.
 #
 # :::{table} Distances $d_W(x)$ throughout Dijkstra's algorithm, from A, for the network in [](#fig-sp-example).
 # :label: tbl-dijkstra
 #
-# | step | $d_W(\text{A})$ | $d_W(\text{B})$ | $d_W(\text{C})$ | $d_W(\text{D})$ | $d_W(\text{E})$ | $d_W(\text{F})$ | next $x'$ | $W$ |
-# |---|---|---|---|---|---|---|---|---|
-# | start | {u}`0` | ∞ | ∞ | ∞ | ∞ | ∞ | A | $\{\}$ |
-# | 1 | | 2 (A) | {u}`1 (A)` | ∞ | ∞ | ∞ | C | $\{A\}$ |
-# | 2 | | {u}`2 (A)` | | 4 (C) | 2 (C) | ∞ | B | $\{A, C\}$ |
-# | 3 | | | | 4 (C) | {u}`2 (C)` | ∞ | E | $\{A, C, B\}$ |
-# | 4 | | | | {u}`3 (E)` | | 4 (E) | D | $\{A, C, B, E\}$ |
-# | 5 | | | | | | {u}`4 (E)` | F | $\{A, C, B, E, D\}$ |
-# | 6 | | | | | | | | $\{A, C, B, E, D, F\}$ |
+# | step | $d_W(\text{A})$ | $d_W(\text{B})$ | $d_W(\text{C})$ | $d_W(\text{D})$ | $d_W(\text{E})$ | $d_W(\text{F})$ | $W$ |
+# |---|---|---|---|---|---|---|---|
+# | start | {u}`0` | ∞ | ∞ | ∞ | ∞ | ∞ | $\{\}$ |
+# | 1 | | 2 (A) | {u}`1 (A)` | ∞ | ∞ | ∞ | $\{A\}$ |
+# | 2 | | {u}`2 (A)` | | 4 (C) | 2 (C) | ∞ | $\{A, C\}$ |
+# | 3 | | | | 4 (C) | {u}`2 (C)` | ∞ | $\{A, C, B\}$ |
+# | 4 | | | | {u}`3 (E)` | | 4 (E) | $\{A, C, B, E\}$ |
+# | 5 | | | | | | {u}`4 (E)` | $\{A, C, B, E, D\}$ |
+# | 6 | | | | | | | $\{A, C, B, E, D, F\}$ |
 # :::
 #
 # Step by step:
@@ -522,6 +521,11 @@ draw_graph(
 
 
 # %%
+import math
+
+import pandas as pd
+
+
 def dijkstra(nodes, distance, source):
     """Shortest distances from source with Dijkstra's algorithm.
 

@@ -642,13 +642,21 @@ draw_graph(
 # ### Running Time
 #
 # How long does the algorithm take? Every search for an augmenting path looks at
-# every arc at most a few times, and with integer capacities every iteration
-# increases the flow by at least 1. So there are at most as many iterations as the
-# value of the maximum flow. If the capacities are large, that can be many
-# iterations. Searching nearest nodes first, as above, avoids this: it always
-# chooses an augmenting path with as few arcs as possible, and with that choice the
-# number of iterations is bounded by a polynomial in the number of nodes and arcs,
-# whatever the capacities (Edmonds & Karp, 1972).
+# every arc at most a few times. The number of iterations depends on which
+# augmenting path the algorithm picks when there are several, which the algorithm
+# leaves open. With integer capacities every iteration increases the flow by at
+# least 1, so there are at most as many iterations as the value of the maximum flow.
+# That number grows with the capacities, not with the size of the network: with
+# capacities in the millions and an unlucky choice of paths, a network with four
+# nodes can take millions of iterations.
+#
+# The search in `augmenting_path` avoids this. It explores the nodes closest to the
+# source first, counting arcs and ignoring capacities, so it returns an augmenting
+# path that uses the smallest possible number of arcs: a path with two arcs is found
+# before any path with three arcs. With that choice, the number of iterations is
+# bounded by a polynomial in the number of nodes and arcs, whatever the capacities
+# (Edmonds & Karp, 1972). So the Ford-Fulkerson algorithm is polynomial if it picks
+# its augmenting paths in this way.
 
 # %% [markdown]
 # ## References

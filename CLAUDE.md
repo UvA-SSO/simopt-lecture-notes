@@ -240,11 +240,18 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
     `config={"displayModeBar": False, "staticPlot": True}`, so `custom.css`
     still recolours its text for the dark theme while hover and zoom are off.
   - Older notebooks (lecture 12) still use plain matplotlib.
-- Put all `import` statements for a notebook at the top of its **first** code cell
-  (the first cell that actually runs code, not a separate import-only cell). `isort`
-  runs with `--float-to-top` and will relocate any `import` found in a later
-  cell up to the first one on the next pre-commit run, which silently breaks
-  cell boundaries/comments placed next to it if it isn't already there.
+- Import a module at the top of the first code cell that uses it, so that the
+  visible cells read as complete code: the cell that solves a pulp model shows
+  `import pulp`, even if a hidden plotting cell (e.g. the `hide-input` cell
+  with `draw_graph`) runs earlier. A hidden cell imports what it uses itself
+  (`math`, `matplotlib`). If a visible cell uses a module that only a hidden
+  cell imported so far, import it again in the visible cell (e.g. `import
+  math` in the Dijkstra cell of `lecture11_shortest-path`). `isort` therefore
+  runs without `--float-to-top`, and ruff's E402 (import not at top of file)
+  and F811 (redefinition of an import, whose autofix would delete the repeated
+  import) are switched off for `scripts/*.py` and
+  `notebooks/*.ipynb` (ruff lints both). Older notebooks still have all imports
+  in their first code cell; that is fine where the first code cell is visible.
 - `mypy` type-checks each script as a single flat file (cell boundaries aren't
   scopes), so reusing a loop variable name (e.g. `i`) with an incompatible type
   in a later cell (e.g. as a dict string key after it was an `int` range index
@@ -448,8 +455,8 @@ curated entry in `changelog.md` (last item in the TOC, newest entry first).
 ## Pre-commit hooks
 
 `.pre-commit-config.yaml` runs, in order: standard hygiene checks (trailing
-whitespace, EOF fixer, TOML check, debug-statement check), `isort` (with `# %%` cell
-markers treated as code boundaries, `--float-to-top`), `ruff` (lint + format), `mypy`,
+whitespace, EOF fixer, TOML check, debug-statement check), `isort` (sorts each block of
+imports in place), `ruff` (lint + format), `mypy`,
 then `jupytext --sync` last. `fail_fast: true` is set, so hooks stop at the first
 failure — fix and re-run rather than expecting later hooks to also report.
 

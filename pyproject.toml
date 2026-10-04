@@ -32,10 +32,15 @@ dev = [
 [tool.isort]
 profile = "black"
 line_length = 79
-float_to_top = true
 
 [tool.ruff]
 line-length = 79
+
+[tool.ruff.lint.per-file-ignores]
+# notebooks import a module in the first visible cell that uses it,
+# also when a hidden cell imported it before
+"scripts/*.py" = ["E402", "F811"]
+"notebooks/*.ipynb" = ["E402", "F811"]
 
 [tool.mypy]
 ignore_missing_imports = true
