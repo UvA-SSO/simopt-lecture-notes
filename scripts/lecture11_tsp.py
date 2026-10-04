@@ -44,15 +44,34 @@
 #   they are needed;
 # - explain why trying all tours is not practical for large instances.
 
-# %%
-import itertools
+# %% [markdown]
+# ## The Traveling Salesman Problem
+#
+# What is the shortest tour that visits each city once and returns to the city it
+# started from? This question, the traveling salesman problem, comes up whenever a
+# vehicle or a person makes a round trip: a delivery van that delivers orders and
+# returns to the warehouse, an order picker who collects the items of an order in a
+# warehouse, or a machine that drills holes in a circuit board. It is also part of
+# many larger planning problems, such as vehicle routing with several vans.
+#
+# Given are $n$ nodes (cities) and a distance $d_{ij}$ between every pair of nodes
+# $i$ and $j$. The goal is to find the shortest tour that visits all nodes and
+# returns to the start node. Where to start does not matter: a tour is a cycle, so
+# it returns to its start anyway. If two cities are not directly connected, we set
+# their distance very large. If the shortest route between two cities passes through
+# a third city, use the length of that route as $d_{ij}$: the shortest distances
+# between all pairs follow from [Dijkstra's algorithm](lecture11_shortest-path.ipynb).
+#
+# As an example, take the network of [](#fig-tsp-example), where all edges can be
+# used in both directions. The tour A → B → D → F → E → C → A has length
+# $2 + 3 + 5 + 2 + 6 + 1 = 19$. Is there a shorter one?
+
+# %% tags=["hide-input"]
 import math
 
 import matplotlib.pyplot as plt
-import pulp
 from matplotlib.patches import Circle, FancyArrowPatch
 
-# %% tags=["hide-input"]
 # colors that read on the light and the dark site theme
 NODE_FILL, NODE_EDGE = "#d6dce5", "#5b9bd5"
 EDGE_COLOR, TEXT_COLOR = "#8c8c8c", "#111827"
@@ -159,28 +178,6 @@ def draw_graph(
     ax.axis("off")
     plt.show()
 
-
-# %% [markdown]
-# ## The Traveling Salesman Problem
-#
-# What is the shortest tour that visits each city once and returns to the city it
-# started from? This question, the traveling salesman problem, comes up whenever a
-# vehicle or a person makes a round trip: a delivery van that delivers orders and
-# returns to the warehouse, an order picker who collects the items of an order in a
-# warehouse, or a machine that drills holes in a circuit board. It is also part of
-# many larger planning problems, such as vehicle routing with several vans.
-#
-# Given are $n$ nodes (cities) and a distance $d_{ij}$ between every pair of nodes
-# $i$ and $j$. The goal is to find the shortest tour that visits all nodes and
-# returns to the start node. Where to start does not matter: a tour is a cycle, so
-# it returns to its start anyway. If two cities are not directly connected, we set
-# their distance very large. If the shortest route between two cities passes through
-# a third city, use the length of that route as $d_{ij}$: the shortest distances
-# between all pairs follow from [Dijkstra's algorithm](lecture11_shortest-path.ipynb).
-#
-# As an example, take the network of [](#fig-tsp-example), where all edges can be
-# used in both directions. The tour A → B → D → F → E → C → A has length
-# $2 + 3 + 5 + 2 + 6 + 1 = 19$. Is there a shorter one?
 
 # %% tags=["remove-cell"] label="tsp-example"
 positions = {
@@ -351,6 +348,8 @@ draw_graph(
 # subtours.
 
 # %%
+import pulp
+
 distance = {
     ("A", "B"): 2,
     ("A", "C"): 1,
@@ -437,6 +436,10 @@ while len(subtours) > 1:
 
 
 # %%
+import itertools
+import math
+
+
 def edge_length(i, j):
     """Distance between i and j, infinite if there is no edge."""
     return distance.get((i, j), distance.get((j, i), math.inf))

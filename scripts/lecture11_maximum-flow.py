@@ -40,14 +40,39 @@
 #   Ford-Fulkerson algorithm by hand;
 # - compute the value of a cut and use a cut to show that a flow is maximal.
 
-# %%
+# %% [markdown]
+# ## The Maximum Flow Problem
+#
+# How much traffic can flow per hour from one part of a city to another, and which
+# roads are the bottlenecks? Questions like this one are maximum flow problems. Other
+# examples are whether the supply in a network can meet the demand given the
+# capacities of the connections, and planning in which a limited resource has to be
+# divided, such as crews in airline scheduling.
+#
+# Given are a directed graph with a source node $s$, a destination node $d$, and a
+# flow capacity $c_{ij}$ on every arc $i \to j$: no more than $c_{ij}$ can flow from
+# $i$ to $j$. The goal is to find the maximum flow from $s$ to $d$ that respects
+#
+# - the capacities: the flow on an arc is at most its capacity;
+# - flow conservation: what flows into a node also flows out of it, except at $s$
+#   and $d$.
+#
+# This is similar to the
+# [transshipment problem](lecture9_transportation.ipynb#transshipment-problem) with
+# one warehouse and one customer, where the goal is now to deliver as much as
+# possible and the arcs have capacities instead of costs.
+#
+# As an example, we look for the maximum flow from $s = \text{A}$ to
+# $d = \text{F}$ in [](#fig-mf-example). The capacity $c_{DF} = 4$ means that at most
+# 4 can flow from D to F. A pair of nodes without an arc, such as A and D, has
+# capacity $c_{AD} = 0$.
+
+# %% tags=["hide-input"]
 import math
 
 import matplotlib.pyplot as plt
-import pulp
 from matplotlib.patches import Circle, FancyArrowPatch
 
-# %% tags=["hide-input"]
 # colors that read on the light and the dark site theme
 NODE_FILL, NODE_EDGE = "#d6dce5", "#5b9bd5"
 EDGE_COLOR, TEXT_COLOR = "#8c8c8c", "#111827"
@@ -183,33 +208,6 @@ def augment_and_draw(positions, capacity, flow, path):
     )
 
 
-# %% [markdown]
-# ## The Maximum Flow Problem
-#
-# How much traffic can flow per hour from one part of a city to another, and which
-# roads are the bottlenecks? Questions like this one are maximum flow problems. Other
-# examples are whether the supply in a network can meet the demand given the
-# capacities of the connections, and planning in which a limited resource has to be
-# divided, such as crews in airline scheduling.
-#
-# Given are a directed graph with a source node $s$, a destination node $d$, and a
-# flow capacity $c_{ij}$ on every arc $i \to j$: no more than $c_{ij}$ can flow from
-# $i$ to $j$. The goal is to find the maximum flow from $s$ to $d$ that respects
-#
-# - the capacities: the flow on an arc is at most its capacity;
-# - flow conservation: what flows into a node also flows out of it, except at $s$
-#   and $d$.
-#
-# This is similar to the
-# [transshipment problem](lecture9_transportation.ipynb#transshipment-problem) with
-# one warehouse and one customer, where the goal is now to deliver as much as
-# possible and the arcs have capacities instead of costs.
-#
-# As an example, we look for the maximum flow from $s = \text{A}$ to
-# $d = \text{F}$ in [](#fig-mf-example). The capacity $c_{DF} = 4$ means that at most
-# 4 can flow from D to F. A pair of nodes without an arc, such as A and D, has
-# capacity $c_{AD} = 0$.
-
 # %% label="mf-example" tags=["remove-cell"]
 positions = {
     "A": (0, 1),
@@ -305,6 +303,8 @@ draw_graph(positions, example_capacity)
 # here the capacity, so the capacity constraints need no separate lines.
 
 # %%
+import pulp
+
 capacity = {
     ("A", "B"): 2,
     ("A", "C"): 4,
