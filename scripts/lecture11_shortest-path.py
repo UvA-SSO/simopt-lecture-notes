@@ -30,7 +30,7 @@
 # a dedicated algorithm. The dedicated algorithm uses the structure of the problem and
 # is much faster, so it is often the way to go in practice (see
 # [Algorithms and Their Characteristics](lecture11_algorithms.ipynb)). For the
-# shortest path problem, that algorithm is Dijkstra's algorithm.
+# shortest path problem, that algorithm is Dijkstra's algorithm. JB: This is already discussed in the previous notebook. Keep it short here.
 #
 # **Learning outcomes**
 #
@@ -44,7 +44,7 @@
 #   time grows like $n^2$.
 
 # %%
-import math
+import math  # JB: Can this code block and the next not be introduced later where we need it? Do we reuse the code to make the pictures? I think it is fine to put it hidden?
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -175,7 +175,7 @@ def draw_graph(
 # undirected edge, which can be used in both directions, counts as two arcs.
 #
 # As an example, we look for a shortest path from $s = \text{A}$ to
-# $d = \text{F}$ in the graph of [](#fig-sp-example). The distance from D to F is
+# $d = \text{F}$ in the graph of [](#fig-sp-example). For example, the distance from D to F is
 # $c_{DF} = 5$, and the edge between B and C can be used in both directions:
 # $c_{BC} = c_{CB} = 2$.
 
@@ -252,6 +252,8 @@ draw_graph(positions, graph_arcs, both_ways={("B", "C")})
 # & x_{ij} \ge 0, \quad \text{for all } i, j.
 # \end{aligned}
 # $$
+#
+# JB: Is it correct that the net flow constraint at d is effectively redundant? Fine to leave it, but perhaps a note below can be interesting.
 #
 # ### Model for the Example
 #
@@ -330,7 +332,7 @@ print("length:", shortest_path.objective.value())
 # ## Dijkstra's Algorithm
 #
 # Edsger Dijkstra (1930-2002), a Dutch computer scientist who worked at the CWI in
-# Amsterdam, published his algorithm in 1959. It finds the shortest paths from the
+# Amsterdam JB: at briefly what CWI is and that it is located on the amsterdam science park, published his algorithm in 1959 JB: Add reference to the publication. It finds the shortest paths from the
 # source to all nodes at once, and it requires that all distances are non-negative,
 # $c_{ij} \ge 0$.
 #
@@ -366,7 +368,7 @@ print("length:", shortest_path.objective.value())
 # (dijkstra-steps)=
 # ### The Algorithm
 #
-# Write $W \setminus x'$ for the set $W$ without the node $x'$.
+# Write $W \setminus x'$ for the set $W$ without the node $x'$. JB: It would be good that the algorithm as written finds all shortest path. If you are only interested in reaching a desitination, the algorithm can stop once that is reached.
 #
 # - **Start:** $W = \emptyset$, $d_W(\text{source}) = 0$ and $d_W(x) = \infty$ for all
 #   other nodes $x$.
@@ -412,6 +414,7 @@ print("length:", shortest_path.objective.value())
 # | 6 | | | | | | | | $\{A, C, B, E, D, F\}$ |
 # :::
 #
+# JB: In the table: Underline the node that becomes current in the next step. Also, specify in the table what x is.
 # Step by step:
 #
 # - **Start.** Only the source has a finite value, so A becomes current.
@@ -421,7 +424,7 @@ print("length:", shortest_path.objective.value())
 #   smallest value among the unvisited nodes is 1, so C becomes current.
 # - **Step 2.** Visit C. Via C, B could be reached in $1 + 2 = 3$, which is worse
 #   than 2, so B keeps its value. D gets $1 + 3 = 4$ and E gets $1 + 1 = 2$, both via
-#   C. B and E are tied at 2; we pick B (any choice works).
+#   C. B and E are tied at 2; we pick B (any choice works). JB: Add an exercise below to finish the table if E was chosen.
 # - **Step 3.** Visit B. Via B, D could be reached in $2 + 3 = 5 > 4$, so nothing
 #   changes, and E becomes current.
 # - **Step 4.** Visit E. Via E, D is reached in $2 + 1 = 3 < 4$, so
@@ -431,7 +434,8 @@ print("length:", shortest_path.objective.value())
 # - **Step 6.** Visit F. All nodes are in $W$, so we stop.
 #
 # The value of a node in the row where it becomes current is its shortest distance
-# from A: $d(\text{F}) = 4$. For example, the shortest path from A to D has length 3.
+# from A: $d(\text{F}) = 4$ JB: from A: $d(\text{F}) = 4$ is vague to me.
+# For example, the shortest path from A to D has length 3. JB: Specify which d_W(x) value is picked for that.
 # Backtracking through the previous nodes gives the paths: the previous node of F is
 # E, that of E is C, and that of C is A, so the shortest path from A to F is
 # A → C → E → F, the same as pulp found. Together, the previous nodes form a tree of
@@ -554,7 +558,7 @@ while path[0] != source:
     path.insert(0, previous[path[0]])
 print("shortest path:", " -> ".join(path), "with length", d[destination])
 
-# %% tags=["remove-cell"] label="sp-exercise"
+# %% label="sp-exercise" tags=["remove-cell"]
 draw_graph(
     {"A": (0, 1), "B": (1.2, 2), "C": (1.2, 0), "D": (3.2, 2), "E": (3.2, 0)},
     {
@@ -595,7 +599,7 @@ draw_graph(
 # In each repetition, finding the unvisited node with the smallest value and
 # updating the unvisited nodes each look at no more than $n$ nodes. In total that is
 # about $n \cdot n = n^2$ operations. For a network with 1000 nodes, this is in the
-# order of a million operations, a fraction of a second on a computer: very fast. In
+# order of a million operations, a fraction of a second on a computer. In
 # [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb) we compare this
 # with problems for which no such fast algorithm is known.
 

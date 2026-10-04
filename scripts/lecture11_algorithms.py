@@ -24,7 +24,7 @@
 # %% [markdown]
 # In Lectures 8 to 10 we modeled problems as (I)LO models and let a solver find the
 # optimal solution. The solver runs an algorithm, such as the simplex method or branch
-# and bound, but we did not look inside. This lecture does. This notebook explains
+# and bound. This notebook explains
 # what an algorithm is, how the algorithms in this lecture are written down, and how
 # algorithms differ from each other. The next three notebooks each take one classical
 # problem: [Shortest Path](lecture11_shortest-path.ipynb),
@@ -109,10 +109,6 @@ print("largest number:", largest)
 # running time grows linearly with $n$. Counting steps like this is the start of
 # [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb).
 #
-# Dijkstra's algorithm in the next notebook is written in the same way, with
-# $d_W(x)$, the length of a shortest path to node $x$ that only passes through nodes
-# in a set $W$, in the role of $m_k$.
-#
 # Each algorithm in this lecture also comes with Python code that follows its
 # description line by line, as the code above does. You do not need to be able to
 # program these algorithms from scratch. You should be able to read the code and
@@ -136,7 +132,7 @@ print("largest number:", largest)
 # - **Polynomial or non-polynomial complexity.** The complexity of an algorithm
 #   describes how its running time grows with the size of the problem, for example
 #   with the number of nodes $n$ of a network. If the running time grows like $n^2$
-#   (polynomial), large instances are no problem; if it grows like $n!$
+#   (polynomial), large instances are typically no problem; if it grows like $n!$
 #   (non-polynomial), even moderate instances take forever. See
 #   [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb).
 # - **Exact or heuristic.** An exact algorithm is guaranteed to find an optimal
@@ -156,6 +152,8 @@ print("largest number:", largest)
 # The table below characterizes the algorithms of Lectures 8 to 11. The running times
 # are explained in the notebooks of the algorithms and in
 # [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb).
+#
+# JB: Why does "polynomial, if augmenting paths are chosen well" hold for Ford-Fulkerson algorithm? What does the addition mean?
 #
 # :::{table} Characteristics of the algorithms in Lectures 8 to 11.
 # :label: tbl-algorithm-characteristics
@@ -184,7 +182,7 @@ print("largest number:", largest)
 #
 # In Python we store a graph as a dictionary keyed by arcs, the same way the
 # transportation costs were stored in
-# [Transportation and Transshipment](lecture9_transportation.ipynb):
+# [Transportation and Transshipment](lecture9_transportation.ipynb): JB: In "Graphs: Notation for This Lecture" show also a plot of the graph of the example for illustration purposes.
 
 # %%
 distance = {("A", "B"): 2, ("A", "C"): 1, ("C", "B"): 2}
