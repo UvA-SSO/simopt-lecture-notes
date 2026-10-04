@@ -586,8 +586,8 @@ print("maximum flow:", flow_value)
 print("minimum cut S:", sorted(cut_side), "with value", cut_value)
 
 # %% [markdown]
-# This search explores the nodes closest to the source first, so it finds different
-# augmenting paths than we chose by hand, with the same maximum flow of 6.
+# The function finds different augmenting paths than we chose by hand, with the same
+# maximum flow of 6.
 
 # %% label="mf-exercise" tags=["remove-cell"]
 draw_graph(
@@ -647,28 +647,14 @@ draw_graph(
 # (max-flow-running-time)=
 # ### Running Time
 #
-# How long does the algorithm take? Every search for an augmenting path looks at
-# every arc at most a few times. The number of iterations depends on which
-# augmenting path the algorithm picks when there are several, which the algorithm
-# leaves open. With integer capacities every iteration increases the flow by at
-# least 1, so there are at most as many iterations as the value of the maximum flow.
-# That number grows with the capacities, not with the size of the network: with
-# capacities in the millions and an unlucky choice of paths, a network with four
-# nodes can take millions of iterations.
-#
-# The search in `augmenting_path` avoids this. It explores the nodes closest to the
-# source first, counting arcs and ignoring capacities, so it returns an augmenting
-# path that uses the smallest possible number of arcs: a path with two arcs is found
-# before any path with three arcs. With that choice, the number of iterations
-# depends only on the number of nodes $n$ and arcs $m$, not on the capacities
-# (Edmonds & Karp, 1972). The idea: every iteration fills the bottleneck arc of the
-# path, so that arc can no longer be used in that direction. The new options the
-# iteration creates are reversed arcs, which point back towards the source and
-# therefore never give a path with as few arcs as the current one. So after at most
-# $m$ iterations, the shortest augmenting paths of the current number of arcs are
-# used up, and the next path has more arcs. A path has at most $n - 1$ arcs, so
-# there are at most about $n \cdot m$ iterations. The Ford-Fulkerson algorithm is
-# therefore polynomial if it picks its augmenting paths in this way.
+# The running time of the Ford-Fulkerson algorithm is $O(f^* \cdot m)$, where $f^*$
+# is the value of the maximum flow and $m$ the number of arcs (the $O$ notation is
+# explained in [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb)).
+# The algorithm repeats its loop as long as there is an augmenting path, and finding
+# one looks at every arc a few times. With integer capacities, every iteration
+# increases the flow by at least 1, so in the worst case there are $f^*$ iterations.
+# More refined implementations, which choose the augmenting paths more carefully,
+# have a polynomial running time (Edmonds & Karp, 1972).
 
 # %% [markdown]
 # ## References

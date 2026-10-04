@@ -161,7 +161,7 @@ print("largest number:", largest)
 # | simplex method | LO | general | non-polynomial in the worst case, fast in practice | exact |
 # | branch and bound | ILO | general | non-polynomial | exact |
 # | Dijkstra's algorithm | shortest path | dedicated | polynomial ($n^2$) | exact |
-# | Ford-Fulkerson algorithm | maximum flow | dedicated | depends on which augmenting paths it picks: polynomial with the right choice, see [Running Time](lecture11_maximum-flow.ipynb#max-flow-running-time) | exact |
+# | Ford-Fulkerson algorithm | maximum flow | dedicated | $f^* \cdot m$ for maximum flow $f^*$ and $m$ arcs, polynomial in refined implementations, see [Running Time](lecture11_maximum-flow.ipynb#max-flow-running-time) | exact |
 # | brute force (try all tours) | TSP | dedicated | non-polynomial ($n!$) | exact |
 # | 2-opt | TSP | dedicated | fast per improvement step | heuristic |
 # :::
