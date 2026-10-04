@@ -97,6 +97,11 @@
 # $a_{k+1}$. When the loop stops, $k = n$ and $m_n$ is the answer. In Python:
 
 # %%
+import math
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle, FancyArrowPatch
+
 numbers = [4, 9, 2, 7, 11, 3]
 
 largest = numbers[0]  # m_1
@@ -153,8 +158,6 @@ print("largest number:", largest)
 # are explained in the notebooks of the algorithms and in
 # [Complexity and Heuristics](lecture11_complexity-heuristics.ipynb).
 #
-# JB: Why does "polynomial, if augmenting paths are chosen well" hold for Ford-Fulkerson algorithm? What does the addition mean?
-#
 # :::{table} Characteristics of the algorithms in Lectures 8 to 11.
 # :label: tbl-algorithm-characteristics
 #
@@ -163,10 +166,22 @@ print("largest number:", largest)
 # | simplex method | LO | general | non-polynomial in the worst case, fast in practice | exact |
 # | branch and bound | ILO | general | non-polynomial | exact |
 # | Dijkstra's algorithm | shortest path | dedicated | polynomial ($n^2$) | exact |
-# | Ford-Fulkerson algorithm | maximum flow | dedicated | polynomial, if augmenting paths are chosen well | exact |
+# | Ford-Fulkerson algorithm | maximum flow | dedicated | polynomial, if every augmenting path has as few arcs as possible | exact |
 # | brute force (try all tours) | TSP | dedicated | non-polynomial ($n!$) | exact |
 # | 2-opt | TSP | dedicated | fast per improvement step | heuristic |
 # :::
+#
+# The Ford-Fulkerson algorithm repeatedly increases the flow along an augmenting
+# path, but it does not say which one to take when there are several. With integer
+# capacities, every augmenting path increases the flow by at least 1, so there are at
+# most as many iterations as the value of the maximum flow. That number grows with
+# the capacities, not with the size of the network: with capacities in the millions
+# and an unlucky choice of paths, a network with four nodes can take millions of
+# iterations. If every augmenting path has as few arcs as possible, the number of
+# iterations is bounded by a polynomial in the number of nodes and arcs, whatever the
+# capacities (Edmonds & Karp, 1972). See
+# [Running Time](lecture11_maximum-flow.ipynb#max-flow-running-time) in the maximum
+# flow notebook.
 
 # %% [markdown]
 # (graph-notation)=
@@ -182,11 +197,135 @@ print("largest number:", largest)
 #
 # In Python we store a graph as a dictionary keyed by arcs, the same way the
 # transportation costs were stored in
-# [Transportation and Transshipment](lecture9_transportation.ipynb): JB: In "Graphs: Notation for This Lecture" show also a plot of the graph of the example for illustration purposes.
+# [Transportation and Transshipment](lecture9_transportation.ipynb). For example,
+# the graph in [](#fig-graph-notation) is stored as:
 
 # %%
 distance = {("A", "B"): 2, ("A", "C"): 1, ("C", "B"): 2}
 print("distance from A to B:", distance["A", "B"])
+
+# %% tags=["hide-input"]
+# colors that read on the light and the dark site theme
+NODE_FILL, NODE_EDGE = "#d6dce5", "#5b9bd5"
+EDGE_COLOR, TEXT_COLOR = "#8c8c8c", "#111827"
+NODE_RADIUS = 0.2
+
+
+def draw_graph(
+    positions,
+    arcs,
+    highlight=(),
+    highlight_color="#d62728",
+    directed=True,
+    both_ways=(),
+    label_at=None,
+    node_notes=None,
+    cut_x=None,
+    figsize=(6, 3.2),
+):
+    """Draw a graph with a number (label) on every arc.
+
+    positions: node -> (x, y)
+    arcs: (i, j) -> label; both_ways: arcs drawn with an arrow at both ends
+    highlight: arcs drawn thick in highlight_color
+    label_at: (i, j) -> position of the label along the arc (default 0.5)
+    node_notes: node -> (text, dx, dy) for a box next to the node
+    cut_x: x-coordinate of a vertical line that marks a cut
+
+    The background is transparent and every text sits on its own box, so
+    the figure reads the same in the light and the dark site theme.
+    """
+    label_at = label_at or {}
+    node_notes = node_notes or {}
+    fig, ax = plt.subplots(figsize=figsize, dpi=150)
+    fig.patch.set_alpha(0)
+    ax.patch.set_alpha(0)
+    for (i, j), label in arcs.items():
+        (x1, y1), (x2, y2) = positions[i], positions[j]
+        on = (i, j) in highlight or (not directed and (j, i) in highlight)
+        color = highlight_color if on else EDGE_COLOR
+        style = "-"
+        if directed:
+            style = "<|-|>" if (i, j) in both_ways else "-|>"
+        # start and end the arc at the border of the node circles
+        length = math.hypot(x2 - x1, y2 - y1)
+        dx = (x2 - x1) / length * NODE_RADIUS
+        dy = (y2 - y1) / length * NODE_RADIUS
+        arrow = FancyArrowPatch(
+            (x1 + dx, y1 + dy),
+            (x2 - dx, y2 - dy),
+            arrowstyle=style,
+            mutation_scale=14,
+            color=color,
+            lw=3 if on else 1.5,
+            shrinkA=0,
+            shrinkB=0,
+        )
+        ax.add_patch(arrow)
+        t = label_at.get((i, j), 0.5)
+        ax.text(
+            x1 + t * (x2 - x1),
+            y1 + t * (y2 - y1),
+            str(label),
+            ha="center",
+            va="center",
+            fontsize=11,
+            color=TEXT_COLOR,
+            bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": color},
+        )
+    for node, (x, y) in positions.items():
+        circle = Circle(
+            (x, y), NODE_RADIUS, fc=NODE_FILL, ec=NODE_EDGE, lw=1.5, zorder=3
+        )
+        ax.add_patch(circle)
+        ax.text(x, y, node, ha="center", va="center", fontsize=12, zorder=4)
+    for node, (text, dx, dy) in node_notes.items():
+        x, y = positions[node]
+        ax.text(
+            x + dx,
+            y + dy,
+            text,
+            ha="center",
+            va="center",
+            fontsize=11,
+            color=highlight_color,
+            fontweight="bold",
+            bbox={
+                "boxstyle": "round,pad=0.2",
+                "fc": "white",
+                "ec": highlight_color,
+            },
+        )
+    xs = [x for x, _ in positions.values()]
+    ys = [y for _, y in positions.values()]
+    if cut_x is not None:
+        ax.plot(
+            [cut_x, cut_x],
+            [min(ys) - 0.4, max(ys) + 0.4],
+            color="#d62728",
+            lw=3,
+        )
+    ax.set_xlim(min(xs) - 0.45, max(xs) + 0.45)
+    ax.set_ylim(min(ys) - 0.45, max(ys) + 0.45)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    plt.show()
+
+
+# %% label="graph-example" tags=["remove-cell"]
+draw_graph(
+    {"A": (0, 0.6), "B": (1.6, 1.2), "C": (1.6, 0)},
+    distance,
+    figsize=(3.5, 2.2),
+)
+
+# %% [markdown]
+# :::{figure} #graph-example
+# :label: fig-graph-notation
+#
+# The graph stored in `distance`, with the distance $c_{ij}$ along each arc
+# $i \to j$.
+# :::
 
 # %% [markdown]
 # A pair of nodes without an arc simply has no key. In the mathematical models we
@@ -200,3 +339,5 @@ print("distance from A to B:", distance["A", "B"])
 #   "Combinatorial Optimization," introduction.
 # - Wolpert, D. H., & Macready, W. G. (1997). No free lunch theorems for
 #   optimization. *IEEE Transactions on Evolutionary Computation*, 1(1), 67-82.
+# - Edmonds, J., & Karp, R. M. (1972). Theoretical improvements in algorithmic
+#   efficiency for network flow problems. *Journal of the ACM*, 19(2), 248-264.

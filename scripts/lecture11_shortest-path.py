@@ -22,15 +22,11 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture11_shortest-path.ipynb)
 
 # %% [markdown]
-# This lecture looks at three classical problems: the shortest path problem in this
-# notebook, then [maximum flow](lecture11_maximum-flow.ipynb) and the
-# [traveling salesman problem](lecture11_tsp.ipynb). Each notebook takes the same
-# steps: we define the problem and give an example, solve the example with an LO
-# approach (a model solved with pulp, as in Lectures 8 to 10), and then solve it with
-# a dedicated algorithm. The dedicated algorithm uses the structure of the problem and
-# is much faster, so it is often the way to go in practice (see
-# [Algorithms and Their Characteristics](lecture11_algorithms.ipynb)). For the
-# shortest path problem, that algorithm is Dijkstra's algorithm. JB: This is already discussed in the previous notebook. Keep it short here.
+# This notebook is the first of the three problem notebooks of this lecture,
+# introduced in [Algorithms and Their Characteristics](lecture11_algorithms.ipynb).
+# We define the shortest path problem, solve an example with an LO model in pulp,
+# and then solve it with Dijkstra's algorithm, the dedicated algorithm for this
+# problem.
 #
 # **Learning outcomes**
 #
@@ -43,15 +39,34 @@
 # - explain why Dijkstra's algorithm needs non-negative distances and why its running
 #   time grows like $n^2$.
 
-# %%
-import math  # JB: Can this code block and the next not be introduced later where we need it? Do we reuse the code to make the pictures? I think it is fine to put it hidden?
+# %% [markdown]
+# ## The Shortest Path Problem
+#
+# Every time you ask navigation software for a route, it solves a shortest path
+# problem: find the shortest (or fastest) route from where you are to where you want
+# to go. The same problem appears in many less visible places, for example in routing
+# data packets through the internet, and as a building block of other problems: the
+# [traveling salesman problem](lecture11_tsp.ipynb) needs the shortest
+# distance between every pair of cities.
+#
+# In the notation of [Graphs: Notation for This Lecture](lecture11_algorithms.ipynb#graph-notation),
+# the problem is: given a directed graph with distances $c_{ij} \ge 0$ on the arcs,
+# find a shortest path from a source node $s$ to a destination node $d$. An
+# undirected edge, which can be used in both directions, counts as two arcs.
+#
+# As an example, we look for a shortest path from $s = \text{A}$ to
+# $d = \text{F}$ in the graph of [](#fig-sp-example). For example, the distance from D to F is
+# $c_{DF} = 5$, and the edge between B and C can be used in both directions:
+# $c_{BC} = c_{CB} = 2$.
+
+# %% tags=["hide-input"]
+import math
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import pulp
 from matplotlib.patches import Circle, FancyArrowPatch
 
-# %% tags=["hide-input"]
 # colors that read on the light and the dark site theme
 NODE_FILL, NODE_EDGE = "#d6dce5", "#5b9bd5"
 EDGE_COLOR, TEXT_COLOR = "#8c8c8c", "#111827"
@@ -159,26 +174,6 @@ def draw_graph(
     plt.show()
 
 
-# %% [markdown]
-# ## The Shortest Path Problem
-#
-# Every time you ask navigation software for a route, it solves a shortest path
-# problem: find the shortest (or fastest) route from where you are to where you want
-# to go. The same problem appears in many less visible places, for example in routing
-# data packets through the internet, and as a building block of other problems: the
-# [traveling salesman problem](lecture11_tsp.ipynb) needs the shortest
-# distance between every pair of cities.
-#
-# In the notation of [Graphs: Notation for This Lecture](lecture11_algorithms.ipynb#graph-notation),
-# the problem is: given a directed graph with distances $c_{ij} \ge 0$ on the arcs,
-# find a shortest path from a source node $s$ to a destination node $d$. An
-# undirected edge, which can be used in both directions, counts as two arcs.
-#
-# As an example, we look for a shortest path from $s = \text{A}$ to
-# $d = \text{F}$ in the graph of [](#fig-sp-example). For example, the distance from D to F is
-# $c_{DF} = 5$, and the edge between B and C can be used in both directions:
-# $c_{BC} = c_{CB} = 2$.
-
 # %% label="sp-example" tags=["remove-cell"]
 positions = {
     "A": (0, 1),
@@ -253,7 +248,12 @@ draw_graph(positions, graph_arcs, both_ways={("B", "C")})
 # \end{aligned}
 # $$
 #
-# JB: Is it correct that the net flow constraint at d is effectively redundant? Fine to leave it, but perhaps a note below can be interesting.
+# One of these constraints is redundant. Every arc leaves one node and enters
+# another, so the net outflows (outflow minus inflow) of all nodes add up to 0. If
+# the source has net outflow 1 and every other node except the destination has net
+# outflow 0, the destination must have net outflow $-1$: it receives one unit. The
+# destination constraint therefore follows from the others. We keep it because it
+# makes the model easier to read, and it does not change the optimal solution.
 #
 # ### Model for the Example
 #
@@ -331,8 +331,11 @@ print("length:", shortest_path.objective.value())
 # %% [markdown]
 # ## Dijkstra's Algorithm
 #
-# Edsger Dijkstra (1930-2002), a Dutch computer scientist who worked at the CWI in
-# Amsterdam JB: at briefly what CWI is and that it is located on the amsterdam science park, published his algorithm in 1959 JB: Add reference to the publication. It finds the shortest paths from the
+# Edsger Dijkstra (1930-2002) was a Dutch computer scientist. He designed his
+# algorithm while working at the Mathematisch Centrum in Amsterdam, now the CWI
+# (Centrum Wiskunde & Informatica), the Dutch national research institute for
+# mathematics and computer science at Amsterdam Science Park. He published it in a
+# three-page paper (Dijkstra, 1959). The algorithm finds the shortest paths from the
 # source to all nodes at once, and it requires that all distances are non-negative,
 # $c_{ij} \ge 0$.
 #
@@ -368,7 +371,7 @@ print("length:", shortest_path.objective.value())
 # (dijkstra-steps)=
 # ### The Algorithm
 #
-# Write $W \setminus x'$ for the set $W$ without the node $x'$. JB: It would be good that the algorithm as written finds all shortest path. If you are only interested in reaching a desitination, the algorithm can stop once that is reached.
+# Write $W \setminus x'$ for the set $W$ without the node $x'$.
 #
 # - **Start:** $W = \emptyset$, $d_W(\text{source}) = 0$ and $d_W(x) = \infty$ for all
 #   other nodes $x$.
@@ -391,30 +394,35 @@ print("length:", shortest_path.objective.value())
 #
 # The previous nodes give the shortest paths themselves: follow them backwards from
 # the destination to the source.
+#
+# As written, the algorithm finds the shortest paths from the source to all nodes. If
+# you only need a shortest path to the destination, you can stop as soon as the
+# destination is visited: its value is then final (see [Why It Works](#dijkstra-why)).
 
 # %% [markdown]
 # ### Example
 #
 # We apply the algorithm to [](#fig-sp-example). [](#tbl-dijkstra) shows $d_W(x)$
-# throughout the algorithm, with the previous node in brackets. Each row shows the
-# values after updating, for the nodes that are not yet visited; the column
-# "current" gives the node with the smallest value, which is visited next.
+# for every node $x$ throughout the algorithm, with the previous node in brackets.
+# Each row shows the values after updating, for the nodes that are not yet visited,
+# with $W$ the set of visited nodes in that row. The smallest of these values is
+# underlined: its node becomes the current node $x'$ in the next step (column
+# "next $x'$").
 #
 # :::{table} Distances $d_W(x)$ throughout Dijkstra's algorithm, from A, for the network in [](#fig-sp-example).
 # :label: tbl-dijkstra
 #
-# | step | A | B | C | D | E | F | current | $W$ |
+# | step | $d_W(\text{A})$ | $d_W(\text{B})$ | $d_W(\text{C})$ | $d_W(\text{D})$ | $d_W(\text{E})$ | $d_W(\text{F})$ | next $x'$ | $W$ |
 # |---|---|---|---|---|---|---|---|---|
-# | start | 0 | ∞ | ∞ | ∞ | ∞ | ∞ | A | $\{\}$ |
-# | 1 | | 2 (A) | 1 (A) | ∞ | ∞ | ∞ | C | $\{A\}$ |
-# | 2 | | 2 (A) | | 4 (C) | 2 (C) | ∞ | B | $\{A, C\}$ |
-# | 3 | | | | 4 (C) | 2 (C) | ∞ | E | $\{A, C, B\}$ |
-# | 4 | | | | 3 (E) | | 4 (E) | D | $\{A, C, B, E\}$ |
-# | 5 | | | | | | 4 (E) | F | $\{A, C, B, E, D\}$ |
+# | start | {u}`0` | ∞ | ∞ | ∞ | ∞ | ∞ | A | $\{\}$ |
+# | 1 | | 2 (A) | {u}`1 (A)` | ∞ | ∞ | ∞ | C | $\{A\}$ |
+# | 2 | | {u}`2 (A)` | | 4 (C) | 2 (C) | ∞ | B | $\{A, C\}$ |
+# | 3 | | | | 4 (C) | {u}`2 (C)` | ∞ | E | $\{A, C, B\}$ |
+# | 4 | | | | {u}`3 (E)` | | 4 (E) | D | $\{A, C, B, E\}$ |
+# | 5 | | | | | | {u}`4 (E)` | F | $\{A, C, B, E, D\}$ |
 # | 6 | | | | | | | | $\{A, C, B, E, D, F\}$ |
 # :::
 #
-# JB: In the table: Underline the node that becomes current in the next step. Also, specify in the table what x is.
 # Step by step:
 #
 # - **Start.** Only the source has a finite value, so A becomes current.
@@ -424,7 +432,7 @@ print("length:", shortest_path.objective.value())
 #   smallest value among the unvisited nodes is 1, so C becomes current.
 # - **Step 2.** Visit C. Via C, B could be reached in $1 + 2 = 3$, which is worse
 #   than 2, so B keeps its value. D gets $1 + 3 = 4$ and E gets $1 + 1 = 2$, both via
-#   C. B and E are tied at 2; we pick B (any choice works). JB: Add an exercise below to finish the table if E was chosen.
+#   C. B and E are tied at 2; we pick B (any choice works, see [](#ex-sp-tie)).
 # - **Step 3.** Visit B. Via B, D could be reached in $2 + 3 = 5 > 4$, so nothing
 #   changes, and E becomes current.
 # - **Step 4.** Visit E. Via E, D is reached in $2 + 1 = 3 < 4$, so
@@ -433,9 +441,13 @@ print("length:", shortest_path.objective.value())
 #   and becomes current.
 # - **Step 6.** Visit F. All nodes are in $W$, so we stop.
 #
-# The value of a node in the row where it becomes current is its shortest distance
-# from A: $d(\text{F}) = 4$ JB: from A: $d(\text{F}) = 4$ is vague to me.
-# For example, the shortest path from A to D has length 3. JB: Specify which d_W(x) value is picked for that.
+# Once a node is chosen as current node, its value does not change anymore, and it is
+# the length of a shortest path from A to that node (see [Why It Works](#dijkstra-why)).
+# So the shortest distance of a node is the underlined value in its column. For
+# example, D is chosen in the row of step 4, where $W = \{\text{A}, \text{C},
+# \text{B}, \text{E}\}$ and $d_W(\text{D}) = 3$, so the shortest path from A to D
+# has length 3. In the same way, the underlined $d_W(\text{F}) = 4$ in the row of
+# step 5 is the length of a shortest path from A to F.
 # Backtracking through the previous nodes gives the paths: the previous node of F is
 # E, that of E is C, and that of C is A, so the shortest path from A to F is
 # A → C → E → F, the same as pulp found. Together, the previous nodes form a tree of
@@ -465,8 +477,17 @@ draw_graph(
 # A, and in red the arcs from each node's previous node, which form the tree of
 # shortest paths.
 # :::
+#
+# :::{exercise}
+# :label: ex-sp-tie
+#
+# In step 2 of [](#tbl-dijkstra), B and E are tied at 2, and we chose B as the next
+# current node. Redo the table from step 3 on, now choosing E. Do you find the same
+# shortest distances and the same tree of shortest paths?
+# :::
 
 # %% [markdown]
+# (dijkstra-why)=
 # ### Why It Works
 #
 # Suppose $x'$ has the smallest value $d_W(x')$ among the unvisited nodes. Any path
@@ -479,7 +500,7 @@ draw_graph(
 #
 # This argument fails with negative distances: a path could first go to a far-away
 # node and then come back over an arc with a large negative distance. That is why
-# Dijkstra's algorithm requires $c_{ij} \ge 0$. The argument also shows that we may
+# Dijkstra's algorithm requires $c_{ij} \ge 0$. The argument also shows why we may
 # stop as soon as the destination is visited: we then already know its shortest
 # distance.
 #

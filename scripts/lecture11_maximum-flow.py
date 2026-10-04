@@ -638,6 +638,7 @@ draw_graph(
 # Undirected graph of [](#ex-mf-ford-fulkerson), with capacities along the edges.
 # :::
 #
+# (max-flow-running-time)=
 # ### Running Time
 #
 # How long does the algorithm take? Every search for an augmenting path looks at
