@@ -14,7 +14,7 @@
 
 # %% [markdown]
 # ---
-# description: "Discrete-event simulation: how a simulation jumps from event to event, illustrated with a queue in Python, plus validation and long-run performance."
+# description: "Discrete-event simulation: how a simulation jumps from event to event, illustrated with a queue in Python, plus parameters and validation."
 # thumbnail: null
 # ---
 # # Lecture 12: Discrete-Event Simulation
@@ -22,7 +22,7 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_discrete-event-simulation.ipynb)
 
 # %% [markdown]
-# [Monte Carlo simulation](lecture12_monte-carlo.ipynb) needs the output to be a known function $r$ of a fixed number of random inputs. Many real processes do not fit that form: customers arrive, wait and are served, and what happens next depends on what happened before. Discrete-event simulation (DES) imitates such a process event by event. This notebook explains how a DES works, illustrates it with the queue from the slides in Python, and discusses where the input parameters come from, validation, and long-run performance.
+# [Monte Carlo simulation](lecture12_monte-carlo.ipynb) needs the output to be a known function $r$ of a fixed number of random inputs. Many real processes do not fit that form: customers arrive, wait and are served, and what happens next depends on what happened before. Discrete-event simulation (DES) imitates such a process event by event. This notebook explains how a DES works, illustrates it with a queue in Python, and discusses where the input parameters come from and how to validate a model.
 #
 # Building a DES model yourself is not part of this course. You should be able to read the description or code of one, such as the queue below, follow what it does, and say how to change it.
 #
@@ -34,7 +34,6 @@
 # - read the code of a small DES and trace it by hand
 # - compute a confidence interval for a performance measure from independent simulation runs
 # - explain why estimating the parameters and validating the model are important
-# - explain the warm-up period and the dependence between outcomes in a long-run simulation
 
 # %% [markdown]
 # ## Discrete-Event Simulation
@@ -177,7 +176,7 @@ trace_fig.show(config=PLOT_CONFIG)
 # \frac{1}{T} \int_0^T N(t)\,dt.
 # $$
 #
-# Since $N(t)$ is constant between events, the area is a sum over the intervals between events of the state times the length of the interval. The function `time_average` computes it for any period from `start` to `end`:
+# Since $N(t)$ is constant between events, the area is a sum over the intervals between events of the state times the length of the interval. The function `time_average(event_times, states, start, end)` computes this. It expects the two arrays that `simulate_queue` returns and a period from `start` to `end`, and returns the average number of customers over that period. How it computes the sum with `numpy` is outside the scope of this course, so its code is collapsed:
 
 
 # %% tags=["hide-input"]
@@ -205,7 +204,7 @@ print(f"average number of customers: {mean:.2f}")
 print(f"95% CI: [{mean - half_width:.2f}, {mean + half_width:.2f}]")
 
 # %% [markdown]
-# Here a loop over the days is needed: each day is a sequence of events that depend on each other, which `numpy` cannot compute as one array operation.
+# In Python, use `numpy` where possible to speed up a simulation. For [Monte Carlo simulation](lecture12_monte-carlo.ipynb#numpy-arrays), that means computing all runs at once with arrays. A DES does not allow this: each event depends on the events before it, so `simulate_queue` handles the events one by one in a loop, and the days are simulated in a loop as well.
 #
 # :::{exercise}
 # :label: ex-des-queue
@@ -227,71 +226,6 @@ print(f"95% CI: [{mean - half_width:.2f}, {mean + half_width:.2f}]")
 # **Validation** checks whether the model represents reality well enough for its purpose. Usually we simulate the current situation and compare the output with the measured performance, such as the observed average queue length. Validation is essential, because the conclusions of a simulation study, typically about situations that do not exist yet, rest on it. It is also hard: data is often missing or unreliable, and in systems where people make many ad-hoc decisions, such as an emergency department, the model never matches reality exactly. Whether a difference matters depends on the goal of the simulation. Once the model is validated, we can change it, for example add a second server, and simulate the new situation: a what-if analysis.
 
 # %% [markdown]
-# ## Long-Run Performance
-#
-# The desk closes at the end of the day, which gives a natural end to each run. Some systems have no such end, for example a website or an emergency department that is always open, and then we are interested in the long-run performance. Two things need care.
-#
-# **Warm-up.** A run starts in a state that is not typical, here an empty desk. [](#fig-queue-warmup) shows the number of customers over time, averaged over 1000 runs. It rises from 0 and levels off at about 5.6 only after several hundred minutes. So the daily average above (about 3.9) is lower than the long-run average. To estimate the long-run performance, we leave out a **warm-up period** at the start of every run.
-#
-# **Dependence.** The single run in the figure stays high or low for long stretches: when many customers are waiting now, many are still waiting a little later. The outcomes within one run are therefore strongly dependent, and treating them as independent observations would give a CI that is much too narrow. Instead, we make several independent runs, each with its own warm-up period, take one long-run average per run, and compute the CI over the runs, just as for the days above. Because of the dependence, the runs must be long.
-
-# %% tags=["remove-cell"] label="queue-warmup"
-grid = np.arange(0, 1501, 5)
-n_warmup_runs = 1000
-counts = np.zeros((n_warmup_runs, len(grid)))
-for run in range(n_warmup_runs):
-    event_times, states = simulate_queue(1500, rng)
-    # the state at each grid time is the state after the last event before it
-    counts[run] = states[np.searchsorted(event_times, grid, side="right") - 1]
-warmup_fig = go.Figure()
-warmup_fig.add_trace(
-    go.Scatter(
-        x=grid,
-        y=counts[0],
-        mode="lines",
-        line={"color": "rgba(128,128,128,0.8)", "width": 1, "shape": "hv"},
-        name="one run",
-    )
-)
-warmup_fig.add_trace(
-    go.Scatter(
-        x=grid,
-        y=counts.mean(axis=0),
-        mode="lines",
-        line={"color": "#d62728", "width": 3},
-        name="average over 1000 runs",
-    )
-)
-warmup_fig.update_layout(**PLOT_LAYOUT)
-warmup_fig.update_xaxes(title="time (minutes)", range=[0, 1500], **AXIS_STYLE)
-warmup_fig.update_yaxes(title="customers at the desk", **AXIS_STYLE)
-warmup_fig.show(config=PLOT_CONFIG)
-
-# %% [markdown]
-# :::{figure} #queue-warmup
-# :label: fig-queue-warmup
-#
-# Number of customers at the desk over time, starting empty: the average over 1000 runs rises to its long-run level, while a single run fluctuates strongly.
-# :::
-#
-# Here are 20 runs of 20,000 minutes each, with a warm-up period of 2,000 minutes:
-
-# %%
-n_runs, horizon, warmup = 20, 20000, 2000
-long_run_average = np.zeros(n_runs)
-for run in range(n_runs):
-    event_times, states = simulate_queue(horizon, rng)
-    long_run_average[run] = time_average(event_times, states, warmup, horizon)
-
-print("per run:", long_run_average.round(1))
-mean, sd = long_run_average.mean(), long_run_average.std(ddof=1)
-half_width = 2 * sd / np.sqrt(n_runs)
-print(f"95% CI: [{mean - half_width:.2f}, {mean + half_width:.2f}]")
-
-# %% [markdown]
-# Even though each run covers about 4,500 customers, the averages of the runs differ considerably, a consequence of the dependence within each run.
-
-# %% [markdown]
 # ## DES Tooling
 #
 # There are two ways to build a DES. Programming it yourself, as above, needs a programming language with a random number generator, and for larger models a data structure that keeps track of many pending events; Python libraries such as SimPy provide one. Simulation was also the origin of object-oriented programming: Simula, a simulation language from the 1960s, is considered the first object-oriented language.
@@ -308,5 +242,4 @@ print(f"95% CI: [{mean - half_width:.2f}, {mean + half_width:.2f}]")
 # ## References
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 5, "Simulation."
-# - Kelton, W.D., Sadowski, R.P., & Sadowski, D.A. (1998). *Simulation with Arena*. McGraw-Hill.
-# - Kristiansen, S., Fabritius, F., & Xie, X. (2022). "A comparison of open-source discrete-event simulation software." Winter Simulation Conference.
+# - Kristiansen, O.S., Sandberg, U., Hansen, C., Jensen, M.S., Friederich, J., & Lazarova-Molnar, S. (2022). Experimental comparison of open source discrete-event simulation frameworks. In D. Jiang & H. Song (Eds.), *Simulation Tools and Techniques. SIMUtools 2021* (Lecture Notes of the Institute for Computer Sciences, Social Informatics and Telecommunications Engineering, vol. 424). Springer, Cham. [doi:10.1007/978-3-030-97124-3_24](https://doi.org/10.1007/978-3-030-97124-3_24)

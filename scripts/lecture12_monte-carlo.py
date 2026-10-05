@@ -30,10 +30,11 @@
 #
 # - explain why the average of simulated outputs converges to $E[r(X)]$
 # - compute a confidence interval for an expectation or a probability from simulation output
-# - write a Monte Carlo simulation with `numpy` arrays, and read one
+# - use `numpy` arrays to perform a Monte Carlo simulation, and read such code
 # - simulate the finish time of a project with random activity durations
 
 # %% [markdown]
+# (the-method)=
 # ## The Method
 #
 # Monte Carlo simulation approximates $E[r(X)]$ in three steps:
@@ -71,7 +72,7 @@
 # (numpy-arrays)=
 # ## Simulating with numpy Arrays
 #
-# A simulation can loop over the runs, but with `numpy` it is faster and shorter to sample every random input as an array with one value per run, and to compute with whole arrays. A Python `for` loop handles one number per step, and each step has overhead: Python checks the type of every number and looks up every operation again. A `numpy` operation on an array is a single call to compiled code that processes all values in a row.
+# A simulation can loop over the runs, but in Python it pays to use `numpy` wherever possible: it is faster and shorter to sample every random input as an array with one value per run, and to compute with whole arrays. A Python `for` loop handles one number per step, and each step has overhead: Python checks the type of every number and looks up every operation again. A `numpy` operation on an array is a single call to compiled code that processes all values in a row.
 #
 # As an example, we estimate the probability that the sum of two dice is 7, which we know is $1/6 \approx 0.167$, once with a loop and once with arrays:
 
@@ -103,18 +104,25 @@ print(f"the arrays are {loop_seconds / array_seconds:.0f} times faster")
 # %% [markdown]
 # Both versions give about 1/6, but the array version is many times faster. That matters once a simulation is repeated many times, as in Lecture 13, where a whole simulation is run for every decision we want to compare.
 #
-# The following `numpy` features cover the Monte Carlo simulations in Lectures 12 and 13 (the sampling methods are in [Sampling a Random Variable](lecture12_sampling.ipynb#sampling-directly)):
+# Below are the `numpy` features that are useful to perform a Monte Carlo simulation, grouped by the three steps of [the method](#the-method).
+#
+# **Sampling the inputs.** Every sampling method of a random generator returns an array of $n$ values, one per run, when it gets the number of samples $n$ as its last argument, for example `rng.uniform(a, b, n)` or `rng.lognormal(mu, sigma, n)`. [Sampling a Random Variable](lecture12_sampling.ipynb#sampling-directly) lists these methods. With several random inputs, a dictionary with one array per input keeps them together, for example one array of durations per activity of a project: `durations = {"A": rng.uniform(2, 4, n), "B": ...}`.
+#
+# **Evaluating the function $r$.** Operations on arrays of the same length work run by run, so the code for $r$ looks like the formula for a single run:
 #
 # | what | code | result |
 # |---|---|---|
-# | $n$ samples at once | `rng.uniform(a, b, n)`, `rng.lognormal(mu, sigma, n)`, ... | array of $n$ values, one per run |
 # | arithmetic per run | `x + y`, `price * sales - costs`, `x ** 2` | array, computed value by value |
 # | maximum or minimum per run | `np.maximum(x, y)`, `np.minimum(x, 45)` | array; a number such as 45 is used for every run |
 # | a condition per run | `x > 25`, `(x > 25) & (y < 3)` | array of `True`/`False` |
+#
+# **Analyzing the output.** These turn the array of outputs into one number:
+#
+# | what | code | result |
+# |---|---|---|
+# | summary statistics | `x.mean()`, `x.std(ddof=1)` | `ddof=1` divides by $n - 1$, giving the sample SD $s$ used in a CI |
 # | a probability | `(x > 25).mean()` | fraction of runs in which the condition holds (`True` counts as 1) |
-# | summary statistics | `x.mean()`, `x.std(ddof=1)` | one number; `ddof=1` divides by $n - 1$, giving the sample SD $s$ used in a CI |
-# | the largest value | `x.max()` or `np.max(x)` | one number: the largest value in the whole array |
-# | several random inputs | `durations = {"A": rng.uniform(2, 4, n), "B": ...}` | a dictionary with one array per input, e.g. per activity of a project |
+# | the largest value | `x.max()` or `np.max(x)` | the largest value in the whole array |
 #
 # Note the difference between `np.maximum(x, y)`, which compares two arrays run by run, and `np.max(x)`, which gives the largest value of one array.
 
@@ -142,12 +150,70 @@ print("plug-in estimate r(EX):", 2 * np.exp(1.5))
 print("simulated estimate of E[r(X)]:", finish_time.mean())
 
 # %% [markdown]
-# The expected finish time is more than two days later than the plug-in estimate: the flaw of averages at work. [](#fig-running-average) shows the average finish time after the first $n$ runs. The first runs move it a lot, but it settles down as $n$ grows, as the law of large numbers predicts. The jumps come from rare, very long durations, typical of the right-skewed lognormal distribution.
+# The expected finish time is more than two days later than the plug-in estimate: $E[r(X)]$ is larger than $r(EX)$, the flaw of averages, equation [](lecture12_why-simulation.ipynb#eq-flaw-of-averages) in [Why Simulate?](lecture12_why-simulation.ipynb#flaw-of-averages). [](#fig-finish-histogram) shows the distribution of the simulated finish times. It is skewed to the right: most projects finish within 15 days, but a few take much longer, and these long runs pull the expected finish time up.
 
-# %% label="running-average" tags=["remove-cell"]
+# %% tags=["remove-cell"] label="finish-histogram"
 import plotly.graph_objects as go
 
 TEXT_COLOR = "#111827"
+PLOT_LAYOUT = {
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {"color": TEXT_COLOR, "size": 13},
+    "margin": {"l": 50, "r": 20, "t": 20, "b": 50},
+    "height": 360,
+    "legend": {
+        "bgcolor": "rgba(0,0,0,0)",
+        "orientation": "h",
+        "yanchor": "top",
+        "y": -0.2,
+    },
+}
+AXIS_STYLE = {"gridcolor": "rgba(128,128,128,0.25)"}
+# static pictures: no hover, zoom or drag
+PLOT_CONFIG = {"displayModeBar": False, "staticPlot": True}
+
+histogram_fig = go.Figure()
+histogram_fig.add_trace(
+    go.Histogram(
+        x=finish_time,
+        xbins={"start": 0, "end": 40, "size": 1},
+        marker={"color": "rgba(31,119,180,0.6)", "line": {"width": 0}},
+        name="simulated finish times",
+    )
+)
+for value, color, dash, name in [
+    (2 * np.exp(1.5), "grey", "dash", "plug-in estimate r(EX)"),
+    (finish_time.mean(), "#d62728", "solid", "simulated mean"),
+]:
+    histogram_fig.add_trace(
+        go.Scatter(
+            x=[value, value],
+            y=[0, 900],
+            mode="lines",
+            line={"color": color, "dash": dash, "width": 3},
+            name=name,
+        )
+    )
+histogram_fig.update_layout(**PLOT_LAYOUT, bargap=0.05)
+histogram_fig.update_xaxes(
+    title="finish time (days)", range=[0, 40], **AXIS_STYLE
+)
+histogram_fig.update_yaxes(
+    title="number of runs", range=[0, 900], **AXIS_STYLE
+)
+histogram_fig.show(config=PLOT_CONFIG)
+
+# %% [markdown]
+# :::{figure} #finish-histogram
+# :label: fig-finish-histogram
+#
+# Histogram of the 10,000 simulated finish times, with the plug-in estimate of 8.96 days and the simulated mean. The few runs longer than 40 days are not shown.
+# :::
+#
+# [](#fig-running-average) shows the average finish time after the first $n$ runs, with $n$ on a logarithmic scale so that both the first runs and the later ones are visible. The first runs move the average a lot, but it settles down as $n$ grows, as the law of large numbers predicts. The jumps come from rare, very long durations, typical of the right-skewed lognormal distribution.
+
+# %% label="running-average" tags=["remove-cell"]
 runs = np.arange(1, n_runs + 1)
 running_average = finish_time.cumsum() / runs
 running_fig = go.Figure()
@@ -198,7 +264,7 @@ running_fig.show(config={"displayModeBar": False, "staticPlot": True})
 # :::{figure} #running-average
 # :label: fig-running-average
 #
-# Average finish time of the first $n$ simulated projects (logarithmic horizontal axis), with the plug-in estimate of 8.96 days.
+# Average finish time of the first $n$ simulated projects, with the plug-in estimate of 8.96 days. The horizontal axis has a logarithmic scale.
 # :::
 #
 # The 95% CI quantifies how accurate the estimate is:
@@ -255,4 +321,3 @@ print(f"95% CI: [{mean - half_width:.3f}, {mean + half_width:.3f}]")
 # ## References
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 5, "Simulation."
-# - Klastorin, T. (2003). *Project Management: Techniques and Tradeoffs*. Wiley.

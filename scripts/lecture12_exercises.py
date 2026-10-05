@@ -392,11 +392,6 @@
 # print(f"stockouts: {stockouts} out of {demands} demands")
 # ```
 #
-# Some syntax: `np.inf` is infinity, `rng.integers(1, 6)` is a random integer from 1 to
-# 5 (6 is excluded), `stock -= demand_size` means
-# `stock = stock - demand_size`, and the `while` loop repeats its block as long as
-# `time < horizon`, unless `break` ends it earlier.
-#
 # a. What is the state of this simulation, and what are the events? Which variables
 #    hold the times of the next events?
 #
@@ -412,10 +407,6 @@
 #
 # e. Instead of the number of stockouts, the shop wants to know the total number of
 #    units that customers wanted but did not get. Which lines do you change or add?
-#
-# f. The shop wants to estimate the fraction of demands that end in a stockout over a
-#    year. Explain how you would use this simulation to give a 95% confidence interval
-#    for it.
 # :::
 #
 
@@ -465,11 +456,6 @@
 # e. Add `lost_units = 0` before the loop, and in the stockout case add
 #    `lost_units += demand_size - stock` before `stock = 0` (after it, `stock` is 0
 #    and the result would be wrong). Print `lost_units` at the end.
-#
-# f. Set the horizon to a year and run the simulation many times (say 100), each time
-#    with new random numbers, recording `stockouts / demands` per run. These fractions
-#    are independent samples; their mean $m$ and sample SD $s$ give the CI
-#    $m \pm 2s/\sqrt{100}$.
 # :::
 
 # %% [markdown]

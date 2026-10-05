@@ -36,7 +36,7 @@
 # (simulation-setting)=
 # ## The Simulation Setting
 #
-# The optimization problems so far had the form $\max r(\pi)$ subject to $\pi \in S$: a model $r$ computes the output of a decision $\pi$ from fixed parameters. When some parameters are random, we collect them in a random variable $X$ (usually a vector, one component per random parameter), and the output $r(X, \pi)$ is random as well. A natural goal is then to maximize the expected output:
+# The optimization problems so far had the form $\max r(\pi)$ subject to $\pi \in S$, where $S$ is the set of feasible decisions: a model $r$ computes the output of a decision $\pi$ for some fixed parameters. When some parameters are random, we collect them in a random variable $X$ (usually a vector, one component per random parameter), and the output $r(X, \pi)$ is random as well. A natural goal is then to maximize the expected output:
 #
 # $$
 # \max_{\pi \in S} \ E[r(X, \pi)].
@@ -60,6 +60,19 @@
 # (flaw-of-averages)=
 # ## The Flaw of Averages
 #
+# Why simulate at all? A tempting shortcut is to replace every random input by its expected value and to compute the output once, as if the inputs were fixed parameters. This shortcut gives the wrong answer, because in general
+#
+# $$
+# E[r(X)] \ne r(EX).
+# $$ (eq-flaw-of-averages)
+#
+# Assuming that they are equal is a mistake common enough to have its own name: the **flaw of averages** (Savage, 2012). Savage illustrates it with a drunk walking down the middle of a highway, swaying from side to side. The drunk's average position is on the middle line, where no car can hit them. But they are rarely at their average position, and one sway into a lane with a car is enough.
+#
+# Simulation avoids the flaw of averages without much effort: instead of computing $r$ once for the average input, it computes $r$ for many samples of $X$ and averages the outputs. That average estimates $E[r(X)]$ itself, not $r(EX)$.
+#
+# :::{note} Example: Project Planning
+# :label: eg-flaw-project
+#
 # A project consists of three activities A, B and C. A and B can be done at the same time, and C can only start when both A and B are finished. The expected duration of each activity is 4.5 days. What is the expected finish time of the project?
 #
 # For durations $x_A$, $x_B$ and $x_C$, the project finishes at
@@ -70,15 +83,8 @@
 #
 # Plugging in the expected durations gives $r(4.5, 4.5, 4.5) = 9$ days. But the durations are random, and the project waits for the slower of A and B. In a given realization, one of them is often late, and that delay always passes on to the finish time, while an activity that is early does not help if the other one is late. So the expected finish time $E[\max(X_A, X_B) + X_C]$ is more than 9 days. How much more depends on the distributions; [Monte Carlo Simulation](lecture12_monte-carlo.ipynb#project-planning-example) estimates it for lognormal durations.
 #
-# In general,
-#
-# $$
-# E[r(X)] \ne r(EX).
-# $$
-#
-# Assuming that they are equal is a mistake common enough to have its own name: the **flaw of averages** (Savage, 2012). Savage illustrates it with a drunk walking down the middle of a highway, swaying from side to side. The drunk's average position is on the middle line, where no car can hit them. But they are rarely at their average position, and one sway into a lane with a car is enough.
-#
-# Two coin tosses show the effect on the maximum. Let $X$ and $Y$ be 1 for heads and 0 for tails, each with probability 1/2. Then $EX = EY = 0.5$ and $\max(EX, EY) = 0.5$. But $\max(X, Y) = 1$ unless both tosses are tails, so $E[\max(X, Y)] = P(\text{at least one heads}) = 0.75$. With more random inputs, it becomes ever more likely that at least one of them is unusually high, so the gap grows. A project whose last activity waits for a thousand others will almost surely be delayed by one of them.
+# With more activities that run at the same time, it becomes ever more likely that at least one of them is unusually long, so the gap grows. A project whose last activity waits for a thousand others will almost surely be delayed by one of them.
+# :::
 #
 # Equality does hold when $r$ is linear: $E[aX + bY + c] = aEX + bEY + c$, by the [rules for sums](lecture12_variability-recap.ipynb#sums-of-rvs). A maximum, a minimum (sales are the minimum of demand and stock), a threshold or a product of random inputs breaks it. For such a model there is usually no formula for $E[r(X)]$, especially when $X$ has many components, and simulation is the way to compute it.
 #

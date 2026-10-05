@@ -35,7 +35,7 @@
 # %% [markdown]
 # ## The Inverse Transform Method
 #
-# Every programming language can generate numbers $u$ that are uniformly distributed on $[0, 1]$. The **inverse transform method** (ITM) turns them into samples from any distribution with cdf $F$: sample $u$ and return the $x$ with $F(x) = u$. We write this $x$ as $F^{-1}(u)$. [](#fig-itm) shows the idea: go from $u$ on the vertical axis horizontally to the cdf, and then down to the $x$-axis.
+# Every programming language can generate numbers $u$ that are approximately uniformly distributed on $[0, 1]$. The **inverse transform method** (ITM) turns them into samples from any distribution with cdf $F$: sample $u$ and return the $x$ with $F(x) = u$. We write this $x$ as $F^{-1}(u)$. [](#fig-itm) shows the idea: go from $u$ on the vertical axis horizontally to the cdf, and then down to the $x$-axis.
 
 # %% tags=["remove-cell"] label="itm-exponential"
 import numpy as np
@@ -105,7 +105,7 @@ itm_fig.show(config=PLOT_CONFIG)
 #
 # The sample $F^{-1}(U)$ has the same cdf as $X$, so it has the same distribution.
 #
-# **Intuition.** Uniform numbers are spread evenly over the vertical axis. Where $F$ is steep, a large part of the vertical axis maps to a short interval of $x$-values, so many samples land there. $F$ is steep exactly where the density $f$ is high, so the samples follow the shape of the pdf. In [](#fig-itm), most $u$-values end up at small $x$, where the exponential density is highest.
+# **Intuition.** Uniform numbers are spread evenly over the vertical axis. Where $F$ is steep, a large part of the vertical axis maps to a short interval of $x$-values, so many samples land there. $F$ is steep exactly where the density $f$ is high, so the samples follow the shape of the pdf. In [](#fig-itm), most $u$-values end up at small $x$, where the exponential density is highest. Ross (2022) covers the ITM and other sampling methods in more detail.
 #
 # **Example: uniform[$a$, $b$].** The cdf is $F(x) = (x - a)/(b - a)$ on $[a, b]$. Solving $F(x) = u$ gives
 #
@@ -174,19 +174,17 @@ print(rng.uniform(0, 1, 3))
 # %% [markdown]
 # A different seed gives a different sequence. Without a seed, `np.random.default_rng()` takes a seed from the operating system, so every run of the notebook gives different numbers.
 #
-# :::{note} Older numpy Code
-# The slides and much code online use the older functions `np.random.seed(1)`, `np.random.rand()` (a uniform[0, 1] sample) and `np.random.randn()` (a standard normal sample). They still work, but `numpy` recommends a generator from `np.random.default_rng`, as in these notes.
-# :::
-#
 # ### Sampling with the Inverse Transform Method
 #
-# The ITM formulas work on whole arrays of uniform numbers at once. Here are 10,000 exponential lifetimes with rate 0.5:
+# With a generator for uniform numbers, we can apply the ITM ourselves. We redo the two examples from the previous section in code: the exponential lifetimes and the delivery delays. (For these distributions, `numpy` can also [sample directly](#sampling-directly), but the ITM works for any cdf that we can invert.)
+#
+# **Exponential lifetimes.** First we sample 10,000 uniform numbers $u$ at once, as an array. Then we apply the formula $F^{-1}(u) = -\ln(1 - u)/\lambda$ with $\lambda = 0.5$. A formula applied to an array is applied to every element separately, so this gives an array of 10,000 lifetimes:
 
 # %%
 rate = 0.5
 u = rng.uniform(0, 1, 10000)
 lifetimes = -np.log(1 - u) / rate
-print(lifetimes[:5])
+print("first five lifetimes:", lifetimes[:5])
 print("sample mean:", lifetimes.mean())
 
 # %% [markdown]
@@ -225,12 +223,12 @@ hist_fig.show(config=PLOT_CONFIG)
 # Histogram of 10,000 exponential samples from the inverse transform method, with the exponential pdf (rate 0.5).
 # :::
 #
-# For the delivery delays, `np.where(condition, a, b)` takes, for every sample, `a` where the condition holds and `b` elsewhere. Nesting it follows the three intervals of the ITM:
+# **Delivery delays.** The ITM returns delay 1 if $u \le 0.2$, delay 2 if $0.2 < u \le 0.7$ and delay 3 otherwise. The function `np.where(condition, a, b)` makes this choice for every element of the array `u`: it takes `a` where the condition holds and `b` where it does not. The inner `np.where` chooses between 2 and 3 for the values $u > 0.2$:
 
 # %%
 u = rng.uniform(0, 1, 10000)
 delays = np.where(u <= 0.2, 1, np.where(u <= 0.7, 2, 3))
-print(delays[:10])
+print("first ten delays:", delays[:10])
 for days in [1, 2, 3]:
     print(f"fraction of {days}-day delays:", (delays == days).mean())
 
@@ -276,4 +274,4 @@ print("mean delay:", delays.mean())
 # ## References
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 5, "Simulation."
-# - Ross, S.M. (1996). *Simulation*, 6th ed. Academic Press.
+# - Ross, S.M. (2022). *Simulation*, 6th ed. Academic Press.

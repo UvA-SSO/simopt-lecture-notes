@@ -22,7 +22,7 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_variability-recap.ipynb)
 
 # %% [markdown]
-# Simulation is about variability: the inputs of a model are random, so its output is random too. This notebook recaps the probability and statistics from the statistics part of the course that Lectures 12 and 13 use. It is a reference, not new material, so skim what you already know. The simulation material starts in [Why Simulate?](lecture12_why-simulation.ipynb). How to sample random numbers and compute these quantities in Python follows in [Sampling a Random Variable](lecture12_sampling.ipynb) and [Monte Carlo Simulation](lecture12_monte-carlo.ipynb).
+# Simulation is about variability: the inputs of a model are random, so its output is random too. This notebook recaps the probability and statistics from the statistics part of the course that Lectures 12 and 13 use. It is a reference, not new material, so skim what you already know; Triola (2017) and Ross (2002) treat these topics in more detail. The simulation material starts in [Why Simulate?](lecture12_why-simulation.ipynb). How to sample random numbers and compute these quantities in Python follows in [Sampling a Random Variable](lecture12_sampling.ipynb) and [Monte Carlo Simulation](lecture12_monte-carlo.ipynb).
 #
 # **Learning outcomes**
 #
@@ -30,7 +30,7 @@
 #
 # - distinguish discrete and continuous random variables and describe them with a pmf, pdf or cdf
 # - compute the expectation and variance of a random variable, and of sums and averages of random variables
-# - explain the law of large numbers and the central limit theorem, and why simulation relies on them
+# - explain the law of large numbers and the central limit theorem
 # - construct and interpret a confidence interval for an expectation
 # - explain how a hypothesis test compares two expectations
 
@@ -50,13 +50,86 @@
 # $$
 #
 # Two RVs are **independent** if the outcome of one does not change the probabilities of the other. Repeated experiments, such as simulation runs, are usually independent; activities that depend on the same weather or the same interest rate are not.
-#
+
+# %% tags=["remove-cell"] label="ex-cdf"
+import plotly.graph_objects as go
+
+TEXT_COLOR = "#111827"
+CDF_COLOR = "#1f77b4"
+jumps = [0, 1, 2, 3]
+levels = [8 / 27, 20 / 27, 26 / 27, 1]
+cdf_fig = go.Figure()
+# horizontal steps: F is constant between two jumps
+step_starts = [-1] + jumps
+step_ends = jumps + [4]
+for start, end, level in zip(step_starts, step_ends, [0] + levels):
+    cdf_fig.add_trace(
+        go.Scatter(
+            x=[start, end],
+            y=[level, level],
+            mode="lines",
+            line={"color": CDF_COLOR, "width": 3},
+        )
+    )
+# dotted jumps, an open dot below and a closed dot on top: F(x) is the
+# upper value at a jump
+for jump, low, high in zip(jumps, [0] + levels[:-1], levels):
+    cdf_fig.add_trace(
+        go.Scatter(
+            x=[jump, jump],
+            y=[low, high],
+            mode="lines",
+            line={"color": CDF_COLOR, "width": 2, "dash": "dot"},
+        )
+    )
+cdf_fig.add_trace(
+    go.Scatter(
+        x=jumps,
+        y=[0] + levels[:-1],
+        mode="markers",
+        marker={
+            "symbol": "circle-open",
+            "size": 10,
+            "color": CDF_COLOR,
+            "line": {"width": 2},
+        },
+    )
+)
+cdf_fig.add_trace(
+    go.Scatter(
+        x=jumps,
+        y=levels,
+        mode="markers",
+        marker={"size": 10, "color": CDF_COLOR},
+    )
+)
+cdf_fig.update_layout(
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font={"color": TEXT_COLOR, "size": 13},
+    margin={"l": 50, "r": 20, "t": 20, "b": 50},
+    height=320,
+    showlegend=False,
+)
+cdf_fig.update_xaxes(
+    title="x", range=[-1, 4], dtick=1, gridcolor="rgba(128,128,128,0.25)"
+)
+cdf_fig.update_yaxes(
+    title="F(x)", range=[-0.03, 1.05], gridcolor="rgba(128,128,128,0.25)"
+)
+cdf_fig.show(config={"displayModeBar": False, "staticPlot": True})
+
+# %% [markdown]
 # :::{exercise}
 # :label: ex-3-3
 #
 # For the cdf below, give the possible outcomes and their probabilities.
 #
-# ![The cdf of a discrete random variable](images/lecture12_ex3.3-cdf.png)
+# :::{figure} #ex-cdf
+# :label: fig-ex-3-3
+#
+# Cdf of the discrete random variable in [](#ex-3-3). At each jump, the closed dot gives the value of $F$.
+# :::
 # :::
 
 # %% [markdown]
@@ -86,7 +159,7 @@
 # EX = \sum_x x \, P(X = x) \quad \text{(discrete)}, \qquad EX = \int x f(x)\,dx \quad \text{(continuous)}.
 # $$
 #
-# For a die, $EX = \frac16 (1 + 2 + \dots + 6) = 3.5$. For a function $r$ of $X$, the expectation $E[r(X)]$ weights the values $r(x)$ in the same way, $E[r(X)] = \sum_x r(x) P(X = x)$ (or $\int r(x) f(x)\,dx$). Simulation is mostly about estimating such an $E[r(X)]$.
+# For a die, $EX = \frac16 (1 + 2 + \dots + 6) = 3.5$. For a function $r$ of $X$, the expectation $E[r(X)]$ weights the values $r(x)$ in the same way, $E[r(X)] = \sum_x r(x) P(X = x)$ (or $\int r(x) f(x)\,dx$).
 #
 # The **variance** $\sigma^2(X) = E[(X - EX)^2]$ measures the spread of $X$ around $EX$: the expected squared distance to the expectation. For a die, $\sigma^2(X) = \frac16 \big((1-3.5)^2 + \dots + (6-3.5)^2\big) = 35/12 \approx 2.92$. The **standard deviation** (SD) $\sigma(X) = \sqrt{\sigma^2(X)}$ has the same unit as $X$, which makes it easier to interpret; the variance has easier rules, which follow now.
 #
@@ -131,7 +204,7 @@
 # (lln)=
 # ## Law of Large Numbers
 #
-# The average $\bar X$ is centered on $EX$, and its variance $\sigma^2(X)/n$ goes to 0 as $n$ grows. So for large $n$ the average is close to the expectation, with high probability. This is the **law of large numbers** (LLN). It is the reason that simulation works: the average output of many independent simulation runs approaches the expected output.
+# The average $\bar X$ is centered on $EX$, and its variance $\sigma^2(X)/n$ goes to 0 as $n$ grows. So for large $n$ the average is close to the expectation, with high probability. This is the **law of large numbers** (LLN).
 #
 # The SD of the average decreases with $\sqrt n$, which grows slowly: to make the SD of $\bar X$ twice as small, we need four times as many observations.
 
@@ -225,7 +298,7 @@ clt_fig.show(config={"displayModeBar": False, "staticPlot": True})
 #
 # A test is **two-sided** if deviations in both directions count against $H_0$ (for example $H_1: EX \ne EY$) and **one-sided** if only one direction counts ($H_1: EX > EY$). For a test statistic $T$ that is approximately $N(0, 1)$ under $H_0$, a two-sided test at 5% rejects when $|T| > 1.96$ and a one-sided test rejects when $T > 1.64$.
 #
-# Lecture 13 compares two expectations $EX$ and $EY$, for example the expected profits of two decisions, using $n$ observations of each. There are two settings.
+# To compare two expectations $EX$ and $EY$, for example the expected profits of two decisions, we use $n$ observations of each. There are two settings.
 #
 # **Independent samples.** The observations of $X$ and $Y$ are independent. With averages $\bar X$, $\bar Y$ and sample SDs $S_X$, $S_Y$, the difference $\bar X - \bar Y$ has SD $\sqrt{\sigma^2(X)/n + \sigma^2(Y)/n}$, and
 #
@@ -235,7 +308,7 @@ clt_fig.show(config={"displayModeBar": False, "staticPlot": True})
 #
 # is approximately $N(0, 1)$ if $EX = EY$. Equivalently: we reject $EX = EY$ (two-sided, at 5%) exactly when the 95% CI $\bar X - \bar Y \pm 2\sqrt{S_X^2/n + S_Y^2/n}$ for $EX - EY$ does not contain 0.
 #
-# **Matched pairs.** The observations come in pairs $(X_i, Y_i)$ that belong together, such as the incomes of two partners in one household, or two decisions simulated under the same circumstances. Then we work with the differences $D_i = X_i - Y_i$ and make a CI for $ED = EX - EY$ from them, exactly as in the previous section. If $X_i$ and $Y_i$ are positively correlated, the differences vary less than in the independent setting, which gives a narrower CI. Lecture 13 makes use of this.
+# **Matched pairs.** The observations come in pairs $(X_i, Y_i)$ that belong together, such as the incomes of two partners in one household. Then we work with the differences $D_i = X_i - Y_i$ and make a CI for $ED = EX - EY$ from them, exactly as in the previous section. If $X_i$ and $Y_i$ are positively correlated, the differences vary less than in the independent setting, which gives a narrower CI.
 #
 # :::{note} Example: Two Order Sizes
 # :label: eg-two-sample-test
