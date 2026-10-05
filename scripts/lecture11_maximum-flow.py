@@ -654,14 +654,10 @@ draw_graph(
 # one looks at every arc a few times. With integer capacities, every iteration
 # increases the flow by at least 1, so in the worst case there are $f^*$ iterations.
 # More refined implementations, which choose the augmenting paths more carefully,
-# have a polynomial running time (Edmonds & Karp, 1972).
+# have a polynomial running time.
 
 # %% [markdown]
 # ## References
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 7,
 #   "Combinatorial Optimization" (maximum flow).
-# - Ford, L. R., & Fulkerson, D. R. (1956). Maximal flow through a network.
-#   *Canadian Journal of Mathematics*, 8, 399-404.
-# - Edmonds, J., & Karp, R. M. (1972). Theoretical improvements in algorithmic
-#   efficiency for network flow problems. *Journal of the ACM*, 19(2), 248-264.
