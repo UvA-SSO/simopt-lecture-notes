@@ -142,7 +142,7 @@ print("largest number:", largest)
 #   network weights, but nobody claims they are the best possible ones.
 #
 # Why not just use the best general algorithm for everything? The **no free lunch
-# theorem** (Wolpert & Macready, 1997) says that no such best algorithm exists:
+# theorem** says that no such best algorithm exists:
 # averaged over all possible problems, all search and optimization algorithms
 # perform equally well. If an algorithm does better on one class of problems, it pays
 # for that with worse performance on another class. Good performance comes from
@@ -325,5 +325,3 @@ draw_graph(
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 7,
 #   "Combinatorial Optimization," introduction.
-# - Wolpert, D. H., & Macready, W. G. (1997). No free lunch theorems for
-#   optimization. *IEEE Transactions on Evolutionary Computation*, 1(1), 67-82.
