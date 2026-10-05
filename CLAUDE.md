@@ -146,12 +146,12 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   lecture's own slides demo a technique in Excel. Optimization uses
   [pulp](https://coin-or.github.io/pulp/) (PuLP 3.3.2, `pip install pulp==3.3.2`,
   already a project dependency; see the PuLP version rule below); statistics/simulation use `scipy.stats`, `numpy`,
-  `pandas`, `matplotlib`. R-only base datasets (`eurodist`, `AirPassengers`,
-  `beaver1`, `beaver2`, `Nile`) are one-time snapshots fetched from
+  `pandas`, `matplotlib`. If a notebook needs an R-only base dataset, commit a
+  one-time snapshot from
   [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/) (via
-  `raw.githubusercontent.com`, not the blocked `.github.io` domain) and
-  committed under `notebooks/data/*.csv` — read them with
-  `pd.read_csv("data/<name>.csv")`, don't refetch at runtime.
+  `raw.githubusercontent.com`, not the blocked `.github.io` domain) under
+  `notebooks/data/*.csv` and read it with `pd.read_csv("data/<name>.csv")`;
+  don't refetch at runtime. (The Lecture 12 recap used to; it no longer does.)
 - Figures (`![caption](images/...)`) are wrapped in MyST `{figure}`/`{table}`
   directives with a `:label:` (original book caption, no "Figure N.M:" numbering)
   so they're auto-numbered and cross-referenceable via `[](#label)` — this is a
@@ -239,7 +239,8 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
     uses the same plotly style with
     `config={"displayModeBar": False, "staticPlot": True}`, so `custom.css`
     still recolours its text for the dark theme while hover and zoom are off.
-  - Older notebooks (lecture 12) still use plain matplotlib.
+  - Simulation output (Lecture 12: CLT histograms, the running average, the
+    queue trace and warm-up plot) uses this static plotly style too.
 - Import a module at the top of the first code cell that uses it, so that the
   visible cells read as complete code: the cell that solves a pulp model shows
   `import pulp`, even if a hidden plotting cell (e.g. the `hide-input` cell
@@ -256,6 +257,14 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   scopes), so reusing a loop variable name (e.g. `i`) with an incompatible type
   in a later cell (e.g. as a dict string key after it was an `int` range index
   earlier) is a real type error — use distinct variable names per cell instead.
+- Lecture 12 is split into a theory-only recap (no Python apart from hidden
+  figure cells; it keeps what Lectures 12 and 13 use, including the
+  `hypothesis-testing` anchor Lecture 13 links to), `why-simulation`
+  (setting, flaw of averages), `sampling` (ITM, numpy generator and seeds),
+  `monte-carlo` (numpy arrays, project planning) and
+  `discrete-event-simulation`. Building a DES is out of scope: students read
+  DES code (the slides' single-server queue; the (s, S) inventory code is a
+  code-reading homework exercise) and do not write one.
 - When a lecture's slide deck exists under `Course Materials/Lecture Slides/`,
   use it (not just the Koole book) as the source for a notebook's motivating
   examples, notation, and numbers — it is what was actually taught live, and

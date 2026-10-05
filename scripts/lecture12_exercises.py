@@ -22,9 +22,10 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture12_exercises.ipynb)
 
 # %% [markdown]
-# The smaller exercises embedded in [Variability (Recap)](lecture12_variability-recap.ipynb)
-# and [Simulation](lecture12_simulation.ipynb) check what you just read. This notebook
-# collects the larger exercises for Lecture 12: independent problems worth more time.
+# The smaller exercises embedded in the other Lecture 12 notebooks check what you just
+# read. This notebook collects the larger exercises for Lecture 12: independent problems
+# worth more time. Exercises 4 and 6 ask you to read Python code; you do not need to
+# write a simulation from scratch.
 #
 # :::{warning} Try It Yourself First
 # The homework exercises below are representative of what you can expect on the exam:
@@ -200,6 +201,94 @@
 # :::{exercise}
 # :label: hw-12-4
 #
+# A project consists of the activities A, B and C. A and B can be done at the same
+# time, and C starts when both are finished. The following code simulates the finish
+# time of the project:
+#
+# ```python
+# import numpy as np
+#
+# rng = np.random.default_rng()
+# n_runs = 4
+# a = rng.uniform(1, 5, n_runs)
+# b = rng.uniform(1, 5, n_runs)
+# c = rng.uniform(1, 3, n_runs)
+#
+# finish = np.maximum(a, b) + c
+# print(finish)
+# print(finish.mean())
+# print((finish > 5).mean())
+# print(np.max(finish))
+# ```
+#
+# Suppose that in one run of this code, the three sampling lines give (rounded to one
+# decimal) `a` = [2.0, 4.5, 1.5, 3.0], `b` = [3.5, 2.0, 2.5, 4.0] and
+# `c` = [1.0, 2.5, 1.5, 2.0]. The `numpy` functions used here are explained in the
+# table in [Simulating with numpy Arrays](lecture12_monte-carlo.ipynb#numpy-arrays).
+#
+# a. What are the distributions of the durations of A, B and C, and their expected
+#    durations?
+#
+# b. What do the four `print` statements print? Explain the difference between
+#    `np.maximum` and `np.max`.
+#
+# c. Compute the finish time for the expected durations. Do you expect the true
+#    expected finish time to be smaller than, equal to or larger than this number?
+#    Explain.
+#
+# d. Give a 95% confidence interval for the expected finish time based on these four
+#    runs. How would you change the code to get a confidence interval that is about ten
+#    times narrower?
+#
+# e. Write one line of code that estimates the probability that activity A takes
+#    longer than activity B. What does it give for the four runs above?
+# :::
+#
+
+# %% [markdown]
+#
+# :::{solution} hw-12-4
+# :label: sol-hw-12-4
+# :class: dropdown
+#
+# a. A and B are uniform on $[1, 5]$, with expected duration 3; C is uniform on
+#    $[1, 3]$, with expected duration 2.
+#
+# b. `np.maximum(a, b)` compares the two arrays run by run, giving
+#    [3.5, 4.5, 2.5, 4.0], so `finish` is [4.5, 7.0, 4.0, 6.0]. The four statements
+#    print:
+#
+#    - the array [4.5, 7.0, 4.0, 6.0];
+#    - the average $(4.5 + 7.0 + 4.0 + 6.0)/4 = 5.375$;
+#    - `finish > 5` is [False, True, False, True], and its mean is the fraction of
+#      `True`, 0.5;
+#    - `np.max(finish)` is the largest value in the array, 7.0.
+#
+#    So `np.maximum` takes the maximum of two arrays per run and returns an array,
+#    while `np.max` returns one number: the largest value of a single array.
+#
+# c. $\max(3, 3) + 2 = 5$. The true expected finish time is larger (flaw of
+#    averages): the project waits for the slower of A and B, and
+#    $E[\max(X_A, X_B)] > \max(EX_A, EX_B)$. A delay of either activity delays the
+#    project, while an early finish of one of them does not help if the other is late.
+#    (In fact $E[\max(X_A, X_B)] = 1 + 4 \times \tfrac23 \approx 3.67$, so the expected
+#    finish time is about 5.67.)
+#
+# d. The deviations from the mean are $-0.875, 1.625, -1.375, 0.625$, so
+#    $s^2 = (0.766 + 2.641 + 1.891 + 0.391)/3 = 5.6875/3 \approx 1.90$ and
+#    $s \approx 1.38$. The CI is $5.375 \pm 2 \times 1.38/\sqrt 4 = 5.375 \pm 1.38$, so
+#    about $[4.00, 6.75]$. With only four runs this CI is not reliable: the normal
+#    approximation needs many more runs. The width decreases with $\sqrt n$, so a ten
+#    times narrower CI needs $10^2 = 100$ times as many runs: `n_runs = 400`.
+#
+# e. `(a > b).mean()`. For the four runs, `a > b` is [False, True, False, False], which
+#    gives 0.25. (The true probability is 0.5, by symmetry.)
+# :::
+
+# %% [markdown]
+# :::{exercise}
+# :label: hw-12-5
+#
 # Jobs arrive randomly at a one-machine shop. Time between arrivals is exponential with
 # mean 2 hours; manufacturing time is uniform between 1.1 and 2 hours. The machine is
 # idle at time 0.
@@ -220,8 +309,8 @@
 
 # %% [markdown]
 #
-# :::{solution} hw-12-4
-# :label: sol-hw-12-4
+# :::{solution} hw-12-5
+# :label: sol-hw-12-5
 # :class: dropdown
 #
 # a. Inverse-CDF sampling for an exponential with mean 2 (rate $\lambda = 1/2$) is
@@ -255,6 +344,135 @@
 # :::
 
 # %% [markdown]
+# :::{exercise}
+# :label: hw-12-6
+#
+# A shop sells a product and uses an $(s, S)$ inventory policy: as soon as the stock
+# drops to the reorder point $s$ or below, it orders enough to bring the stock back up to
+# $S$. The order is delivered after a fixed lead time. Customers arrive with
+# exponential times between arrivals and each want 1 to 5 units. A customer who wants
+# more than the stock gets the remaining stock, and this is counted as a stockout. The
+# following discrete-event simulation counts the stockouts:
+#
+# ```python
+# import numpy as np
+#
+# reorder_point, order_up_to, lead_time = 3, 8, 1.0
+# mean_interarrival = 0.5
+# horizon = 3.0
+#
+# rng = np.random.default_rng()
+# stock = order_up_to
+# time = 0.0
+# next_demand = rng.exponential(mean_interarrival)
+# next_delivery = np.inf
+# stockouts = 0
+# demands = 0
+#
+# while time < horizon:
+#     time = min(next_demand, next_delivery)
+#     if time >= horizon:
+#         break
+#     if next_demand <= next_delivery:
+#         demands += 1
+#         demand_size = rng.integers(1, 6)
+#         if demand_size > stock:
+#             stockouts += 1
+#             stock = 0
+#         else:
+#             stock -= demand_size
+#         next_demand = time + rng.exponential(mean_interarrival)
+#         if stock <= reorder_point and next_delivery == np.inf:
+#             next_delivery = time + lead_time
+#     else:
+#         stock = order_up_to
+#         next_delivery = np.inf
+#     print(f"time {time:.1f}: stock {stock}")
+#
+# print(f"stockouts: {stockouts} out of {demands} demands")
+# ```
+#
+# Some syntax: `np.inf` is infinity, `rng.integers(1, 6)` is a random integer from 1 to
+# 5 (6 is excluded), `stock -= demand_size` means
+# `stock = stock - demand_size`, and the `while` loop repeats its block as long as
+# `time < horizon`, unless `break` ends it earlier.
+#
+# a. What is the state of this simulation, and what are the events? Which variables
+#    hold the times of the next events?
+#
+# b. Why does the condition for placing an order contain
+#    `next_delivery == np.inf`?
+#
+# c. Suppose the random generator gives the times between demands 0.4, 0.5, 0.3, 0.6,
+#    0.9, 0.5 (in this order) and the demand sizes 4, 2, 3, 1, 5. What does the code
+#    print?
+#
+# d. The shop switches to ordering a fixed quantity of 6 units each time, instead of
+#    ordering up to $S$. Which line do you change, and how?
+#
+# e. Instead of the number of stockouts, the shop wants to know the total number of
+#    units that customers wanted but did not get. Which lines do you change or add?
+#
+# f. The shop wants to estimate the fraction of demands that end in a stockout over a
+#    year. Explain how you would use this simulation to give a 95% confidence interval
+#    for it.
+# :::
+#
+
+# %% [markdown]
+#
+# :::{solution} hw-12-6
+# :label: sol-hw-12-6
+# :class: dropdown
+#
+# a. The state is the stock (`stock`), together with whether an order is on its way.
+#    There are two types of events: a demand (a customer arrives) and a delivery. Their
+#    times are `next_demand` and `next_delivery`; `next_delivery` is `np.inf` when no
+#    order is on its way.
+#
+# b. It makes sure that the shop does not place a new order while an earlier order is
+#    still on its way. Without it, every demand that leaves the stock at or below the
+#    reorder point would schedule a new delivery, overwriting the time of the earlier
+#    one.
+#
+# c. Following the events:
+#
+#    | time | event | stock after the event | remark |
+#    |---|---|---|---|
+#    | 0.4 | demand of 4 | 4 | |
+#    | 0.9 | demand of 2 | 2 | $2 \le 3$: order, delivered at 1.9 |
+#    | 1.2 | demand of 3 | 0 | stockout 1; an order is already on its way |
+#    | 1.8 | demand of 1 | 0 | stockout 2 |
+#    | 1.9 | delivery | 8 | |
+#    | 2.7 | demand of 5 | 3 | $3 \le 3$: order, delivered at 3.7 |
+#
+#    The next demand would be at $2.7 + 0.5 = 3.2 > 3$, so the loop stops. The code
+#    prints:
+#
+#    ```text
+#    time 0.4: stock 4
+#    time 0.9: stock 2
+#    time 1.2: stock 0
+#    time 1.8: stock 0
+#    time 1.9: stock 8
+#    time 2.7: stock 3
+#    stockouts: 2 out of 5 demands
+#    ```
+#
+# d. In the delivery event, replace `stock = order_up_to` by `stock = stock + 6` (or
+#    `stock += 6`).
+#
+# e. Add `lost_units = 0` before the loop, and in the stockout case add
+#    `lost_units += demand_size - stock` before `stock = 0` (after it, `stock` is 0
+#    and the result would be wrong). Print `lost_units` at the end.
+#
+# f. Set the horizon to a year and run the simulation many times (say 100), each time
+#    with new random numbers, recording `stockouts / demands` per run. These fractions
+#    are independent samples; their mean $m$ and sample SD $s$ give the CI
+#    $m \pm 2s/\sqrt{100}$.
+# :::
+
+# %% [markdown]
 # ## References
 #
-# - Koole, G. (2019). *An Introduction to Business Analytics*. §5.2, §5.3.
+# - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 5, "Simulation."

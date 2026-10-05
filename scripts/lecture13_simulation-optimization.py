@@ -50,7 +50,7 @@
 # :::{note} Example: Extending Earlier Simulation Examples
 # :label: eg-8-1
 #
-# The examples from [Simulation](lecture12_simulation.ipynb) can be extended to incorporate decisions: the impact of strategic decisions of a company can be compared in the budget using simulation; the process in the emergency department of a hospital can be optimized using simulation, etc.
+# The examples from Lecture 12 can be extended to incorporate decisions: the impact of strategic decisions of a company can be compared in the [budget exercise](lecture12_monte-carlo.ipynb#ex-5-3); in the [queue](lecture12_discrete-event-simulation.ipynb#example-a-queue), we can choose the number of servers; etc.
 # :::
 #
 # :::{note} Example: The Newsvendor Problem
@@ -125,7 +125,7 @@ print(f"Var(diff), independent sampling:  {diff_indep.var():.2f}")
 # :::{exercise}
 # :label: ex-8-1
 #
-# We extend the [budget exercise](lecture12_simulation.ipynb#ex-5-3) with a second product. Management has to decide between both products. All variables are again normally distributed, with mean and SD 12000 and 2000 for sales; 90 and 20 for the price; 68 and 20 for the variable costs; 165000 and 30000 for the fixed costs.
+# We extend the [budget exercise](lecture12_monte-carlo.ipynb#ex-5-3) with a second product. Management has to decide between both products. All variables are again normally distributed, with mean and SD 12000 and 2000 for sales; 90 and 20 for the price; 68 and 20 for the variable costs; 165000 and 30000 for the fixed costs.
 #
 # a. Simulate both scenarios 10000 times and make a CI for the difference. Which one is better? Explain your answer.
 #

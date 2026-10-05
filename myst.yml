@@ -56,8 +56,14 @@ project:
       children:
         - file: notebooks/lecture12_variability-recap.ipynb
           title: Variability (Recap)
-        - file: notebooks/lecture12_simulation.ipynb
-          title: Simulation
+        - file: notebooks/lecture12_why-simulation.ipynb
+          title: Why Simulate?
+        - file: notebooks/lecture12_sampling.ipynb
+          title: Sampling a Random Variable
+        - file: notebooks/lecture12_monte-carlo.ipynb
+          title: Monte Carlo Simulation
+        - file: notebooks/lecture12_discrete-event-simulation.ipynb
+          title: Discrete-Event Simulation
         - file: notebooks/lecture12_exercises.ipynb
           title: Exercises
     - title: Lecture 13
