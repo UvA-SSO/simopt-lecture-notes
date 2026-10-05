@@ -4,6 +4,13 @@ The lecture notes are updated during the course. This page lists what changed in
 
 Small fixes (typos, formatting) are grouped into a single line. Each entry links to the full list of changes on GitHub.
 
+## 2026-10-05 08:07
+
+- Lecture 11 is rewritten to follow the slides and split into five pages, replacing Algorithms and Heuristics and Complexity. [Algorithms and Their Characteristics](notebooks/lecture11_algorithms.ipynb) explains how the algorithms are written down and compares them (dedicated or general, polynomial or not, exact or heuristic). [Shortest Path](notebooks/lecture11_shortest-path.ipynb), [Maximum Flow](notebooks/lecture11_maximum-flow.ipynb) and [Traveling Salesman Problem](notebooks/lecture11_tsp.ipynb) each solve an example with an (I)LO model in pulp and with a dedicated algorithm. [Complexity and Heuristics](notebooks/lecture11_complexity-heuristics.ipynb) covers P and NP-complete problems and the 2-opt heuristic.
+- Dijkstra's algorithm, the Ford-Fulkerson algorithm and 2-opt are each worked out step by step on the slides' example network, with a figure per iteration and short Python code that follows the algorithm line by line. You need to be able to read this code, not write it yourself.
+- [Lecture 11 homework exercises](notebooks/lecture11_exercises.ipynb): the graphs are redrawn, and the new [exercise 6](notebooks/lecture11_exercises.ipynb#hw-11-6) asks you to trace a piece of code for the traveling salesman problem by hand, analyze its running time and improve it.
+- [Full diff on GitHub](https://github.com/UvA-SSO/simopt-lecture-notes/compare/2026-10-02-2036...2026-10-05-0807)
+
 ## 2026-10-02 20:36
 
 - [Simulation](notebooks/lecture12_simulation.ipynb) has a new section, [Simulating with numpy Arrays](notebooks/lecture12_simulation.ipynb#numpy-arrays): why the simulations work with arrays instead of `for` loops, with a timing comparison, and a table of the numpy features the simulations in Lectures 12 and 13 use.
