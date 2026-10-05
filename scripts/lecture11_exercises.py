@@ -667,8 +667,9 @@ draw_graph(
 #      long, $O(n^3)$. For [](#fig-hw-11-6), the start nodes A to E give lengths
 #      25, 22, 23, 22 and 24, so starting in B (or D) gives the tour
 #      B → C → D → A → E → B of length 22, which is optimal here.
-#    - Look two nodes ahead: choose the next node $j$ such that $d_{\text{current},j}
-#      + d_{jk}$ is smallest over all pairs of unvisited nodes $j \ne k$. Each step
+#    - Look two nodes ahead: choose the next node $j$ such that
+#      $d_{\text{current},j} + d_{jk}$ is smallest over all pairs of unvisited nodes
+#      $j \ne k$. Each step
 #      then looks at in the order of $n^2$ pairs, so the running time becomes
 #      $O(n^3)$. From A, the pair E, D (length $2 + 5 = 7$) gives E first; from E,
 #      the pair B, C ($6 + 4 = 10$) gives B; then C and D follow. The tour
