@@ -543,6 +543,140 @@ draw_graph(
 #    constant. Add $x_{ij} \le M y_{ij}$ for every arc, and $\sum_{i,j} y_{ij} \le 5$.
 # ::::
 
+# %% tags=["remove-cell"] label="hw11-ex6"
+draw_graph(
+    {
+        "A": (2.0, 2.35),
+        "B": (3.52, 1.49),
+        "C": (2.94, 0.09),
+        "D": (1.06, 0.09),
+        "E": (0.48, 1.49),
+    },
+    {
+        ("A", "B"): 5,
+        ("A", "C"): 8,
+        ("A", "D"): 3,
+        ("A", "E"): 2,
+        ("B", "C"): 4,
+        ("B", "D"): 6,
+        ("B", "E"): 6,
+        ("C", "D"): 7,
+        ("C", "E"): 9,
+        ("D", "E"): 5,
+    },
+    directed=False,
+)
+
+# %% [markdown]
+# ::::{exercise}
+# :label: hw-11-6
+#
+# The function `build_tour` below constructs a tour for the traveling salesman
+# problem on the complete graph in [](#fig-hw-11-6).
+#
+# ```python
+# distance = {
+#     ("A", "B"): 5, ("A", "C"): 8, ("A", "D"): 3, ("A", "E"): 2,
+#     ("B", "C"): 4, ("B", "D"): 6, ("B", "E"): 6,
+#     ("C", "D"): 7, ("C", "E"): 9,
+#     ("D", "E"): 5,
+# }
+#
+#
+# def edge_length(i, j):
+#     return distance.get((i, j), distance.get((j, i)))
+#
+#
+# def build_tour(nodes, start):
+#     tour = [start]
+#     unvisited = [node for node in nodes if node != start]
+#     while unvisited:
+#         current = tour[-1]
+#         chosen = unvisited[0]
+#         for node in unvisited:
+#             if edge_length(current, node) < edge_length(current, chosen):
+#                 chosen = node
+#         print(current, "->", chosen, "length", edge_length(current, chosen))
+#         tour.append(chosen)
+#         unvisited.remove(chosen)
+#     edges = zip(tour, tour[1:] + tour[:1])
+#     length = sum(edge_length(i, j) for i, j in edges)
+#     print("tour", " -> ".join(tour + tour[:1]), "length", length)
+#     return tour, length
+#
+#
+# build_tour(["A", "B", "C", "D", "E"], "A")
+# ```
+#
+# :::{figure} #hw11-ex6
+# :label: fig-hw-11-6
+#
+# Complete graph of [](#hw-11-6), with distances along the edges.
+# :::
+#
+# a. Without running the code, determine what it prints.
+#
+# b. Describe in your own words what `build_tour` does. Does it always return a
+#    shortest tour? Motivate your answer.
+#
+# c. How does the running time of `build_tour` grow with the number of nodes $n$?
+#    Is it a polynomial algorithm?
+#
+# d. Propose two ways to improve the tours that `build_tour` finds, and say how each
+#    changes the running time. Apply one of them to [](#fig-hw-11-6).
+# ::::
+
+# %% [markdown]
+#
+# :::{solution} hw-11-6
+# :label: sol-hw-11-6
+# :class: dropdown
+#
+# a. The code prints
+#
+#    ```text
+#    A -> E length 2
+#    E -> D length 5
+#    D -> B length 6
+#    B -> C length 4
+#    tour A -> E -> D -> B -> C -> A length 25
+#    ```
+#
+#    The last edge, C-A of length 8, is not printed in the loop but is part of the
+#    length $2 + 5 + 6 + 4 + 8 = 25$.
+#
+# b. Starting at `start`, the function repeatedly travels to the closest node that
+#    has not been visited yet, until all nodes are visited, and then returns to the
+#    start. This is the **nearest neighbor heuristic**. It does not always return a
+#    shortest tour: B → C → D → A → E → B has length $4 + 7 + 3 + 2 + 6 = 22 < 25$.
+#    Every step takes the shortest edge available at that moment, without looking at
+#    what that choice means for later steps. In the example, the cheap edges A-E and
+#    E-D leave the expensive edge C-A of length 8 for the end. So it is a heuristic,
+#    not an exact algorithm.
+#
+# c. The while loop runs $n - 1$ times, once for every node added to the tour. In
+#    each repetition the for loop looks at all unvisited nodes, at most $n - 1$, and
+#    removing the chosen node also takes at most $n$ steps. In total that is in the
+#    order of $n \cdot n = n^2$ operations, $O(n^2)$, so the algorithm is
+#    polynomial. Compare this with the $n!$ growth of trying all tours.
+#
+# d. Some possible improvements:
+#
+#    - Run `build_tour` from every start node, or from several random start nodes,
+#      and keep the shortest tour. From every start node this takes $n$ times as
+#      long, $O(n^3)$. For [](#fig-hw-11-6), the start nodes A to E give lengths
+#      25, 22, 23, 22 and 24, so starting in B (or D) gives the tour
+#      B → C → D → A → E → B of length 22, which is optimal here.
+#    - Look two nodes ahead: choose the next node $j$ such that $d_{\text{current},j}
+#      + d_{jk}$ is smallest over all pairs of unvisited nodes $j \ne k$. Each step
+#      then looks at in the order of $n^2$ pairs, so the running time becomes
+#      $O(n^3)$. From A, the pair E, D (length $2 + 5 = 7$) gives E first; from E,
+#      the pair B, C ($6 + 4 = 10$) gives B; then C and D follow. The tour
+#      A → E → B → C → D → A has length $2 + 6 + 4 + 7 + 3 = 22$.
+#    - Use the tour as initial tour for the
+#      [2-opt heuristic](lecture11_complexity-heuristics.ipynb#local-search-heuristic).
+# :::
+
 # %% [markdown]
 # ## References
 #
