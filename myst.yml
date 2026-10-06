@@ -68,8 +68,16 @@ project:
           title: Exercises
     - title: Lecture 13
       children:
-        - file: notebooks/lecture13_simulation-optimization.ipynb
-          title: Simulation Optimization
+        - file: notebooks/lecture13_about-simopt.ipynb
+          title: About Simulation Optimization
+        - file: notebooks/lecture13_comparing-scenarios.ipynb
+          title: Comparing Scenarios
+        - file: notebooks/lecture13_ranking-and-selection.ipynb
+          title: Ranking and Selection
+        - file: notebooks/lecture13_local-search.ipynb
+          title: Local Search
+        - file: notebooks/lecture13_gradient-methods.ipynb
+          title: Gradient Methods
         - file: notebooks/lecture13_exercises.ipynb
           title: Exercises
     - file: changelog.md

@@ -359,7 +359,7 @@ print("total cost:", roster.objective.value())
 # Here the required staffing per interval is given. In a call center, understaffing in
 # one interval leaves a queue of waiting callers for the next one, so the requirements
 # depend on the schedule itself. Then only simulation can evaluate a schedule; see
-# [Simulation Optimization](lecture13_simulation-optimization.ipynb#eg-8-4).
+# [Local Search](lecture13_local-search.ipynb#eg-8-4).
 
 # %% [markdown]
 # ## References

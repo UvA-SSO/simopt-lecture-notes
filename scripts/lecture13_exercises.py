@@ -22,9 +22,9 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_exercises.ipynb)
 
 # %% [markdown]
-# The smaller exercises embedded in
-# [Simulation Optimization](lecture13_simulation-optimization.ipynb) check what you just
-# read. This notebook collects the larger exercises for Lecture 13: independent problems
+# The smaller exercises embedded in the other Lecture 13 notebooks, from
+# [About Simulation Optimization](lecture13_about-simopt.ipynb) to
+# [Gradient Methods](lecture13_gradient-methods.ipynb), check what you just read. This notebook collects the larger exercises for Lecture 13: independent problems
 # worth more time.
 #
 # :::{warning} Try It Yourself First
@@ -259,6 +259,123 @@
 # remaining, more promising candidates in the second phase. This concentrates statistical
 # power where it matters, increasing the chance of correctly identifying the true best
 # $\pi$ compared to spreading the budget uniformly over all 21 candidates from the start.
+# :::
+
+# %% [markdown]
+# :::{exercise}
+# :label: hw-13-5
+#
+# A newsvendor considers the order sizes $S = \{4, 6, 8, 10, 12\}$ and applies option 2
+# of [ranking and selection](lecture13_ranking-and-selection.ipynb#option-2) with a
+# budget of $m = 1400$ runs. After the first round, the following code decides which
+# order sizes to discard:
+#
+# ```python
+# import numpy as np
+# from scipy import stats
+#
+# y = {4: 0.98, 6: 1.40, 8: 1.55, 10: 1.15, 12: 0.45}
+# s = {4: 1.5, 6: 1.5, 8: 1.5, 10: 1.5, 12: 1.5}
+# m0 = 100
+# alpha = 0.05
+# k = len(y)
+# alpha_star = 1 - (1 - alpha) ** (1 / (k - 1))
+# z = stats.norm.ppf(1 - alpha_star)
+#
+# survivors = []
+# for order in y:
+#     discard = False
+#     for other in y:
+#         if other != order:
+#             margin = z * np.sqrt(s[order] ** 2 + s[other] ** 2) / np.sqrt(m0)
+#             if y[order] < y[other] - margin:
+#                 discard = True
+#     if not discard:
+#         survivors.append(order)
+# print(survivors)
+# ```
+#
+# You may use that $\sqrt[4]{0.95} \approx 0.9873$, that `stats.norm.ppf(0.9873)` is
+# about 2.23, that `stats.norm.ppf(0.95)` is about 1.64, and that
+# $\sqrt{1.5^2 + 1.5^2} \approx 2.12$.
+#
+# a. What do `y`, `s` and `m0` stand for? Compute `alpha_star`.
+#
+# b. What does the code print? Show your computation.
+#
+# c. All standard deviations in `s` are equal. Explain why it would then be enough to
+#    compare every order size only with the order size that has the highest average.
+#
+# d. Change the code so that, for every discarded order size, it also prints an order
+#    size that beats it.
+#
+# e. Which line do you change to do every test at significance level 0.05, without the
+#    Šidák correction? Which order sizes are discarded then, and why is this not a good
+#    idea?
+#
+# f. Add code that computes how many extra runs each surviving order size gets in the
+#    second round. What is this number here?
+# :::
+#
+
+# %% [markdown]
+#
+# :::{solution} hw-13-5
+# :label: sol-hw-13-5
+# :class: dropdown
+#
+# a. `y` holds the average profit $y(\pi)$ of each order size after the first round, `s`
+#    the sample standard deviation $s(\pi)$, and `m0` the number of runs $m_0$ of every
+#    order size in the first round. With $k = 5$ order sizes,
+#    $\alpha^* = 1 - \sqrt[4]{0.95} \approx 1 - 0.9873 = 0.0127$.
+#
+# b. `z` is about 2.23, and since all standard deviations are equal, every comparison
+#    uses the same margin $2.23 \times 2.12 / \sqrt{100} \approx 0.47$. An order size is
+#    discarded if its average is more than 0.47 below the average of another order
+#    size. The highest average is 1.55 (order size 8), so order sizes with an average
+#    below $1.55 - 0.47 = 1.08$ are discarded: 4 (0.98) and 12 (0.45). The code prints
+#    `[6, 8, 10]`.
+#
+# c. With equal standard deviations the margin is the same for every pair. If an order
+#    size is beaten by some other order size, so $y(\pi) < y(\pi') - \text{margin}$,
+#    then it is certainly beaten by the order size with the highest average, because
+#    that average is at least $y(\pi')$. So comparing with that one order size gives
+#    the same result.
+#
+# d. Remember the order size that beats it, and print it after the inner loop:
+#
+#    ```python
+#    for order in y:
+#        discard = False
+#        for other in y:
+#            if other != order:
+#                margin = z * np.sqrt(s[order] ** 2 + s[other] ** 2) / np.sqrt(m0)
+#                if y[order] < y[other] - margin:
+#                    discard = True
+#                    beaten_by = other
+#        if discard:
+#            print(order, "is beaten by", beaten_by)
+#        else:
+#            survivors.append(order)
+#    ```
+#
+# e. Replace the line `z = stats.norm.ppf(1 - alpha_star)` by
+#    `z = stats.norm.ppf(1 - alpha)`. Then $z \approx 1.64$, the margin is
+#    $1.64 \times 2.12 / 10 \approx 0.35$, and order sizes with an average below
+#    $1.55 - 0.35 = 1.20$ are discarded: 4, 10 and 12. This is not a good idea because
+#    each order size is tested against four others: even if it is the best one, the
+#    probability that at least one of the four tests discards it by chance is then
+#    larger than 5%.
+#
+# f. The first round used $k m_0 = 5 \times 100 = 500$ runs, so 900 runs are left:
+#
+#    ```python
+#    budget = 1400
+#    n_each = (budget - k * m0) // len(survivors)
+#    print(n_each)
+#    ```
+#
+#    With three survivors, each gets 300 extra runs.
 # :::
 
 # %% [markdown]

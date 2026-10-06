@@ -265,6 +265,13 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   `discrete-event-simulation`. Building a DES is out of scope: students read
   DES code (the slides' single-server queue; the (s, S) inventory code is a
   code-reading homework exercise) and do not write one.
+- Lecture 13 is split into `about-simopt` (setting, why noise makes simopt
+  hard, the four problem types), then one notebook per type:
+  `comparing-scenarios` (CRN), `ranking-and-selection` (option 1 equal
+  split, option 2 discard with Šidák-corrected one-sided tests),
+  `local-search` and `gradient-methods`. The newsvendor is the running
+  example (as in the slides); for checking, each notebook computes the exact
+  expected profit, which the methods themselves never use.
 - When a lecture's slide deck exists under `Course Materials/Lecture Slides/`,
   use it (not just the Koole book) as the source for a notebook's motivating
   examples, notation, and numbers — it is what was actually taught live, and

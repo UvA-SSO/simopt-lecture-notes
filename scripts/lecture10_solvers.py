@@ -526,7 +526,7 @@ print("total weighted tardiness:", schedule.objective.value())
 # optimality, and here finding was never the hard part. Its value shows in problems of
 # the third pattern, and in loops that re-solve a large ILO many times with small data
 # changes, such as the simulation-optimization loop in
-# [Simulation Optimization](lecture13_simulation-optimization.ipynb).
+# [Simulation Optimization](lecture13_about-simopt.ipynb).
 #
 # ### A Tighter Formulation
 #

@@ -21,7 +21,7 @@ Small fixes (typos, formatting) are grouped into a single line. Each entry links
 ## 2026-10-02 20:36
 
 - Simulation has a new section, [Simulating with numpy Arrays](notebooks/lecture12_monte-carlo.ipynb#numpy-arrays): why the simulations work with arrays instead of `for` loops, with a timing comparison, and a table of the numpy features the simulations in Lectures 12 and 13 use.
-- [Simulation Optimization](notebooks/lecture13_simulation-optimization.ipynb#ranking-and-selection): in ranking and selection, the budget that remains after the first round is $m - k m_0$ (it said $m - m_0$).
+- [Simulation Optimization](notebooks/lecture13_ranking-and-selection.ipynb#option-2): in ranking and selection, the budget that remains after the first round is $m - k m_0$ (it said $m - m_0$).
 - [Full diff on GitHub](https://github.com/UvA-SSO/simopt-lecture-notes/compare/2026-09-30-2131...2026-10-02-2036)
 
 ## 2026-09-30 21:31
