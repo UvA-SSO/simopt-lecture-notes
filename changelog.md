@@ -4,6 +4,13 @@ The lecture notes are updated during the course. This page lists what changed in
 
 Small fixes (typos, formatting) are grouped into a single line. Each entry links to the full list of changes on GitHub.
 
+## 2026-10-06 07:43
+
+- Lecture 12 is rewritten to follow the slides and split into five pages, replacing Simulation. [Variability (Recap)](notebooks/lecture12_variability-recap.ipynb) is now a short theory-only recap of the probability and statistics that Lectures 12 and 13 use. [Why Simulate?](notebooks/lecture12_why-simulation.ipynb) describes the simulation setting and the flaw of averages, [Sampling a Random Variable](notebooks/lecture12_sampling.ipynb) the inverse transform method and sampling with a numpy generator and a seed, [Monte Carlo Simulation](notebooks/lecture12_monte-carlo.ipynb) the project planning example with numpy arrays, and [Discrete-Event Simulation](notebooks/lecture12_discrete-event-simulation.ipynb) a queue in Python and model validation.
+- You need to be able to read the code of a discrete-event simulation, not write one yourself.
+- [Lecture 12 homework exercises](notebooks/lecture12_exercises.ipynb): two new exercises ask you to read a numpy Monte Carlo simulation of a project and the code of an $(s, S)$ inventory simulation.
+- [Full diff on GitHub](https://github.com/UvA-SSO/simopt-lecture-notes/compare/2026-10-05-0807...2026-10-06-0743)
+
 ## 2026-10-05 08:07
 
 - Lecture 11 is rewritten to follow the slides and split into five pages, replacing Algorithms and Heuristics and Complexity. [Algorithms and Their Characteristics](notebooks/lecture11_algorithms.ipynb) explains how the algorithms are written down and compares them (dedicated or general, polynomial or not, exact or heuristic). [Shortest Path](notebooks/lecture11_shortest-path.ipynb), [Maximum Flow](notebooks/lecture11_maximum-flow.ipynb) and [Traveling Salesman Problem](notebooks/lecture11_tsp.ipynb) each solve an example with an (I)LO model in pulp and with a dedicated algorithm. [Complexity and Heuristics](notebooks/lecture11_complexity-heuristics.ipynb) covers P and NP-complete problems and the 2-opt heuristic.
