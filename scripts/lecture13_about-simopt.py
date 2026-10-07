@@ -29,7 +29,7 @@
 # On completion of this notebook, you will be able to:
 #
 # - describe the simulation optimization setting and give examples of it
-# - explain why simulation optimization is harder than deterministic optimization: every solution needs many simulation runs, and the estimates they give are noisy
+# - explain why simulation optimization is harder than deterministic optimization
 # - recognize which of the four types of simulation optimization problems a problem belongs to
 
 # %% [markdown]
@@ -42,7 +42,7 @@
 # \max_{\pi \in S} \ E[r(X, \pi)].
 # $$
 #
-# The key feature is that $E[r(X, \pi)]$ can only be evaluated by simulating $r(X, \pi)$: there is no closed-form expression for it that we could optimize directly. This is common in practice: for a queue, a production line or a project with random durations, we can simulate the process ([Monte Carlo simulation](lecture12_monte-carlo.ipynb) or [discrete-event simulation](lecture12_discrete-event-simulation.ipynb)), but we cannot write down a formula for its expected performance. This setting is called **simulation optimization**, also known as optimization by simulation, simulation-based optimization, or simply simopt. Replacing $X$ by its expectation and solving $\max_{\pi \in S} r(EX, \pi)$ instead is not a way out: by the [flaw of averages](lecture12_why-simulation.ipynb#flaw-of-averages), $E[r(X, \pi)]$ and $r(EX, \pi)$ can be very different, and so can the decisions that maximize them.
+# The key feature is that $E[r(X, \pi)]$ can only be evaluated by simulating $r(X, \pi)$: there is no closed-form expression for it that we could optimize directly. This is common in practice: for a queue, a production line or a project with random durations, we can simulate model realizations ([Monte Carlo simulation](lecture12_monte-carlo.ipynb) or [discrete-event simulation](lecture12_discrete-event-simulation.ipynb)), but we cannot write down a formula for its expected performance. This setting is called **simulation optimization**, also known as optimization by simulation, simulation-based optimization, or simply simopt. Replacing $X$ by its expectation and solving $\max_{\pi \in S} r(EX, \pi)$ instead is not a way out: by the [flaw of averages](lecture12_why-simulation.ipynb#flaw-of-averages), $E[r(X, \pi)]$ and $r(EX, \pi)$ can be very different, and so can the decisions that maximize them.
 #
 # Simulation optimization lets us optimize decisions for real-life processes, with all their randomness, also when no closed-form expression for the performance exists: should a bank open an extra desk, which layout of a factory gives the highest throughput, how long should a traffic light stay red?
 #
@@ -59,7 +59,7 @@
 # :::
 #
 # :::{note} Random Constraints
-# In this lecture the only constraint is $\pi \in S$, and $S$ is fixed: whether a solution is allowed does not depend on randomness. We could generalize the problem with random constraints $E[g_j(X, \pi)] \le b_j$, for example that the probability that a customer waits longer than 15 minutes is at most 5%. Whether a solution satisfies such a constraint can then only be estimated by simulation as well, which makes these problems very hard to solve.
+# In this lecture the only constraint is $\pi \in S$, and $S$ is fixed: whether a solution is allowed does not depend on randomness. We could generalize the problem with random constraints $E[g_j(X, \pi)] \le b_j$, for example that the probability that a customer waits longer than 15 minutes is at most 5%. Whether a solution satisfies such a constraint can then only be estimated by simulation as well, which makes these problems harder to solve.
 # :::
 
 # %% [markdown]
@@ -85,7 +85,7 @@
 # | $S$ discrete and large: $m \ll \lvert S \rvert$, so the budget does not even suffice to simulate every solution once ($S$ can also be infinite, e.g., $\{0, 1, 2, \dots\}$) | [local search](lecture13_local-search.ipynb) |
 # | $S$ continuous (e.g., an interval) | [gradient methods](lecture13_gradient-methods.ipynb) |
 #
-# For each type we give one simple method, to show the ideas. The scientific literature contains many more advanced methods: Fu (2002) is an accessible introduction to the subject, and Nelson (2013) is a textbook on simulation that includes a chapter on simopt. The techniques of these notebooks are also the building blocks for more challenging problems, for example problems with both discrete and continuous decisions, such as choosing the number of servers in a queue together with the length of their shifts.
+# For each type we give one simple method, to show the ideas. The scientific literature contains many more advanced methods: Fu (2002) is an accessible introduction to the subject, and Nelson (2013) is a textbook on simulation that includes a chapter on simopt. The techniques of these notebooks are also the building blocks to solve more challenging problems, for example problems with both discrete and continuous decisions, such as choosing the number of servers in a queue together with the length of their shifts.
 #
 # :::{exercise}
 # :label: ex-four-types

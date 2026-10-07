@@ -288,7 +288,7 @@
 #     for other in y:
 #         if other != order:
 #             margin = z * np.sqrt(s[order] ** 2 + s[other] ** 2) / np.sqrt(m0)
-#             if y[order] < y[other] - margin:
+#             if y[order] <= y[other] - margin:
 #                 discard = True
 #     if not discard:
 #         survivors.append(order)
@@ -337,7 +337,7 @@
 #    `[6, 8, 10]`.
 #
 # c. With equal standard deviations the margin is the same for every pair. If an order
-#    size is beaten by some other order size, so $y(\pi) < y(\pi') - \text{margin}$,
+#    size is beaten by some other order size, so $y(\pi) \le y(\pi') - \text{margin}$,
 #    then it is certainly beaten by the order size with the highest average, because
 #    that average is at least $y(\pi')$. So comparing with that one order size gives
 #    the same result.
@@ -350,7 +350,7 @@
 #        for other in y:
 #            if other != order:
 #                margin = z * np.sqrt(s[order] ** 2 + s[other] ** 2) / np.sqrt(m0)
-#                if y[order] < y[other] - margin:
+#                if y[order] <= y[other] - margin:
 #                    discard = True
 #                    beaten_by = other
 #        if discard:

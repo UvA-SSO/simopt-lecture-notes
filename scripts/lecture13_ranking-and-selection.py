@@ -278,10 +278,10 @@ print(f"average overestimation of the profit: {np.mean(overestimate):.3f}")
 # T = \frac{y(\pi') - y(\pi)}{\sqrt{s^2(\pi) + s^2(\pi')}/\sqrt{m_0}}
 # $$
 #
-# is approximately standard normal if the two expectations are equal, and a large value of $T$ is evidence for $H_1$. Let $\Phi$ be the cumulative distribution function of the standard normal distribution, and $\Phi^{-1}$ its inverse: $\Phi^{-1}(q)$ is the number $z$ with $P(Z \le z) = q$ for a standard normal $Z$. In Python, $\Phi^{-1}(q)$ is `stats.norm.ppf(q)`. A one-sided test at significance level $\alpha$ rejects $H_0(\pi, \pi')$ if $T > \Phi^{-1}(1 - \alpha)$, that is, if
+# is approximately standard normal if the two expectations are equal, and a large value of $T$ is evidence for $H_1$. Let $\Phi$ be the cumulative distribution function of the standard normal distribution, and $\Phi^{-1}$ its inverse: $\Phi^{-1}(q)$ is the number $z$ with $P(Z \le z) = q$ for a standard normal $Z$. In Python, $\Phi^{-1}(q)$ is `stats.norm.ppf(q)`. A one-sided test at significance level $\alpha$ rejects $H_0(\pi, \pi')$ if $T \ge \Phi^{-1}(1 - \alpha)$, that is, if
 #
 # $$
-# y(\pi) < y(\pi') - \Phi^{-1}(1 - \alpha)\, \frac{\sqrt{s^2(\pi) + s^2(\pi')}}{\sqrt{m_0}}.
+# y(\pi) \le y(\pi') - \Phi^{-1}(1 - \alpha)\, \frac{\sqrt{s^2(\pi) + s^2(\pi')}}{\sqrt{m_0}}.
 # $$
 #
 # For $\alpha = 0.05$, $\Phi^{-1}(0.95) = 1.64$. Strictly, the $t$-distribution with $m_0 - 1$ degrees of freedom applies; the slides use its inverse, written $\beta_{1-\alpha}$, which is `stats.t.ppf(1 - alpha, m0 - 1)` in Python. For $m_0 \ge 30$ the difference is small, and we use $\Phi^{-1}$.
@@ -310,7 +310,7 @@ print(f"average overestimation of the profit: {np.mean(overestimate):.3f}")
 # For the newsvendor, with $k = 21$ and $\alpha = 0.05$, this gives $\alpha^* \approx 0.0026$ and $\Phi^{-1}(1 - \alpha^*) \approx 2.80$ instead of 1.64: a much stricter bar for declaring a solution worse, because it is tested against many other solutions at once. With $1 - \alpha^* = \sqrt[k-1]{1-\alpha}$, the set of solutions that survive the first round is
 #
 # $$
-# I = \left\{ \pi \in S \;\middle|\; y(\pi) \ge y(\pi') - \Phi^{-1}\!\left(\sqrt[k-1]{1-\alpha}\right) \frac{\sqrt{s^2(\pi)+s^2(\pi')}}{\sqrt{m_0}} \text{ for all } \pi' \ne \pi \right\}.
+# I = \left\{ \pi \in S \;\middle|\; y(\pi) > y(\pi') - \Phi^{-1}\!\left(\sqrt[k-1]{1-\alpha}\right) \frac{\sqrt{s^2(\pi)+s^2(\pi')}}{\sqrt{m_0}} \text{ for all } \pi' \ne \pi \right\}.
 # $$
 
 # %% [markdown]
@@ -343,7 +343,7 @@ for order in orders:
     for other in orders:
         if other != order:
             margin = z * np.sqrt(s2[order] + s2[other]) / np.sqrt(m0)
-            if y[order] < y[other] - margin:
+            if y[order] <= y[other] - margin:
                 discard = True
     if not discard:
         survivors.append(order)
@@ -406,7 +406,7 @@ def option_2(budget, m0, alpha, rng):
         for other in orders:
             if other != order:
                 margin = z * np.sqrt(s2[order] + s2[other]) / np.sqrt(m0)
-                if y[order] < y[other] - margin:
+                if y[order] <= y[other] - margin:
                     discard = True
         if not discard:
             survivors.append(order)
