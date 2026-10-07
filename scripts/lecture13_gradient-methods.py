@@ -192,11 +192,9 @@ paths_fig.show(config=PLOT_CONFIG)
 # (gradient-local-optima)=
 # ### Local Optima
 #
-# Like local search, a gradient method only finds a local optimum: it follows the slope uphill and stops where the slope is 0. If $E[r(X, \pi)]$ has several local optima, the result depends on the starting point.
+# Like local search, a gradient method only finds a local optimum, so the result depends on the starting point. With CRN, the method climbs precisely to the nearest local optimum and stays there. Without CRN, the noise sometimes causes a large step past a dip to a better optimum, as in the volume-discount version of the example ([](#ex-gradient-discount)), but it also makes the method less precise ([](#fig-gradient-paths)). So CRN trades exploration for precision; with CRN, we add exploration on purpose, for example by using several starting points.
 #
-# Here common random numbers have a downside. With CRN, the gradient estimates are accurate, and the method behaves almost like deterministic gradient ascent: it climbs to the nearest local optimum and stays there. Without CRN, the noisy estimates sometimes cause large random steps, and such a step can carry the method past a dip to a better optimum, just as the noise in [stochastic local search](lecture13_local-search.ipynb#local-search) leads to more exploration. In the volume-discount version of the milk example ([](#ex-gradient-discount)), runs without CRN regularly end beyond the discount, while runs with CRN that start below it never do. But this exploration is not controlled: the same noise makes the method less precise near an optimum, as [](#fig-gradient-paths) shows. So CRN is a choice between precision and exploration. If we use CRN, we have to add exploration on purpose, for example by running the method from several starting points, and how well that works depends on the problem.
-#
-# The volume discount also shows a limit of gradient methods in general: the gradient is a local slope, so it cannot see a jump in $E[r(X, \pi)]$ such as the one at 15 liters. For such problems, a discrete search over candidate solutions, with [local search](lecture13_local-search.ipynb) or [ranking and selection](lecture13_ranking-and-selection.ipynb), is a better fit.
+# A gradient is a local slope, so it cannot see a jump such as the one at 15 liters caused by the volume discount. For such problems, [local search](lecture13_local-search.ipynb) or [ranking and selection](lecture13_ranking-and-selection.ipynb) over candidate solutions fits better.
 #
 # :::{exercise}
 # :label: ex-gradient-delta
