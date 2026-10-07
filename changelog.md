@@ -4,6 +4,14 @@ The lecture notes are updated during the course. This page lists what changed in
 
 Small fixes (typos, formatting) are grouped into a single line. Each entry links to the full list of changes on GitHub.
 
+## 2026-10-07 21:06
+
+- Lecture 13 is rewritten to follow the slides and split into five pages, replacing Simulation Optimization. [About Simulation Optimization](notebooks/lecture13_about-simopt.ipynb) describes the setting, why it is harder than deterministic optimization, and four types of problems. [Comparing Scenarios](notebooks/lecture13_comparing-scenarios.ipynb), [Ranking and Selection](notebooks/lecture13_ranking-and-selection.ipynb), [Local Search](notebooks/lecture13_local-search.ipynb) and [Gradient Methods](notebooks/lecture13_gradient-methods.ipynb) each discuss one type, with a newsvendor example in Python.
+- [Comparing Scenarios](notebooks/lecture13_comparing-scenarios.ipynb#crn) shows how many simulation runs common random numbers save. Local search and gradient methods also show their downside: less noise means less exploration, so a search more often stays in a local optimum.
+- [Ranking and Selection](notebooks/lecture13_ranking-and-selection.ipynb#option-2) works out both options for the newsvendor, with the one-sided tests that discard a solution and the Šidák correction, and the same notation as the slides.
+- [Lecture 13 homework exercises](notebooks/lecture13_exercises.ipynb): the new [exercise 5](notebooks/lecture13_exercises.ipynb#hw-13-5) asks you to read and change the code that discards solutions in ranking and selection.
+- [Full diff on GitHub](https://github.com/UvA-SSO/simopt-lecture-notes/compare/2026-10-06-0743...2026-10-07-2106)
+
 ## 2026-10-06 07:43
 
 - Lecture 12 is rewritten to follow the slides and split into five pages, replacing Simulation. [Variability (Recap)](notebooks/lecture12_variability-recap.ipynb) is now a short theory-only recap of the probability and statistics that Lectures 12 and 13 use. [Why Simulate?](notebooks/lecture12_why-simulation.ipynb) describes the simulation setting and the flaw of averages, [Sampling a Random Variable](notebooks/lecture12_sampling.ipynb) the inverse transform method and sampling with a numpy generator and a seed, [Monte Carlo Simulation](notebooks/lecture12_monte-carlo.ipynb) the project planning example with numpy arrays, and [Discrete-Event Simulation](notebooks/lecture12_discrete-event-simulation.ipynb) a queue in Python and model validation.
