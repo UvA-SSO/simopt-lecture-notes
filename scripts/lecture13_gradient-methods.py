@@ -51,30 +51,12 @@
 # As everything else in this lecture, $E[r(X, \pi)]$ can only be simulated, so we cannot compute its gradient: we estimate it. The **finite-difference method** simulates $n$ runs at $\pi_k$ and $n$ runs at $\pi_k + \delta$, for a small $\delta > 0$, and uses the slope between the two averages:
 #
 # $$
-# \nabla E[r(X, \pi_k)] \approx \hat g_k = \frac{y(\pi_k + \delta) - y(\pi_k)}{\delta}.
+# \nabla E[r(X, \pi_k)] \approx \frac{y(\pi_k + \delta) - y(\pi_k)}{\delta}.
 # $$
 #
 # With more decision variables, we estimate each partial derivative in this way, by changing one variable at a time. A side effect is that every iteration also gives an estimate $y(\pi_k)$ of the performance of the current solution.
 #
-# The choice of $\delta$ is a trade-off. A large $\delta$ gives the slope over a long interval instead of at $\pi_k$, so the estimate is biased. A small $\delta$ makes this bias small, but makes the estimate noisy. To see how noisy, compare the variance of $\hat g_k$ in two cases (Glasserman, 2004, §7.1; Asmussen & Glynn, 2007, Chapter VII):
-#
-# - With independent runs at $\pi_k$ and $\pi_k + \delta$, the two averages are independent, so
-#
-#   $$
-#   \sigma^2(\hat g_k) = \frac{\sigma^2(r(X, \pi_k + \delta)) + \sigma^2(r(X, \pi_k))}{n \delta^2} \approx \frac{2\sigma^2(r(X, \pi_k))}{n \delta^2}.
-#   $$
-#
-#   The variance grows like $1/\delta^2$: halving $\delta$ makes it four times as large, and for a small $\delta$ the estimate is mostly noise.
-#
-# - With [common random numbers](lecture13_comparing-scenarios.ipynb#crn), both averages use the same random draws, so $\hat g_k$ is the average of $n$ differences $\big(r(X_i, \pi_k + \delta) - r(X_i, \pi_k)\big)/\delta$, and
-#
-#   $$
-#   \sigma^2(\hat g_k) = \frac{\sigma^2\big(r(X, \pi_k + \delta) - r(X, \pi_k)\big)}{n \delta^2}.
-#   $$
-#
-#   If $r(x, \pi)$ changes at most proportionally to the change in $\pi$, that is, $|r(x, \pi + \delta) - r(x, \pi)| \le L\delta$ for some constant $L$ and every $x$, then each difference divided by $\delta$ lies between $-L$ and $L$, and $\sigma^2(\hat g_k) \le L^2/n$, whatever $\delta$ is. For the newsvendor below this holds with $L = 1$: ordering $\delta$ liters more changes the profit of a day by at most $\delta$ euros.
-#
-# So $\pi_k$ and $\pi_k + \delta$ are two very similar scenarios, and simulating them with the same random draws lets most of the noise cancel in their difference. Without CRN, finite differences only work with a large $\delta$ or a very large $n$.
+# Here $\pi_k$ and $\pi_k + \delta$ are two very similar scenarios, so [common random numbers](lecture13_comparing-scenarios.ipynb#crn) make the difference $y(\pi_k + \delta) - y(\pi_k)$ much less noisy, as in Comparing Scenarios. This matters even more than there, because the difference is divided by the small number $\delta$, which magnifies its noise.
 
 # %% [markdown]
 # (milk-example)=
@@ -132,20 +114,10 @@ print(f"pi_100 = {path_crn[-1]:.2f}")
 # For this simple example, the optimal order size can be calculated exactly: $\pi^* \approx 13.36$ liters (how is outside the scope of this course; the code is hidden below). For real-life problems this is in general not possible, and we only use it to check the method. We now run the method once more without common random numbers:
 
 # %% tags=["hide-input"]
-# exact optimum and expected profit, only to check the method (outside the
-# scope of the course)
+# exact optimum, only to check the method (outside the course's scope)
 from scipy import stats
 
 optimum = stats.gamma.ppf((price - cost) / price, shape, scale=scale)
-grid = np.linspace(lower, upper, 301)
-expected_sales = scale * shape * stats.gamma.cdf(
-    grid, shape + 1, scale=scale
-) + grid * stats.gamma.sf(grid, shape, scale=scale)
-expected_profit = price * expected_sales - cost * grid
-
-
-def exact_profit(order):
-    return np.interp(order, grid, expected_profit)
 
 
 # %%
@@ -214,91 +186,13 @@ paths_fig.show(config=PLOT_CONFIG)
 # Order size $\pi_k$ during 100 iterations of gradient ascent, with and without common random numbers, and the optimum $\pi^*$.
 # :::
 #
-# [](#fig-gradient-paths) shows the difference. With CRN, the method approaches the optimum in a few iterations and then stays close to it. Without CRN, the gradient estimates are so noisy that the order size jumps around: the second step even takes it back to 0 liters, and after 100 iterations it is still almost a liter below the optimum. [](#fig-gradient-steps-crn) and [](#fig-gradient-steps-indep) show the first five steps of both runs on the expected profit curve.
-
-# %% tags=["remove-cell"]
-SUBSCRIPTS = "₀₁₂₃₄₅"
-
-
-def plot_steps(path, color, positions):
-    """The first order sizes of a run on the expected profit curve."""
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(
-            x=grid,
-            y=expected_profit,
-            mode="lines",
-            line={"color": "grey", "width": 2},
-            name="expected profit",
-        )
-    )
-    shown = np.array(path[: len(positions)])
-    fig.add_trace(
-        go.Scatter(
-            x=shown,
-            y=exact_profit(shown),
-            mode="markers+text",
-            marker={"color": color, "size": 9},
-            text=[f"π{SUBSCRIPTS[k]}" for k in range(len(shown))],
-            textposition=positions,
-            name="order sizes π₀, ..., π₅",
-        )
-    )
-    fig.update_layout(**{**PLOT_LAYOUT, "height": 300})
-    fig.update_xaxes(
-        title="order size π (liters)", range=[-1, 20], **AXIS_STYLE
-    )
-    fig.update_yaxes(
-        title="expected profit (€)", range=[-0.8, 5], **AXIS_STYLE
-    )
-    fig.show(config=PLOT_CONFIG)
-
-
-# %% tags=["remove-cell"] label="gradient-steps-crn"
-plot_steps(
-    path_crn,
-    "#1f77b4",
-    [
-        "bottom right",
-        "top center",
-        "top left",
-        "top right",
-        "bottom left",
-        "bottom right",
-    ],
-)
+# [](#fig-gradient-paths) shows the difference. With CRN, the method approaches the optimum in a few iterations and then stays close to it. Without CRN, the gradient estimates are so noisy that the order size jumps around: the second step even takes it back to 0 liters, and after 100 iterations it is still almost a liter below the optimum.
 
 # %% [markdown]
-# :::{figure} #gradient-steps-crn
-# :label: fig-gradient-steps-crn
+# (final-evaluation)=
+# ### Evaluating the Final Solution
 #
-# The first five steps of gradient ascent with common random numbers, on the expected profit curve: the order sizes $\pi_0, \dots, \pi_5$.
-# :::
-
-# %% tags=["remove-cell"] label="gradient-steps-indep"
-plot_steps(
-    path_indep,
-    "#ff7f0e",
-    [
-        "bottom left",
-        "top center",
-        "top center",
-        "top right",
-        "top left",
-        "top left",
-    ],
-)
-
-# %% [markdown]
-# :::{figure} #gradient-steps-indep
-# :label: fig-gradient-steps-indep
-#
-# The first five steps of gradient ascent without common random numbers, on the expected profit curve: the order sizes $\pi_0, \dots, \pi_5$.
-# :::
-#
-# With CRN, the run climbs the curve from $\pi_0 = 2$ via $\pi_1 = 10$ to the top, and then makes small steps around it. Without CRN, the first step is the same (at $\pi_0 = 2$ the profit hardly varies, so there is little noise), but the second gradient estimate is so far off that the run falls back to 0, from where it climbs again.
-#
-# The averages $y(\pi_k)$ are based on only 100 runs each, so they tell us little about how good the final solution is, and the method itself never simulates $\pi_{100}$. To report the expected profit of the final solution, we therefore simulate it separately, with new, independent runs:
+# With CRN, the method returns the order size $\pi_{100}$ after 100 iterations. How good is this solution? The method's own estimates do not answer that: each $y(\pi_k)$ is based on only 100 runs, and $\pi_{100}$ itself was never simulated, because the last iteration only computes the step to it. To report the expected profit of the final solution, we therefore simulate it separately, with 10,000 new, independent runs:
 
 # %%
 final_order = path_crn[-1]
@@ -347,6 +241,4 @@ print(
 # ## References
 #
 # - Koole, G. (2019). *An Introduction to Business Analytics*. Chapter 8, "Simulation Optimization."
-# - Asmussen, S. & Glynn, P.W. (2007). *Stochastic Simulation: Algorithms and Analysis*. Springer. Chapter VII, "Derivative Estimation."
 # - Fu, M.C. (2002). "Optimization for simulation: Theory vs. practice." *INFORMS Journal on Computing*, 14:192–215.
-# - Glasserman, P. (2004). *Monte Carlo Methods in Financial Engineering*. Springer. §7.1, "Finite-Difference Approximations."
