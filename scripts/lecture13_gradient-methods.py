@@ -31,6 +31,7 @@
 # - describe the gradient ascent algorithm and the role of the step size
 # - estimate a gradient by simulation with finite differences
 # - explain why common random numbers are needed for a useful finite-difference estimate
+# - explain the downside of common random numbers: less noise also means less exploration
 
 # %% [markdown]
 # (gradient-methods)=
@@ -316,7 +317,11 @@ print(
 # (gradient-local-optima)=
 # ### Local Optima
 #
-# Like local search, a gradient method only finds a local optimum: it follows the slope uphill and stops where the slope is 0. If $E[r(X, \pi)]$ has several local optima, the result depends on the starting point. The noise of an estimate without CRN sometimes carries the method past a dip to a better optimum (see [](#ex-gradient-discount)), just as the noise in [stochastic local search](lecture13_local-search.ipynb#local-search) can. But that is luck: the same noise also throws the method away from a good solution, and where it ends is hard to predict. A more reliable way to look for a better optimum is to estimate the gradient accurately, with CRN, and to run the method from several starting points.
+# Like local search, a gradient method only finds a local optimum: it follows the slope uphill and stops where the slope is 0. If $E[r(X, \pi)]$ has several local optima, the result depends on the starting point.
+#
+# Here common random numbers have a downside. With CRN, the gradient estimates are accurate, and the method behaves almost like deterministic gradient ascent: it climbs to the nearest local optimum and stays there. Without CRN, the noisy estimates sometimes cause large random steps, and such a step can carry the method past a dip to a better optimum, just as the noise in [stochastic local search](lecture13_local-search.ipynb#local-search) leads to more exploration. In the volume-discount version of the milk example ([](#ex-gradient-discount)), runs without CRN regularly end beyond the discount, while runs with CRN that start below it never do. But this exploration is not controlled: the same noise makes the method less precise near an optimum, as [](#fig-gradient-paths) shows. So CRN is a choice between precision and exploration. If we use CRN, we have to add exploration on purpose, for example by running the method from several starting points, and how well that works depends on the problem.
+#
+# The volume discount also shows a limit of gradient methods in general: the gradient is a local slope, so it cannot see a jump in $E[r(X, \pi)]$ such as the one at 15 liters. For such problems, a discrete search over candidate solutions, with [local search](lecture13_local-search.ipynb) or [ranking and selection](lecture13_ranking-and-selection.ipynb), is a better fit.
 #
 # :::{exercise}
 # :label: ex-gradient-delta
@@ -335,7 +340,7 @@ print(
 #
 # a. Change `profit` accordingly and run gradient ascent with common random numbers from $\pi_0 = 2$ and from $\pi_0 = 25$. Explain the results.
 #
-# b. Run it from $\pi_0 = 2$ without common random numbers, for ten different seeds. How many runs end above 15 liters? Is this a good way to escape a local optimum?
+# b. Run it from $\pi_0 = 2$ without common random numbers, for ten different seeds. How many runs end above 15 liters? What does this say about the choice between precision and exploration?
 # :::
 
 # %% [markdown]

@@ -22,7 +22,7 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_comparing-scenarios.ipynb)
 
 # %% [markdown]
-# This notebook covers the simplest of the [four types of simulation optimization problems](lecture13_about-simopt.ipynb#four-types): $|S| = 2$, so we only have to decide which of two scenarios is better. We compare them with a confidence interval for the difference, and show how common random numbers give a narrower interval for the same number of runs. Common random numbers return in all following notebooks: [Ranking and Selection](lecture13_ranking-and-selection.ipynb), [Local Search](lecture13_local-search.ipynb) and [Gradient Methods](lecture13_gradient-methods.ipynb).
+# This notebook covers the simplest of the [four types of simulation optimization problems](lecture13_about-simopt.ipynb#four-types): $|S| = 2$, so we only have to decide which of two scenarios is better. We compare them with a confidence interval for the difference, and show how common random numbers give a narrower interval for the same number of runs. Common random numbers return in all following notebooks: [Ranking and Selection](lecture13_ranking-and-selection.ipynb), [Local Search](lecture13_local-search.ipynb) and [Gradient Methods](lecture13_gradient-methods.ipynb). The last two also show a downside: less noise also means less exploration, which can keep a search in a local optimum.
 #
 # **Learning outcomes**
 #
