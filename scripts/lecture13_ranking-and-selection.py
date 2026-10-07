@@ -112,7 +112,7 @@ print(f"expected profit of order size 10: {true_value[10]:.3f}")
 # (option-1)=
 # ## Option 1: Split the Budget Equally
 #
-# The natural first approach is to simulate every solution $m/k$ times, estimate $E[r(X, \pi)]$ for each $\pi$ by the average $y(\pi)$ of its runs, and return the solution with the highest average. Let $y(\pi)$ and $s^2(\pi)$ denote the sample average and sample variance computed from the runs of $\pi$ (the $\bar X$ and $S_X^2$ of [Comparing Scenarios](lecture13_comparing-scenarios.ipynb#comparing-scenarios)). With $s^2(\pi)$ we can also give a [95% CI](lecture12_variability-recap.ipynb#hypothesis-testing) for each $E[r(X, \pi)]$.
+# The natural first approach is to simulate every solution $m/k$ times, estimate $E[r(X, \pi)]$ for each $\pi$ by the average of its runs, and return the solution with the highest average. Let $y(\pi)$ and $s^2(\pi)$ denote the sample average and sample variance computed from the runs of $\pi$ (the $\bar X$ and $S_X^2$ of [Comparing Scenarios](lecture13_comparing-scenarios.ipynb#comparing-scenarios)). With $s^2(\pi)$ we can also give a [95% CI](lecture12_variability-recap.ipynb#hypothesis-testing) for each $E[r(X, \pi)]$.
 #
 # For the newsvendor, a budget of $m = 4200$ runs gives 200 runs per order size:
 
