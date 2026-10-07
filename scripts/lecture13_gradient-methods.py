@@ -189,25 +189,6 @@ paths_fig.show(config=PLOT_CONFIG)
 # [](#fig-gradient-paths) shows the difference. With CRN, the method approaches the optimum in a few iterations and then stays close to it. Without CRN, the gradient estimates are so noisy that the order size jumps around: the second step even takes it back to 0 liters, and after 100 iterations it is still almost a liter below the optimum.
 
 # %% [markdown]
-# (final-evaluation)=
-# ### Evaluating the Final Solution
-#
-# With CRN, the method returns the order size $\pi_{100}$ after 100 iterations. How good is this solution? The method's own estimates do not answer that: each $y(\pi_k)$ is based on only 100 runs, and $\pi_{100}$ itself was never simulated, because the last iteration only computes the step to it. To report the expected profit of the final solution, we therefore simulate it separately, with 10,000 new, independent runs:
-
-# %%
-final_order = path_crn[-1]
-final_profits = profit(final_order, rng.gamma(shape, scale, 10000))
-mean, sd = final_profits.mean(), final_profits.std(ddof=1)
-half_width = 1.96 * sd / np.sqrt(len(final_profits))
-print(f"final order size: {final_order:.2f} liters")
-print(
-    f"95% CI for its expected profit: [{mean - half_width:.2f}, "
-    f"{mean + half_width:.2f}]"
-)
-
-# %% [markdown]
-# Using new runs here, instead of the runs that the method used along the way, avoids the overestimation described in [About Simulation Optimization](lecture13_about-simopt.ipynb#simopt-challenges): the final solution was chosen because its estimates looked good, so those same estimates tend to be too high.
-#
 # (gradient-local-optima)=
 # ### Local Optima
 #
@@ -222,7 +203,7 @@ print(
 #
 # Run `gradient_ascent` with and without common random numbers for $\delta = 0.01$ and for $\delta = 1$.
 #
-# a. How does $\delta$ affect the run without common random numbers? Explain with the variance of the gradient estimate.
+# a. How does $\delta$ affect the run without common random numbers? Explain this with the finite-difference formula for the gradient.
 #
 # b. Why does a small $\delta$ hardly matter for the run with common random numbers?
 # :::
