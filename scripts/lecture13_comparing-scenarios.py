@@ -22,7 +22,7 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_comparing-scenarios.ipynb)
 
 # %% [markdown]
-# This notebook covers the simplest of the [four types of simulation optimization problems](lecture13_about-simopt.ipynb#four-types): $|S| = 2$, so we only have to decide which of two scenarios is better. We compare them with a confidence interval for the difference, and show how common random numbers give a narrower interval for the same number of runs. The same idea returns in [Ranking and Selection](lecture13_ranking-and-selection.ipynb) and [Gradient Methods](lecture13_gradient-methods.ipynb).
+# This notebook covers the simplest of the [four types of simulation optimization problems](lecture13_about-simopt.ipynb#four-types): $|S| = 2$, so we only have to decide which of two scenarios is better. We compare them with a confidence interval for the difference, and show how common random numbers give a narrower interval for the same number of runs. Common random numbers return in all following notebooks: [Ranking and Selection](lecture13_ranking-and-selection.ipynb), [Local Search](lecture13_local-search.ipynb) and [Gradient Methods](lecture13_gradient-methods.ipynb).
 #
 # **Learning outcomes**
 #
@@ -36,37 +36,51 @@
 # (comparing-scenarios)=
 # ## Independent Samples
 #
-# With $|S| = 2$, one scenario gives a random performance $X$ and the other a random performance $X'$, for example the throughput of two layouts of a factory. The question is whether one scenario is better than the other, that is, whether $EX \neq EX'$. The most direct approach simulates $X$ and $X'$ independently, with an equal number of runs $n$ of both scenarios, and applies the [test for two independent samples](lecture12_variability-recap.ipynb#hypothesis-testing): make a CI for $EX - EX'$, and if this CI does not contain 0, we have evidence that one scenario is better than the other.
+# With $|S| = 2$, one scenario gives a random performance $X$ and the other a random performance $X'$, for example the throughput of two layouts of a factory. The question is whether one scenario is better than the other, that is, whether $EX \neq EX'$.
+#
+# The most direct approach simulates both scenarios $n$ times, independently: runs $X_1, \dots, X_n$ of the first scenario and $X_1', \dots, X_n'$ of the second. As in [Variability (Recap)](lecture12_variability-recap.ipynb#hypothesis-testing), we write $\sigma^2(X)$ for the (unknown) variance of $X$, and $\bar X$ and $S_X^2$ for the sample average and sample variance of the runs, which estimate $EX$ and $\sigma^2(X)$; the same for $X'$. To have one notation for this section and the next, let $Y = X - X'$ and $Y_i = X_i - X_i'$, the difference of the $i$-th runs. Then $\bar Y = \bar X - \bar X'$ estimates $EY = EX - EX'$, and because the runs of the two scenarios are independent,
+#
+# $$
+# \sigma^2(Y) = \sigma^2(X) + \sigma^2(X'),
+# $$
+#
+# so the sample variance $S_Y^2$ of the differences is approximately $S_X^2 + S_{X'}^2$. A 95% CI for $EY$ is
+#
+# $$
+# \left[\bar Y - 1.96 \frac{S_Y}{\sqrt n}, \ \bar Y + 1.96 \frac{S_Y}{\sqrt n}\right].
+# $$
+#
+# The [test for two independent samples](lecture12_variability-recap.ipynb#hypothesis-testing) of $H_0: EX = EX'$ comes down to this CI: at significance level 5% (two-sided), we reject $H_0$ exactly when 0 does not lie in the CI. In that case we have evidence that one scenario is better than the other. Writing the test as a CI has an advantage: the width of the CI, $2 \times 1.96\, S_Y/\sqrt n$, shows directly how much a smarter design of the simulation gains. If the design makes $\sigma(Y)$ smaller, the CI gets narrower for the same number of runs $n$.
 
 # %% [markdown]
 # (crn)=
 # ## Matched Pairs and Common Random Numbers
 #
-# We can often do better by designing the simulation experiment more cleverly, which gives more statistical power for the same number of runs. The idea is to compare the two scenarios in a similar, "fair" test setting. We take matched pairs of samples $(X_i, X_i')$, and make sure that the two samples of each pair are positively correlated by simulating them under similar conditions. Then $Y = X - X'$ has $EY = EX - EX'$, and instead of a two-sample test we compute the differences $Y_i = X_i - X_i'$ and make a CI for $EY$ from them, as in the [test for matched pairs](lecture12_variability-recap.ipynb#hypothesis-testing). If $0 \notin \text{CI}$, the difference is significant.
+# We can often do better by comparing the two scenarios in a similar, "fair" test setting. We take matched pairs of samples $(X_i, X_i')$, and make sure that the two samples of each pair are positively correlated by simulating them under similar conditions. Then we compute the differences $Y_i = X_i - X_i'$ and make the CI for $EY$ from them exactly as above, as in the [test for matched pairs](lecture12_variability-recap.ipynb#hypothesis-testing). If $0 \notin \text{CI}$, the difference is significant.
 #
-# This works because
+# The pairing gives more statistical power because it makes the CI narrower. For $X$ and $X'$ that are not independent,
 #
 # $$
 # \sigma^2(Y) = \sigma^2(X - X') = \sigma^2(X) + \sigma^2(X') - 2\,\mathrm{Cov}(X, X').
 # $$
 #
-# The covariance $\mathrm{Cov}(X, X')$ measures how $X$ and $X'$ move together. If it is positive, a large sample of $X$ tends to come with a large sample of $X'$, so their difference is relatively small. For independent samples the covariance is 0, so making $\mathrm{Cov}(X, X') > 0$ shrinks $\sigma^2(Y)$, and a smaller $\sigma^2(Y)$ gives a narrower CI for the same number of runs.
+# The covariance $\mathrm{Cov}(X, X')$ measures how $X$ and $X'$ move together. If it is positive, a large sample of $X$ tends to come with a large sample of $X'$, so their difference is relatively small. So a positive covariance reduces $\sigma^2(Y)$ compared to independent samples, where the covariance is 0. A smaller $\sigma(Y)$ gives a narrower CI for the same $n$, and as a result, if $EY \neq 0$, the CI excludes 0 after fewer runs: we see earlier that one scenario is better.
 #
 # In practice, we get this positive correlation with **common random numbers** (CRN): we use the same underlying random draws for both scenarios (the same simulated demands, the same arrival moments, or in general the same seed), instead of drawing fresh randomness for each scenario.
 
 # %% [markdown]
 # (crn-example)=
-# ## Worked Example: Two Order Quantities
+# ## Example: The Effect of Common Random Numbers
 #
-# A shop decides between ordering 8 or 12 units of a product. Demand is Poisson with mean 10, a unit is sold for €5 and bought for €3, and unsold units are worthless. We simulate the difference in profit between the two order quantities 5000 times, once with independent demand for the two scenarios and once with CRN, where the same demand feeds both:
+# A shop decides between ordering 9 or 10 units of a product. Demand is Poisson with mean 10, a unit is sold for €5 and bought for €3, and unsold units are worthless. We simulate the difference in profit between the two order quantities 1000 times, once with independent demand for the two scenarios and once with CRN, where the same demand feeds both:
 
 # %%
 import numpy as np
 
-rng = np.random.default_rng(7)
-n_runs = 5000
+rng = np.random.default_rng(1)
+n_runs = 1000
 price, cost = 5, 3
-order_a, order_b = 8, 12
+order_a, order_b = 9, 10
 
 
 def profit(order, demand):
@@ -88,12 +102,12 @@ for name, diff in [("independent", diff_indep), ("CRN", diff_crn)]:
     mean, sd = diff.mean(), diff.std(ddof=1)
     half_width = 1.96 * sd / np.sqrt(n_runs)
     print(
-        f"{name:>11}: Var(diff) = {sd**2:6.1f}, 95% CI for the "
-        f"difference: [{mean - half_width:.2f}, {mean + half_width:.2f}]"
+        f"{name:>11}: s_Y = {sd:5.2f}, 95% CI for EY: "
+        f"[{mean - half_width:.2f}, {mean + half_width:.2f}]"
     )
 
 # %% [markdown]
-# Both CIs lie entirely below 0, so ordering 12 units gives a lower expected profit than ordering 8. The CI with CRN is clearly narrower. [](#fig-crn-independent) and [](#fig-crn-common) show why: with CRN, a day with high demand raises the profit of both order quantities, and a day with low demand lowers both, so the two profits move together and their difference varies less.
+# With independent sampling, the CI contains 0: after 1000 runs we cannot tell which order quantity is better. With CRN, the CI lies entirely below 0, so ordering 10 units gives a lower expected profit than ordering 9. [](#fig-crn-independent) and [](#fig-crn-common) show why: with CRN, a day with high demand raises the profit of both order quantities, and a day with low demand lowers both, so the two profits move together and their difference varies much less.
 
 # %% tags=["remove-cell"]
 import plotly.graph_objects as go
@@ -136,7 +150,7 @@ def plot_traces(profit_a, profit_b, n_shown=40):
         )
     fig.update_layout(**PLOT_LAYOUT)
     fig.update_xaxes(title="simulation run", **AXIS_STYLE)
-    fig.update_yaxes(title="profit (€)", range=[-25, 30], **AXIS_STYLE)
+    fig.update_yaxes(title="profit (€)", range=[-32, 22], **AXIS_STYLE)
     fig.show(config=PLOT_CONFIG)
 
 
@@ -147,7 +161,7 @@ plot_traces(profit_a_indep, profit_b_indep)
 # :::{figure} #crn-independent
 # :label: fig-crn-independent
 #
-# Profit of ordering 8 and 12 units in the first 40 runs, with independent demand for the two order quantities.
+# Profit of ordering 9 and 10 units in the first 40 runs, with independent demand for the two order quantities.
 # :::
 
 # %% tags=["remove-cell"] label="crn-common"
@@ -157,28 +171,34 @@ plot_traces(profit_a_crn, profit_b_crn)
 # :::{figure} #crn-common
 # :label: fig-crn-common
 #
-# Profit of ordering 8 and 12 units in the first 40 runs, with common random numbers: both order quantities face the same demand in each run.
+# Profit of ordering 9 and 10 units in the first 40 runs, with common random numbers: both order quantities face the same demand in each run.
 # :::
 #
-# How many runs does CRN save here? The width of the CI is proportional to $\sigma(Y)/\sqrt{n}$. With independent sampling, the variance of the difference is about 2.4 times as large as with CRN, so independent sampling needs about 2.4 times as many runs for a CI of the same width:
+# How many runs does CRN save here? The CI has width $2 \times 1.96\, s_Y/\sqrt n$, where $s_Y$ is the sample standard deviation of the differences. Because of the $\sqrt n$, halving the width takes 4 times as many runs, and in general, making the width $f$ times smaller takes $f^2$ times as many runs. CRN makes $s_Y$, and thus the width, $f$ times smaller without extra runs, with
+#
+# $$
+# f = \frac{s_Y \text{ with independent sampling}}{s_Y \text{ with CRN}}.
+# $$
+#
+# To get the CI of CRN with independent sampling, we would need $f^2$ times as many runs:
 
 # %%
-variance_ratio = diff_indep.var(ddof=1) / diff_crn.var(ddof=1)
-n_equivalent = variance_ratio * n_runs
-print(f"variance ratio: {variance_ratio:.2f}")
-print(f"independent pairs for the same CI width: {n_equivalent:.0f}")
+sd_ratio = diff_indep.std(ddof=1) / diff_crn.std(ddof=1)
+print(f"f = {sd_ratio:.1f}, f^2 = {sd_ratio**2:.0f}")
+n_equivalent = sd_ratio**2 * n_runs
+print(f"independent runs per scenario for the same width: {n_equivalent:.0f}")
 
 # %% [markdown]
-# With CRN, 5000 pairs (10,000 simulation runs) give a CI that independent sampling only reaches with about 12,000 pairs (24,100 runs). CRN saves about 14,100 runs here, more than half of the work, and it costs nothing extra: we only reuse the demands we drew. In more complex simulations, where the two scenarios differ less, the correlation and thus the savings are often much larger.
+# CRN makes the CI about 4.5 times narrower, which with independent sampling would take about 20 times as many runs: about 20,500 runs per scenario instead of 1000. And CRN costs nothing extra: we only reuse the demands we drew. The two order quantities are close, so their profits are strongly correlated under CRN; for scenarios that differ more, the savings are smaller.
 #
 # :::{exercise}
 # :label: ex-crn-savings
 #
-# In the example above, change `order_b` to 9.
+# In the example above, change `order_b` to 13.
 #
-# a. Before running the code: do you expect the variance ratio to be larger or smaller than for `order_b = 12`? Explain.
+# a. Before running the code: do you expect $f$ to be larger or smaller than for `order_b = 10`? Explain.
 #
-# b. Run the code and compute how many simulation runs CRN saves now.
+# b. Run the code and compute how many runs per scenario independent sampling would need for the same CI width as CRN.
 # :::
 #
 # :::{exercise}
@@ -194,4 +214,4 @@ print(f"independent pairs for the same CI width: {n_equivalent:.0f}")
 # %% [markdown]
 # ## References
 #
-# - Koole, G. (2019). *An Introduction to Business Analytics*. §8.1, "Comparing Scenarios."
+# - Koole, G. (2019). *An Introduction to Business Analytics*. §8.1.

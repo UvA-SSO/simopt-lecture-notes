@@ -43,7 +43,7 @@
 # \max_{\pi \in S} \ E[r(X, \pi)],
 # $$
 #
-# where $E[r(X, \pi)]$ can only be evaluated by simulation. In this notebook $S$ is discrete and relatively small, with $k = |S|$ solutions: small enough that our simulation budget of $m$ runs suffices to simulate every solution a couple of times. The task is to select the best solution, and on the way we rank the solutions by their estimated performance, hence the name **ranking and selection**.
+# where $E[r(X, \pi)]$ can only be evaluated by simulation. In this notebook $S$ is discrete and relatively small, with $k = |S|$ solutions: the simulation budget of $m$ runs is much larger than the number of solutions ($m \gg k$), so it suffices to simulate every solution a couple of times. The task is to select the best solution, and on the way we rank the solutions by their estimated performance, hence the name **ranking and selection**.
 
 # %% [markdown]
 # (newsvendor)=
@@ -55,12 +55,12 @@
 # r(X, \pi) = p \min(X, \pi) - c\pi,
 # $$
 #
-# and the newsvendor chooses $\pi$ from $S = \{0, 1, \dots, K\}$, where $K$ is the number of papers that fit on the shelf. The [worked example in Comparing Scenarios](lecture13_comparing-scenarios.ipynb#crn-example) was a newsvendor problem with only two order sizes, 8 and 12.
+# and the newsvendor chooses $\pi$ from $S = \{0, 1, \dots, K\}$. The upper bound $K$ comes from the newsvendor's stand: it has room for at most $K$ newspapers, so ordering more is not possible. The [example in Comparing Scenarios](lecture13_comparing-scenarios.ipynb#crn-example) was a newsvendor problem with only two order sizes, 9 and 10.
 #
 # :::{note} Example: Newsvendor with 21 Order Sizes
 # :label: eg-8-3
 #
-# A newsvendor buys newspapers for €0.75 and sells them for €1. Demand $X$ is Poisson distributed with mean 10, and there is room for 20 newspapers on the shelf. The simulation optimization problem is
+# A newsvendor buys newspapers for €0.75 and sells them for €1. Demand $X$ is Poisson distributed with mean 10, and the stand has room for 20 newspapers. The simulation optimization problem is
 #
 # $$
 # \max_{\pi \in S} \ E[\min(X, \pi)] - 0.75\pi, \quad S = \{0, 1, \dots, 20\},
@@ -89,9 +89,11 @@ def simulate(order, n, rng):
 
 
 # %% [markdown]
-# For this small problem the expected profit can also be computed exactly, with $E[\min(X, \pi)] = \sum_{j=0}^{\pi-1} P(X > j)$. Real simulation optimization problems have no such formula; we only use it to check how well the methods below do.
+# For this simple example, the expected profit of every order size can also be calculated exactly. How to do this is outside the scope of this course, and for real-life simulation optimization problems it is in general not possible. We use the exact values, stored in `true_value` by the hidden cell below, only to check how well the methods do.
 
-# %%
+# %% tags=["hide-input"]
+# exact expected profit, only to check the methods (outside the scope of
+# the course)
 from scipy import stats
 
 expected_sales = [
@@ -110,7 +112,7 @@ print(f"expected profit of order size 10: {true_value[10]:.3f}")
 # (option-1)=
 # ## Option 1: Split the Budget Equally
 #
-# The natural first approach is to simulate every solution $m/k$ times, estimate $E[r(X, \pi)]$ for each $\pi$ by the average $y(\pi)$ of its runs, and return the solution with the highest average. With the sample variance $s^2(\pi)$ we can also give a [95% CI](lecture12_variability-recap.ipynb#hypothesis-testing) for each $E[r(X, \pi)]$.
+# The natural first approach is to simulate every solution $m/k$ times, estimate $E[r(X, \pi)]$ for each $\pi$ by the average $y(\pi)$ of its runs, and return the solution with the highest average. As on the slides, $y(\pi)$ and $s^2(\pi)$ denote the sample average and sample variance computed from the runs of $\pi$ (the $\bar X$ and $S_X^2$ of [Comparing Scenarios](lecture13_comparing-scenarios.ipynb#comparing-scenarios)). With $s^2(\pi)$ we can also give a [95% CI](lecture12_variability-recap.ipynb#hypothesis-testing) for each $E[r(X, \pi)]$.
 #
 # For the newsvendor, a budget of $m = 4200$ runs gives 200 runs per order size:
 
@@ -200,7 +202,7 @@ finish_ci_plot(option1_fig)
 # 95% CIs for the expected profit of every order size, each based on 200 runs, with the true expected profit.
 # :::
 #
-# [](#fig-option1-cis) shows the CIs. The CIs for small order sizes are narrow: with few papers the newsvendor almost always sells everything, so the profit hardly varies. Around the optimum, the CIs of order sizes 7, 8 and 9 overlap: the budget is not enough to tell them apart. At the same time, a large part of the budget went to order sizes 14 to 20, whose CIs lie far below the others after a few runs already.
+# [](#fig-option1-cis) shows the CIs. The CIs for small order sizes are very narrow (see [](#ex-narrow-cis)). Around the optimum, the CIs of order sizes 7, 8 and 9 overlap: the budget is not enough to tell them apart. At the same time, a large part of the budget went to order sizes 14 to 20, whose CIs lie far below the others after a few runs already.
 #
 # Because of the noise, option 1 shows both problems mentioned in [About Simulation Optimization](lecture13_about-simopt.ipynb#simopt-challenges): it may select the wrong order size, and the estimated profit of the selected order size tends to be too high. To see how often this happens, we repeat option 1 1000 times:
 
@@ -223,6 +225,12 @@ print(f"average overestimation of the profit: {np.mean(overestimate):.3f}")
 
 # %% [markdown]
 # Option 1 selects the best order size 8 only about half of the time; otherwise it mostly selects 7 or 9. And the estimate of the selected order size's expected profit is too high on average, because we select the order size whose estimate happened to come out high.
+#
+# :::{exercise}
+# :label: ex-narrow-cis
+#
+# Why are the CIs in [](#fig-option1-cis) so narrow for small order sizes, and why is the CI of order size 0 just a point?
+# :::
 #
 # (crn-ranking)=
 # ### Common Random Numbers
@@ -276,12 +284,12 @@ print(f"average overestimation of the profit: {np.mean(overestimate):.3f}")
 # y(\pi) < y(\pi') - \Phi^{-1}(1 - \alpha)\, \frac{\sqrt{s^2(\pi) + s^2(\pi')}}{\sqrt{m_0}}.
 # $$
 #
-# For $\alpha = 0.05$, $\Phi^{-1}(0.95) = 1.64$. (Strictly, the $t$-distribution with $m_0 - 1$ degrees of freedom applies, but for $m_0 \ge 30$ the difference is small.)
+# For $\alpha = 0.05$, $\Phi^{-1}(0.95) = 1.64$. Strictly, the $t$-distribution with $m_0 - 1$ degrees of freedom applies; the slides use its inverse, written $\beta_{1-\alpha}$, which is `stats.t.ppf(1 - alpha, m0 - 1)` in Python. For $m_0 \ge 30$ the difference is small, and we use $\Phi^{-1}$.
 #
 # (sidak)=
 # ### The Multiple-Testing Problem and the Šidák Correction
 #
-# With $k$ solutions, we discard $\pi$ as soon as one of the $k - 1$ tests against the other solutions rejects $H_0(\pi, \pi')$. Even if $\pi$ is the best solution, each of these tests can reject by chance, and the more tests, the larger the probability that at least one of them does. Compare it with a multiple-choice exam that you take together with $k - 1$ monkeys that answer at random: the more monkeys, the larger the chance that one of them beats you by luck. So if every test is done at level $\alpha = 0.05$, the probability of discarding the best solution is much larger than 5%.
+# With $k$ solutions, we discard $\pi$ as soon as one of the $k - 1$ tests against the other solutions rejects $H_0(\pi, \pi')$. Even if $\pi$ is the best solution, each of these tests can reject by chance, and the more tests, the larger the probability that at least one of them does. Compare it with a multiple-choice exam that you take together with $k - 1$ monkeys that answer at random: the more monkeys, the larger the chance that one of them beats you by luck, and we should not conclude from that that this lucky monkey knows more about the exam's topic than you do. In the same way, a solution that beats $\pi$ in one of many tests by luck is not necessarily better than $\pi$. So if every test is done at level $\alpha = 0.05$, the probability of discarding the best solution is much larger than 5%.
 #
 # We want the probability of discarding the best solution to be at most $\alpha$. Therefore we do each test at a stricter, "conservative" level $\alpha^*$. If $\pi$ is the best solution, all $k - 1$ hypotheses $H_0(\pi, \pi')$ are true, and each test does not reject with probability (at least) $1 - \alpha^*$. The $k - 1$ tests are not independent: they all use the same average $y(\pi)$, so if $y(\pi)$ happens to be low, $\pi$ looks bad in all comparisons at once. This dependence is positive (the tests tend to reject together), and as a result the probability that none of the $k - 1$ tests rejects is at least what it would be for independent tests:
 #
@@ -295,7 +303,11 @@ print(f"average overestimation of the profit: {np.mean(overestimate):.3f}")
 # (1 - \alpha^*)^{k-1} = 1 - \alpha \quad\Longrightarrow\quad \alpha^* = 1 - \sqrt[k-1]{1-\alpha}.
 # $$
 #
-# Then the best solution survives with probability at least $1 - \alpha$. For the newsvendor, with $k = 21$ and $\alpha = 0.05$, this gives $\alpha^* \approx 0.0026$ and $\Phi^{-1}(1 - \alpha^*) \approx 2.80$ instead of 1.64: a much stricter bar for declaring a solution worse, because it is tested against many other solutions at once. With $1 - \alpha^* = \sqrt[k-1]{1-\alpha}$, the set of solutions that survive the first round is
+# Then the best solution survives with probability at least $1 - \alpha$.
+#
+# You may know the **Bonferroni correction** from the statistics part of the course, which takes $\alpha^* = \alpha/(k-1)$. It also guarantees that the best solution survives with probability at least $1 - \alpha$, but the Šidák level is always a bit larger: $1 - \sqrt[k-1]{1-\alpha} > \alpha/(k-1)$. So with the Šidák correction each test is slightly less strict and discards bad solutions a bit more often, with the same guarantee for the best solution. Here the difference is small: for $k = 21$ and $\alpha = 0.05$, Bonferroni gives $\alpha^* = 0.0025$ and Šidák $\alpha^* \approx 0.0026$.
+#
+# For the newsvendor, with $k = 21$ and $\alpha = 0.05$, this gives $\alpha^* \approx 0.0026$ and $\Phi^{-1}(1 - \alpha^*) \approx 2.80$ instead of 1.64: a much stricter bar for declaring a solution worse, because it is tested against many other solutions at once. With $1 - \alpha^* = \sqrt[k-1]{1-\alpha}$, the set of solutions that survive the first round is
 #
 # $$
 # I = \left\{ \pi \in S \;\middle|\; y(\pi) \ge y(\pi') - \Phi^{-1}\!\left(\sqrt[k-1]{1-\alpha}\right) \frac{\sqrt{s^2(\pi)+s^2(\pi')}}{\sqrt{m_0}} \text{ for all } \pi' \ne \pi \right\}.
@@ -308,6 +320,8 @@ print(f"average overestimation of the profit: {np.mean(overestimate):.3f}")
 # We use the same budget $m = 4200$ as for option 1, with $m_0 = 100$ runs per order size in the first round. That leaves $4200 - 21 \times 100 = 2100$ runs for the second round. Steps 1 to 3:
 
 # %%
+from scipy import stats
+
 rng = np.random.default_rng(3)
 budget = 4200
 m0 = 100
@@ -360,7 +374,7 @@ finish_ci_plot(option2_fig)
 # 95% CIs for the expected profit of every order size after the first round of option 2 (100 runs each). The grey order sizes are discarded.
 # :::
 #
-# [](#fig-option2-cis) shows which order sizes survive. Small order sizes are discarded even though their CIs are narrow: they are clearly worse than the best order sizes. In step 4 we divide the remaining 2100 runs over the survivors, add them to the runs of the first round, and select the order size with the highest average:
+# [](#fig-option2-cis) shows which order sizes survive. Small order sizes are discarded: because their CIs are so narrow, the data show clearly that they are worse than the best order sizes. In step 4 we divide the remaining 2100 runs over the survivors, add them to the runs of the first round, and select the order size with the highest average:
 
 # %%
 n_each = (budget - k * m0) // len(survivors)
@@ -427,7 +441,7 @@ print(f"option 2: best order size selected {np.mean(selected_2 == 8):.2f}")
 # :::{exercise}
 # :label: ex-8-3
 #
-# Apply option 2 of ranking and selection to the situation of the exercise above with a budget of 5000 simulations. Which parts of the code above do you have to change? How many order sizes survive the first round?
+# Apply option 2 of ranking and selection to the newsvendor of [](#ex-8-2) (Poisson demand with mean 15, $p = 1$, $c = 0.75$, $S = \{1, 2, \dots, 50\}$) with a budget of 5000 simulations. Which parts of the code above do you have to change? How many order sizes survive the first round?
 # :::
 
 # %% [markdown]

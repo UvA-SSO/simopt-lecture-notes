@@ -22,7 +22,7 @@
 # [![Open In Colab](images/colab-badge.svg)](https://colab.research.google.com/github/UvA-SSO/simopt-lecture-notes/blob/main/notebooks/lecture13_local-search.ipynb)
 
 # %% [markdown]
-# [Ranking and Selection](lecture13_ranking-and-selection.ipynb) simulated every solution a number of times. When $S$ is too large for that, the third of the [four types of problems](lecture13_about-simopt.ipynb#four-types), we search through $S$ step by step instead, as in the [local search heuristic](lecture11_complexity-heuristics.ipynb#local-search-heuristic) of Lecture 11. This notebook gives a simple local search algorithm for simulation optimization and applies it to a newsvendor problem that has a local optimum.
+# [Ranking and Selection](lecture13_ranking-and-selection.ipynb) simulated every solution a number of times. When $S$ is too large for that, the third of the [four types of problems](lecture13_about-simopt.ipynb#four-types), we search through $S$ step by step instead, as in the [local search heuristic](lecture11_complexity-heuristics.ipynb#local-search-heuristic) of Lecture 11. This notebook gives a simple local search algorithm for simulation optimization and applies it to a newsvendor problem that has a local and a global optimum.
 #
 # **Learning outcomes**
 #
@@ -30,20 +30,20 @@
 #
 # - describe the local search algorithm for simulation optimization, and read and adapt its Python code
 # - explain how noise lets stochastic local search escape a local optimum, unlike deterministic local search
-# - explain why the algorithm returns the most visited solution
+# - discuss which solution the algorithm should return at the end
 
 # %% [markdown]
 # (local-search)=
-# ## The Algorithm
+# ## The Local Search Algorithm
 #
-# If $S$ is very large or even infinite (e.g., $\{1, 2, \dots\}$), we cannot start by simulating every $\pi \in S$ a number of times. There is often some structure that we can use, though: solutions that are close to each other have similar performance. As in [deterministic local search](lecture11_complexity-heuristics.ipynb#local-search-heuristic), we define a neighborhood $N(\pi) \subseteq S$ for every $\pi \in S$, for example the order sizes $\pi - 1$ and $\pi + 1$, or the points next to $\pi$ on a grid.
+# If $S$ is very large or even infinite (e.g., $\{1, 2, \dots\}$), we cannot start by simulating every $\pi \in S$ a number of times. There is often some structure that we can use, though: solutions that are close to each other often have similar performance. This need not hold everywhere: in the example below, the performance jumps between two neighboring solutions. As in [deterministic local search](lecture11_complexity-heuristics.ipynb#local-search-heuristic), we define a neighborhood $N(\pi) \subseteq S$ for every $\pi \in S$, for example the order sizes $\pi - 1$ and $\pi + 1$, or the points next to $\pi$ on a grid.
 #
 # The algorithm keeps track of a current solution $\pi^*$ and, for every solution $\pi$:
 #
 # - $n(\pi)$: the number of times $\pi$ has been simulated so far;
 # - $y(\pi)$: the average of these $n(\pi)$ simulated outcomes.
 #
-# In every iteration it compares $\pi^*$ with a random neighbor, using one new run of each:
+# We maximize, so a higher average is better. In every iteration the algorithm compares $\pi^*$ with a random neighbor, using one new run of each:
 #
 # - **Start:** set $n(\pi) = 0$ and $y(\pi) = 0$ for all $\pi \in S$, and choose an initial solution $\pi^*$.
 # - **While** the simulation budget is not used up:
@@ -54,7 +54,9 @@
 #
 # This is one of the simplest algorithms there is; the scientific literature describes many more advanced ones. In practice, the result usually improves if the algorithm is run several times from different initial solutions.
 #
-# Compare it with deterministic local search, where we can compute the objective $g(\pi)$ exactly: that algorithm moves to $\pi'$ only if $g(\pi') > g(\pi^*)$, and stops when no neighbor is better. It always ends in a local optimum, and it stays there. In stochastic local search, the comparison uses noisy averages, and a neighbor that is in fact worse can look better by chance, especially when it has only been simulated a few times. This randomness leads to more exploration of $S$: it can take the search out of a local optimum where deterministic local search gets stuck forever. The price is that the search sometimes wanders to a worse solution. That is why the algorithm returns the most visited solution and not the one with the highest average $y(\pi)$: a solution that was visited often had many chances to be beaten by a neighbor and survived them, while a solution with a high average based on a few lucky runs is not reliable.
+# Compare it with deterministic local search, where we can compute the objective $g(\pi)$ exactly: that algorithm moves to $\pi'$ only if $g(\pi') > g(\pi^*)$, and stops when no neighbor is better. It always ends in a local optimum, and it stays there. In stochastic local search, the comparison uses noisy averages, and a neighbor that is in fact worse can look better by chance, especially when it has only been simulated a few times. This randomness leads to more exploration of $S$: it can take the search out of a local optimum where deterministic local search gets stuck forever. The price is that the search sometimes wanders to a worse solution.
+#
+# Which solution to return at the end is a choice. The algorithm above returns the most visited solution: a solution that was visited often had many chances to be beaten by a neighbor and survived them, while the solution with the highest average $y(\pi)$ may owe that average to a few lucky runs. But the most visited solution is not always the best choice either. Suppose a solution has a much higher average than the most visited one, based on many runs, just fewer: then its average is reliable, and it is the better choice. So it depends on both the averages and the numbers of runs behind them. A more careful approach is to take the few most promising solutions (for example, the most visited ones and the ones with the highest averages based on enough runs), and to choose between them with [ranking and selection](lecture13_ranking-and-selection.ipynb).
 
 # %% [markdown]
 # (local-search-example)=
@@ -62,11 +64,10 @@
 #
 # A newsvendor sells papers for €1 each. Demand $X$ is Poisson distributed with mean 15, and there is room for 20 papers, so $S = \{0, 1, \dots, 20\}$. A paper costs €0.60, but the supplier gives a volume discount: if the newsvendor buys more than 15 papers, every paper costs €0.50. The neighborhood is $N(\pi) = \{\pi - 1, \pi + 1\}$ for $0 < \pi < 20$, $N(0) = \{1\}$ and $N(20) = \{19\}$.
 #
-# Before we search, we look at the expected profit, which we can compute exactly for this small example (as in [Ranking and Selection](lecture13_ranking-and-selection.ipynb#newsvendor)). We only use it to check the search, which itself only sees simulated profits.
+# With 21 solutions and a budget of 2000 runs, $S$ is not large here: we keep the example small so that we can show the whole picture. Local search is meant for problems where $S$ is much larger than the budget.
 
 # %%
 import numpy as np
-from scipy import stats
 
 price, mean_demand, max_order = 1, 15, 20
 
@@ -81,6 +82,14 @@ def simulate(order, rng):
         price * min(rng.poisson(mean_demand), order) - unit_cost(order) * order
     )
 
+
+# %% [markdown]
+# Before we search, we look at the expected profit. For this simple example it can be calculated exactly; how is outside the scope of this course (the code is hidden below), and for real-life problems it is in general not possible. We only use it to check the search, which itself only sees simulated profits.
+
+# %% tags=["hide-input"]
+# exact expected profit, only to check the search (outside the scope of
+# the course)
+from scipy import stats
 
 orders = np.arange(max_order + 1)
 true_value = np.array(
@@ -155,7 +164,7 @@ profit_fig.show(config=PLOT_CONFIG)
 #
 # [](#fig-ls-profit) shows that order size 14 is a local optimum: both neighbors, 13 and 15, are worse. The discount makes order size 16 the global optimum. Deterministic local search that starts at $\pi^* = 0$ climbs to 14 and stops there, because 15 is worse than 14.
 #
-# The function below follows the algorithm line by line. The dictionaries `visits` and `average` hold $n(\pi)$ and $y(\pi)$; the average is updated with the new outcome without storing all earlier outcomes, using $y_{\text{new}} = y_{\text{old}} + (\text{outcome} - y_{\text{old}})/n$. Besides the most visited solution, the function returns the current solution after every iteration, so that we can plot the path of the search. As for the algorithms of Lecture 11, you should be able to read and follow this code; you do not need to be able to write it from scratch.
+# The function `local_search` below follows the local search algorithm above line by line. The dictionaries `visits` and `average` hold $n(\pi)$ and $y(\pi)$; the average is updated with the new outcome without storing all earlier outcomes, using $y_{\text{new}} = y_{\text{old}} + (\text{outcome} - y_{\text{old}})/n$. Besides the most visited solution, the function returns the current solution after every iteration, so that we can plot the path of the search. As for the algorithms of Lecture 11, you should be able to read and follow this code; you do not need to be able to write it from scratch.
 
 
 # %%
@@ -247,6 +256,12 @@ for order, count in zip(found, counts):
 # :label: ex-ls-neighborhood
 #
 # Change the function `neighbors` so that the neighborhood of $\pi$ consists of all order sizes in $S$ within distance 2 of $\pi$ (e.g., $N(5) = \{3, 4, 6, 7\}$ and $N(0) = \{1, 2\}$). Repeat the 300 runs. Does the search end in the local optimum less often? Explain why.
+# :::
+#
+# :::{exercise}
+# :label: ex-ls-crn
+#
+# The function `local_search` simulates $\pi^*$ and $\pi'$ with independent demands. Change it so that it uses [common random numbers](lecture13_comparing-scenarios.ipynb#crn): in every iteration, draw one demand and compute the profit of both order sizes from it (change `simulate` so that it takes the demand as an argument). Repeat the 300 runs. Does the search end in the local optimum more or less often? Explain what changes in the comparison of $y(\pi')$ and $y(\pi^*)$.
 # :::
 #
 # :::{exercise}

@@ -29,7 +29,7 @@
 # On completion of this notebook, you will be able to:
 #
 # - describe the simulation optimization setting and give examples of it
-# - explain why noise makes simulation optimization harder than deterministic optimization
+# - explain why simulation optimization is harder than deterministic optimization: every solution needs many simulation runs, and the estimates they give are noisy
 # - recognize which of the four types of simulation optimization problems a problem belongs to
 
 # %% [markdown]
@@ -42,9 +42,9 @@
 # \max_{\pi \in S} \ E[r(X, \pi)].
 # $$
 #
-# The key feature is that $E[r(X, \pi)]$ can only be evaluated by simulating $r(X, \pi)$: there is no formula that we could optimize directly. This setting is called **simulation optimization**, also known as optimization by simulation, simulation-based optimization, or simply simopt. Replacing $X$ by its expectation and solving $\max_{\pi \in S} r(EX, \pi)$ instead is not a way out: by the [flaw of averages](lecture12_why-simulation.ipynb#flaw-of-averages), $E[r(X, \pi)]$ and $r(EX, \pi)$ can be very different, and so can the decisions that maximize them.
+# The key feature is that $E[r(X, \pi)]$ can only be evaluated by simulating $r(X, \pi)$: there is no closed-form expression for it that we could optimize directly. This is common in practice: for a queue, a production line or a project with random durations, we can simulate the process ([Monte Carlo simulation](lecture12_monte-carlo.ipynb) or [discrete-event simulation](lecture12_discrete-event-simulation.ipynb)), but we cannot write down a formula for its expected performance. This setting is called **simulation optimization**, also known as optimization by simulation, simulation-based optimization, or simply simopt. Replacing $X$ by its expectation and solving $\max_{\pi \in S} r(EX, \pi)$ instead is not a way out: by the [flaw of averages](lecture12_why-simulation.ipynb#flaw-of-averages), $E[r(X, \pi)]$ and $r(EX, \pi)$ can be very different, and so can the decisions that maximize them.
 #
-# Simulation optimization lets us evaluate decisions in a realistic model of a process, with all its randomness, and that makes it useful in practice: should a bank open an extra desk, which layout of a factory gives the highest throughput, how long should a traffic light stay red?
+# Simulation optimization lets us optimize decisions for real-life processes, with all their randomness, also when no closed-form expression for the performance exists: should a bank open an extra desk, which layout of a factory gives the highest throughput, how long should a traffic light stay red?
 #
 # :::{note} Example: Extending Earlier Simulation Examples
 # :label: eg-8-1
@@ -59,36 +59,33 @@
 # :::
 #
 # :::{note} Random Constraints
-# We could generalize the problem further, from $\max_{\pi \in S} E[r(X, \pi)]$ to a problem with random constraints $E[g_j(X, \pi)] \le b_j$, for example that the probability that a customer waits longer than 15 minutes is at most 5%. Such problems are very hard to solve, and in this lecture the only constraint is $\pi \in S$.
+# In this lecture the only constraint is $\pi \in S$, and $S$ is fixed: whether a solution is allowed does not depend on randomness. We could generalize the problem with random constraints $E[g_j(X, \pi)] \le b_j$, for example that the probability that a customer waits longer than 15 minutes is at most 5%. Whether a solution satisfies such a constraint can then only be estimated by simulation as well, which makes these problems very hard to solve.
 # :::
 
 # %% [markdown]
 # (simopt-challenges)=
 # ## Why Simulation Optimization Is Hard
 #
-# Simulation optimization is harder than the deterministic optimization of Lectures 8 to 11, for two reasons that have nothing to do with the model itself:
+# In deterministic optimization, one evaluation of the objective gives the exact value of a solution. In simulation optimization, one simulation run gives only one random outcome $r(X, \pi)$, and we need many runs to get a good estimate of $E[r(X, \pi)]$ for a single solution. This is time consuming, especially for a discrete-event simulation of a complex process, where a single run can already take a while. And however many runs we do, the estimates remain noisy, so we can never be sure that one solution is better than another: there are no optimality guarantees.
 #
-# - There are no optimality guarantees. We only see estimates of $E[r(X, \pi)]$, so we can never be sure that one solution is better than another.
-# - Each evaluation can be slow, especially for a discrete-event simulation of a complex process.
+# In practice, there is often a time limit within which a solution is needed, for example 5 minutes in an operational setting. With the time that one simulation run takes, this translates into a **simulation budget** $m$: the total number of simulation runs we can do, say 10,000. The central question of this lecture is how to spend this budget well. Compare it with testing slot machines in a casino with 100 coins: how do you spend the coins to find the machine with the highest expected profit? Playing every machine equally often wastes coins on machines that are clearly bad, while playing only the machine that looked best after one try may miss a better one.
 #
-# Because of the second reason, we usually have a limited **simulation budget** $m$: the total number of simulation runs we can do, say 10,000. The central question of this lecture is how to spend this budget well. Compare it with testing slot machines in a casino with 100 coins: how do you spend the coins to find the machine with the highest expected profit? Playing every machine equally often wastes coins on machines that are clearly bad, while playing only the machine that looked best after one try may miss a better one.
-#
-# The noise in the estimates causes two problems. Because of the noise we might not recognize the signal and pick the wrong solution. And because of the noise we might overestimate the value: instead of selecting the solution with the highest value we pick the one with the highest random component, so the estimated value of the chosen solution is typically too high. To avoid this we could simulate each solution many more times, but this might take too much time. As a result, we cannot avoid these problems completely, but we can spend the budget better than by splitting it equally over all solutions. [Ranking and Selection](lecture13_ranking-and-selection.ipynb#option-1) shows both problems for a newsvendor.
+# The noise in the estimates causes two problems. Because of the noise we might not recognize the signal and pick the wrong solution. And because of the noise we might overestimate the value: instead of selecting the solution with the highest value we pick the one with the highest random component, so the estimated value of the chosen solution is typically too high. To avoid this we could simulate each solution many more times, but this might take too much time. As a result, we cannot avoid these problems completely, but we can spend the budget better than by splitting it equally over all solutions. [Ranking and Selection](lecture13_ranking-and-selection.ipynb#option-1) shows both problems for a newsvendor with 21 possible order sizes: with 200 runs per order size, the best order size is selected only about half of the time, and the estimated profit of the selected order size is too high on average.
 
 # %% [markdown]
 # (four-types)=
 # ## Four Types of Problems
 #
-# How we spend the simulation budget depends on the size and shape of $S$. We distinguish four types of problems, each with its own strategy:
+# How we spend the simulation budget depends on the size and shape of $S$. We write $|S|$ for the number of solutions in $S$ (the cardinality of $S$). Comparing $|S|$ with the budget $m$ gives four types of problems, each with its own strategy:
 #
 # | Shape of $S$ | Strategy |
 # |---|---|
 # | $\lvert S \rvert = 2$ | [comparing scenarios](lecture13_comparing-scenarios.ipynb) |
-# | $S$ discrete and small | [ranking and selection](lecture13_ranking-and-selection.ipynb) |
-# | $S$ discrete but large, possibly infinite (e.g., a grid) | [local search](lecture13_local-search.ipynb) |
+# | $S$ discrete and small: $m \gg \lvert S \rvert$, so the budget suffices to simulate every solution many times | [ranking and selection](lecture13_ranking-and-selection.ipynb) |
+# | $S$ discrete and large: $m \ll \lvert S \rvert$, so the budget does not even suffice to simulate every solution once ($S$ can also be infinite, e.g., $\{0, 1, 2, \dots\}$) | [local search](lecture13_local-search.ipynb) |
 # | $S$ continuous (e.g., an interval) | [gradient methods](lecture13_gradient-methods.ipynb) |
 #
-# The next notebooks discuss these strategies in this order, from $|S| = 2$ to continuous $S$. For each type we give one simple method, to show the ideas; the scientific literature contains many more advanced methods. The techniques of these notebooks are also the building blocks for more challenging problems, for example problems with both discrete and continuous decisions, such as choosing the number of servers in a queue together with the length of their shifts.
+# For each type we give one simple method, to show the ideas. The scientific literature contains many more advanced methods: Fu (2002) is an accessible introduction to the subject, and Nelson (2013) is a textbook on simulation that includes a chapter on simopt. The techniques of these notebooks are also the building blocks for more challenging problems, for example problems with both discrete and continuous decisions, such as choosing the number of servers in a queue together with the length of their shifts.
 #
 # :::{exercise}
 # :label: ex-four-types
@@ -101,13 +98,8 @@
 #
 # c. A call center chooses how many agents to schedule in each of the 48 half-hour intervals of a day.
 #
-# d. The newsvendor of [](#eg-8-2) has space for at most 20 newspapers.
+# d. The newsvendor of [](#eg-8-2) has space for at most 20 newspapers, and can simulate 10,000 days.
 # :::
-
-# %% [markdown]
-# ## Additional Reading
-#
-# There are few accessible books on simopt. Nelson (2013) is a textbook on simulation that includes a chapter on simopt; Fu (2002) is an accessible introduction to the subject.
 
 # %% [markdown]
 # ## References

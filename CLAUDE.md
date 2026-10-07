@@ -271,7 +271,12 @@ The pairing is enforced by the `jupytext --sync` pre-commit hook. Practical impl
   split, option 2 discard with Šidák-corrected one-sided tests),
   `local-search` and `gradient-methods`. The newsvendor is the running
   example (as in the slides); for checking, each notebook computes the exact
-  expected profit, which the methods themselves never use.
+  expected profit, which the methods themselves never use. That exact
+  calculation is out of the course's scope: keep it in a `hide-input` cell
+  and say so in the text. The slide figures come from the demos in
+  `Course Materials/demos/lecture_13_*.py` (matplotlib, slide styling,
+  fixed seeds); the notes use their own plotly figures and may differ in
+  details (e.g. the notes' gradient example has no volume discount).
 - When a lecture's slide deck exists under `Course Materials/Lecture Slides/`,
   use it (not just the Koole book) as the source for a notebook's motivating
   examples, notation, and numbers — it is what was actually taught live, and
