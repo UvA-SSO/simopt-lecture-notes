@@ -280,14 +280,14 @@
 # alpha = 0.05
 # k = len(y)
 # alpha_star = 1 - (1 - alpha) ** (1 / (k - 1))
-# z = stats.norm.ppf(1 - alpha_star)
+# beta = stats.t.ppf(1 - alpha_star, m0 - 1)
 #
 # survivors = []
 # for order in y:
 #     discard = False
 #     for other in y:
 #         if other != order:
-#             margin = z * np.sqrt(s[order] ** 2 + s[other] ** 2) / np.sqrt(m0)
+#             margin = beta * np.sqrt(s[order] ** 2 + s[other] ** 2) / np.sqrt(m0)
 #             if y[order] <= y[other] - margin:
 #                 discard = True
 #     if not discard:
@@ -295,9 +295,12 @@
 # print(survivors)
 # ```
 #
-# You may use that $\sqrt[4]{0.95} \approx 0.9873$, that `stats.norm.ppf(0.9873)` is
-# about 2.23, that `stats.norm.ppf(0.95)` is about 1.64, and that
-# $\sqrt{1.5^2 + 1.5^2} \approx 2.12$.
+# You may use that $\sqrt[4]{0.95} \approx 0.9873$, that `stats.t.ppf(0.9873, 99)` is
+# about 2.27, that `stats.t.ppf(0.95, 99)` is about 1.66, and that
+# $\sqrt{1.5^2 + 1.5^2} \approx 2.12$. The code uses the $t$-distribution, as on the
+# slides. With $m_0 = 100$ runs, the normal critical values are a good approximation
+# (about 2.23 and 1.64), and you may use those instead; here they give the same
+# answers.
 #
 # a. What do `y`, `s` and `m0` stand for? Compute `alpha_star`.
 #
@@ -329,11 +332,11 @@
 #    order size in the first round. With $k = 5$ order sizes,
 #    $\alpha^* = 1 - \sqrt[4]{0.95} \approx 1 - 0.9873 = 0.0127$.
 #
-# b. `z` is about 2.23, and since all standard deviations are equal, every comparison
-#    uses the same margin $2.23 \times 2.12 / \sqrt{100} \approx 0.47$. An order size is
-#    discarded if its average is more than 0.47 below the average of another order
+# b. `beta` is about 2.27, and since all standard deviations are equal, every comparison
+#    uses the same margin $2.27 \times 2.12 / \sqrt{100} \approx 0.48$. An order size is
+#    discarded if its average is at least 0.48 below the average of another order
 #    size. The highest average is 1.55 (order size 8), so order sizes with an average
-#    below $1.55 - 0.47 = 1.08$ are discarded: 4 (0.98) and 12 (0.45). The code prints
+#    at most $1.55 - 0.48 = 1.07$ are discarded: 4 (0.98) and 12 (0.45). The code prints
 #    `[6, 8, 10]`.
 #
 # c. With equal standard deviations the margin is the same for every pair. If an order
@@ -349,7 +352,7 @@
 #        discard = False
 #        for other in y:
 #            if other != order:
-#                margin = z * np.sqrt(s[order] ** 2 + s[other] ** 2) / np.sqrt(m0)
+#                margin = beta * np.sqrt(s[order] ** 2 + s[other] ** 2) / np.sqrt(m0)
 #                if y[order] <= y[other] - margin:
 #                    discard = True
 #                    beaten_by = other
@@ -359,9 +362,9 @@
 #            survivors.append(order)
 #    ```
 #
-# e. Replace the line `z = stats.norm.ppf(1 - alpha_star)` by
-#    `z = stats.norm.ppf(1 - alpha)`. Then $z \approx 1.64$, the margin is
-#    $1.64 \times 2.12 / 10 \approx 0.35$, and order sizes with an average below
+# e. Replace the line `beta = stats.t.ppf(1 - alpha_star, m0 - 1)` by
+#    `beta = stats.t.ppf(1 - alpha, m0 - 1)`. Then `beta` is about 1.66, the margin is
+#    $1.66 \times 2.12 / 10 \approx 0.35$, and order sizes with an average of at most
 #    $1.55 - 0.35 = 1.20$ are discarded: 4, 10 and 12. This is not a good idea because
 #    each order size is tested against four others: even if it is the best one, the
 #    probability that at least one of the four tests discards it by chance is then

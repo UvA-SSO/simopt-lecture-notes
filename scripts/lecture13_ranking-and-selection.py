@@ -278,13 +278,13 @@ print(f"average overestimation of the profit: {np.mean(overestimate):.3f}")
 # T = \frac{y(\pi') - y(\pi)}{\sqrt{s^2(\pi) + s^2(\pi')}/\sqrt{m_0}}
 # $$
 #
-# is approximately standard normal if the two expectations are equal, and a large value of $T$ is evidence for $H_1$. Let $\Phi$ be the cumulative distribution function of the standard normal distribution, and $\Phi^{-1}$ its inverse: $\Phi^{-1}(q)$ is the number $z$ with $P(Z \le z) = q$ for a standard normal $Z$. In Python, $\Phi^{-1}(q)$ is `stats.norm.ppf(q)`. A one-sided test at significance level $\alpha$ rejects $H_0(\pi, \pi')$ if $T \ge \Phi^{-1}(1 - \alpha)$, that is, if
+# has approximately a $t$-distribution with $m_0 - 1$ degrees of freedom if the two expectations are equal, and a large value of $T$ is evidence for $H_1$. As on the slides, let $\beta_q$ be the inverse of this $t$-distribution at $q$: the number $b$ with $P(T \le b) = q$. In Python, $\beta_q$ is `stats.t.ppf(q, m0 - 1)`. A one-sided test at significance level $\alpha$ rejects $H_0(\pi, \pi')$ if $T \ge \beta_{1-\alpha}$, that is, if
 #
 # $$
-# y(\pi) \le y(\pi') - \Phi^{-1}(1 - \alpha)\, \frac{\sqrt{s^2(\pi) + s^2(\pi')}}{\sqrt{m_0}}.
+# y(\pi) \le y(\pi') - \beta_{1-\alpha}\, \frac{\sqrt{s^2(\pi) + s^2(\pi')}}{\sqrt{m_0}}.
 # $$
 #
-# For $\alpha = 0.05$, $\Phi^{-1}(0.95) = 1.64$. Strictly, the $t$-distribution with $m_0 - 1$ degrees of freedom applies; the slides use its inverse, written $\beta_{1-\alpha}$, which is `stats.t.ppf(1 - alpha, m0 - 1)` in Python. For $m_0 \ge 30$ the difference is small, and we use $\Phi^{-1}$.
+# For $\alpha = 0.05$ and $m_0 = 100$, $\beta_{0.95} = 1.66$. For large $m_0$, the $t$-distribution is close to the standard normal distribution, so the normal critical values are a good approximation (1.64 here); the exercises use them for calculations by hand.
 #
 # (sidak)=
 # ### The Multiple-Testing Problem and the Šidák Correction
@@ -307,10 +307,10 @@ print(f"average overestimation of the profit: {np.mean(overestimate):.3f}")
 #
 # You may know the **Bonferroni correction** from the statistics part of the course, which takes $\alpha^* = \alpha/(k-1)$. It also guarantees that the best solution survives with probability at least $1 - \alpha$, but the Šidák level is always a bit larger: $1 - \sqrt[k-1]{1-\alpha} > \alpha/(k-1)$. So with the Šidák correction each test is slightly less strict and discards bad solutions a bit more often, with the same guarantee for the best solution. Here the difference is small: for $k = 21$ and $\alpha = 0.05$, Bonferroni gives $\alpha^* = 0.0025$ and Šidák $\alpha^* \approx 0.0026$.
 #
-# For the newsvendor, with $k = 21$ and $\alpha = 0.05$, this gives $\alpha^* \approx 0.0026$ and $\Phi^{-1}(1 - \alpha^*) \approx 2.80$ instead of 1.64: a much stricter bar for declaring a solution worse, because it is tested against many other solutions at once. With $1 - \alpha^* = \sqrt[k-1]{1-\alpha}$, the set of solutions that survive the first round is
+# For the newsvendor, with $k = 21$ and $\alpha = 0.05$, this gives $\alpha^* \approx 0.0026$ and, with $m_0 = 100$, $\beta_{1-\alpha^*} \approx 2.86$ instead of $\beta_{0.95} = 1.66$: a much stricter bar for declaring a solution worse, because it is tested against many other solutions at once. The set of solutions that survive the first round is
 #
 # $$
-# I = \left\{ \pi \in S \;\middle|\; y(\pi) > y(\pi') - \Phi^{-1}\!\left(\sqrt[k-1]{1-\alpha}\right) \frac{\sqrt{s^2(\pi)+s^2(\pi')}}{\sqrt{m_0}} \text{ for all } \pi' \ne \pi \right\}.
+# I = \left\{ \pi \in S \;\middle|\; y(\pi) > y(\pi') - \beta_{1-\alpha^*} \frac{\sqrt{s^2(\pi)+s^2(\pi')}}{\sqrt{m_0}} \text{ for all } \pi' \ne \pi \right\}.
 # $$
 
 # %% [markdown]
@@ -328,8 +328,8 @@ m0 = 100
 k = len(orders)
 alpha = 0.05
 alpha_star = 1 - (1 - alpha) ** (1 / (k - 1))
-z = stats.norm.ppf(1 - alpha_star)
-print(f"alpha* = {alpha_star:.4f}, critical value = {z:.2f}")
+beta = stats.t.ppf(1 - alpha_star, m0 - 1)
+print(f"alpha* = {alpha_star:.4f}, beta = {beta:.2f}")
 
 # step 1: simulate every order size m0 times
 first_round = {order: simulate(order, m0, rng) for order in orders}
@@ -342,7 +342,7 @@ for order in orders:
     discard = False
     for other in orders:
         if other != order:
-            margin = z * np.sqrt(s2[order] + s2[other]) / np.sqrt(m0)
+            margin = beta * np.sqrt(s2[order] + s2[other]) / np.sqrt(m0)
             if y[order] <= y[other] - margin:
                 discard = True
     if not discard:
@@ -396,7 +396,7 @@ def option_2(budget, m0, alpha, rng):
     """Discard bad order sizes first: return the selected order size."""
     k = len(orders)
     alpha_star = 1 - (1 - alpha) ** (1 / (k - 1))
-    z = stats.norm.ppf(1 - alpha_star)
+    beta = stats.t.ppf(1 - alpha_star, m0 - 1)
     first_round = {order: simulate(order, m0, rng) for order in orders}
     y = {order: runs.mean() for order, runs in first_round.items()}
     s2 = {order: runs.var(ddof=1) for order, runs in first_round.items()}
@@ -405,7 +405,7 @@ def option_2(budget, m0, alpha, rng):
         discard = False
         for other in orders:
             if other != order:
-                margin = z * np.sqrt(s2[order] + s2[other]) / np.sqrt(m0)
+                margin = beta * np.sqrt(s2[order] + s2[other]) / np.sqrt(m0)
                 if y[order] <= y[other] - margin:
                     discard = True
         if not discard:
